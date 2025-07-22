@@ -3,7 +3,8 @@ import { ProgressIndicator } from "@/components/ProgressIndicator";
 import { Step1PersonalNumber } from "@/components/steps/Step1PersonalNumber";
 import { Step2Assets } from "@/components/steps/Step2Assets";
 import { Step3Distribution } from "@/components/steps/Step3Distribution";
-import { Step4Summary } from "@/components/steps/Step4Summary";
+import { Step4Signing } from "@/components/steps/Step4Signing";
+import { Step5Summary } from "@/components/steps/Step5Summary";
 import { Scale } from "lucide-react";
 
 interface Asset {
@@ -21,6 +22,15 @@ interface Beneficiary {
   relationship: string;
   percentage: number;
   accountNumber: string;
+  signed?: boolean;
+  signedAt?: string;
+}
+
+interface Testament {
+  id: string;
+  filename: string;
+  uploadDate: string;
+  verified: boolean;
 }
 
 const Index = () => {
@@ -28,18 +38,21 @@ const Index = () => {
   const [personalNumber, setPersonalNumber] = useState("");
   const [assets, setAssets] = useState<Asset[]>([]);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [testament, setTestament] = useState<Testament | null>(null);
+  const [hasTestament, setHasTestament] = useState(false);
 
   const stepLabels = [
     "Identifiering",
     "Tillgångar", 
     "Fördelning",
-    "Signering"
+    "Signering",
+    "Slutförd"
   ];
 
   const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
 
   const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 4));
+    setCurrentStep(prev => Math.min(prev + 1, 5));
   };
 
   const handleBack = () => {
@@ -72,7 +85,7 @@ const Index = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <ProgressIndicator 
           currentStep={currentStep} 
-          totalSteps={4} 
+          totalSteps={5} 
           stepLabels={stepLabels} 
         />
 
@@ -98,16 +111,30 @@ const Index = () => {
             beneficiaries={beneficiaries}
             setBeneficiaries={setBeneficiaries}
             totalAmount={totalAmount}
+            testament={testament}
+            setTestament={setTestament}
+            hasTestament={hasTestament}
+            setHasTestament={setHasTestament}
             onNext={handleNext}
             onBack={handleBack}
           />
         )}
 
         {currentStep === 4 && (
-          <Step4Summary
+          <Step4Signing
+            beneficiaries={beneficiaries}
+            setBeneficiaries={setBeneficiaries}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 5 && (
+          <Step5Summary
             personalNumber={personalNumber}
             assets={assets}
             beneficiaries={beneficiaries}
+            testament={testament}
             onBack={handleBack}
             onComplete={handleComplete}
           />

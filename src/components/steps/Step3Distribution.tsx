@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Users, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TestamentUpload } from "@/components/TestamentUpload";
 
 interface Beneficiary {
   id: string;
@@ -16,15 +17,36 @@ interface Beneficiary {
   accountNumber: string;
 }
 
+interface Testament {
+  id: string;
+  filename: string;
+  uploadDate: string;
+  verified: boolean;
+}
+
 interface Step3Props {
   beneficiaries: Beneficiary[];
   setBeneficiaries: (beneficiaries: Beneficiary[]) => void;
   totalAmount: number;
+  testament: Testament | null;
+  setTestament: (testament: Testament | null) => void;
+  hasTestament: boolean;
+  setHasTestament: (hasTestament: boolean) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export const Step3Distribution = ({ beneficiaries, setBeneficiaries, totalAmount, onNext, onBack }: Step3Props) => {
+export const Step3Distribution = ({ 
+  beneficiaries, 
+  setBeneficiaries, 
+  totalAmount, 
+  testament, 
+  setTestament, 
+  hasTestament, 
+  setHasTestament, 
+  onNext, 
+  onBack 
+}: Step3Props) => {
   const [newBeneficiary, setNewBeneficiary] = useState({
     name: "",
     personalNumber: "",
@@ -104,6 +126,14 @@ export const Step3Distribution = ({ beneficiaries, setBeneficiaries, totalAmount
               </span>
             </div>
           </div>
+
+          {/* Testament Section */}
+          <TestamentUpload
+            testament={testament}
+            setTestament={setTestament}
+            hasTestament={hasTestament}
+            setHasTestament={setHasTestament}
+          />
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Lägg till dödsbodelägare</h3>
@@ -253,9 +283,9 @@ export const Step3Distribution = ({ beneficiaries, setBeneficiaries, totalAmount
             </Button>
             <Button 
               onClick={onNext} 
-              disabled={beneficiaries.length === 0 || !isValidDistribution}
+              disabled={beneficiaries.length === 0 || !isValidDistribution || (hasTestament && (!testament || !testament.verified))}
             >
-              Gå till sammanfattning
+              Fortsätt till signering
             </Button>
           </div>
         </CardContent>

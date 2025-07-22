@@ -23,15 +23,23 @@ interface Beneficiary {
   accountNumber: string;
 }
 
-interface Step4Props {
+interface Step5Props {
   personalNumber: string;
   assets: Asset[];
   beneficiaries: Beneficiary[];
+  testament: Testament | null;
   onBack: () => void;
   onComplete: () => void;
 }
 
-export const Step4Summary = ({ personalNumber, assets, beneficiaries, onBack, onComplete }: Step4Props) => {
+interface Testament {
+  id: string;
+  filename: string;
+  uploadDate: string;
+  verified: boolean;
+}
+
+export const Step5Summary = ({ personalNumber, assets, beneficiaries, testament, onBack, onComplete }: Step5Props) => {
   const [isSigning, setIsSigning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -86,9 +94,9 @@ export const Step4Summary = ({ personalNumber, assets, beneficiaries, onBack, on
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <FileText className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Sammanfattning och signering</CardTitle>
+          <CardTitle className="text-2xl">Slutlig sammanfattning</CardTitle>
           <CardDescription>
-            Granska all information innan du signerar med BankID
+            Granska hela arvsskiftet innan det genomförs slutgiltigt
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
@@ -128,9 +136,31 @@ export const Step4Summary = ({ personalNumber, assets, beneficiaries, onBack, on
             </div>
           </div>
 
+          {/* Testament Information */}
+          {testament && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Testamente</h3>
+              <div className="p-4 border border-border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-6 h-6 text-primary" />
+                  <div>
+                    <p className="font-medium">{testament.filename}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Verifierat testamente från {testament.uploadDate}
+                    </p>
+                  </div>
+                  <Badge variant="default" className="bg-success text-success-foreground ml-auto">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Verifierat
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Beneficiaries Summary */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Fördelning</h3>
+            <h3 className="text-lg font-semibold mb-3">Fördelning {testament ? "(Enligt testamente)" : "(Lagstadgad arvordning)"}</h3>
             <div className="space-y-3">
               {beneficiaries.map((beneficiary) => (
                 <div key={beneficiary.id} className="p-4 border border-border rounded-lg">
@@ -139,6 +169,10 @@ export const Step4Summary = ({ personalNumber, assets, beneficiaries, onBack, on
                       <div className="flex items-center gap-2 mb-2">
                         <span className="font-medium">{beneficiary.name}</span>
                         <Badge variant="secondary">{beneficiary.relationship}</Badge>
+                        <Badge variant="default" className="bg-success text-success-foreground">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          Signerad
+                        </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-1">
                         Personnummer: {beneficiary.personalNumber}
