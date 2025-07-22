@@ -1,11 +1,131 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { ProgressIndicator } from "@/components/ProgressIndicator";
+import { Step1PersonalNumber } from "@/components/steps/Step1PersonalNumber";
+import { Step2Assets } from "@/components/steps/Step2Assets";
+import { Step3Distribution } from "@/components/steps/Step3Distribution";
+import { Step4Summary } from "@/components/steps/Step4Summary";
+import { Scale } from "lucide-react";
+
+interface Asset {
+  id: string;
+  bank: string;
+  accountType: string;
+  accountNumber: string;
+  amount: number;
+}
+
+interface Beneficiary {
+  id: string;
+  name: string;
+  personalNumber: string;
+  relationship: string;
+  percentage: number;
+  accountNumber: string;
+}
 
 const Index = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [personalNumber, setPersonalNumber] = useState("");
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+
+  const stepLabels = [
+    "Identifiering",
+    "Tillgångar", 
+    "Fördelning",
+    "Signering"
+  ];
+
+  const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
+
+  const handleNext = () => {
+    setCurrentStep(prev => Math.min(prev + 1, 4));
+  };
+
+  const handleBack = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleComplete = () => {
+    // Reset or redirect to completion page
+    console.log("Arvsskifte genomfört!");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-card border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+              <Scale className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Digitalt Arvsskifte</h1>
+              <p className="text-muted-foreground">Säker och effektiv hantering av arvsskiften</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <ProgressIndicator 
+          currentStep={currentStep} 
+          totalSteps={4} 
+          stepLabels={stepLabels} 
+        />
+
+        {currentStep === 1 && (
+          <Step1PersonalNumber
+            personalNumber={personalNumber}
+            setPersonalNumber={setPersonalNumber}
+            onNext={handleNext}
+          />
+        )}
+
+        {currentStep === 2 && (
+          <Step2Assets
+            assets={assets}
+            setAssets={setAssets}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 3 && (
+          <Step3Distribution
+            beneficiaries={beneficiaries}
+            setBeneficiaries={setBeneficiaries}
+            totalAmount={totalAmount}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 4 && (
+          <Step4Summary
+            personalNumber={personalNumber}
+            assets={assets}
+            beneficiaries={beneficiaries}
+            onBack={handleBack}
+            onComplete={handleComplete}
+          />
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="bg-card border-t border-border mt-16">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div>© 2024 Digitalt Arvsskifte - Säker hantering av arvsskiften</div>
+            <div className="flex gap-4">
+              <a href="#" className="hover:text-foreground transition-colors">Integritet</a>
+              <a href="#" className="hover:text-foreground transition-colors">Villkor</a>
+              <a href="#" className="hover:text-foreground transition-colors">Support</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
