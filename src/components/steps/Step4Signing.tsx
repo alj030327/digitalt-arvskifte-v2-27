@@ -2,128 +2,129 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, Shield, Smartphone, Clock, UserCheck, AlertCircle } from "lucide-react";
+import { FileText, Users, Building2, Lock, Mail, Briefcase, CheckCircle2, Send } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BankIdService } from "@/services/bankidService";
+import { useToast } from "@/hooks/use-toast";
 
-interface Heir {
-  personalNumber: string;
+interface Asset {
+  id: string;
+  bank: string;
+  accountType: string;
+  assetType: string;
+  accountNumber: string;
+  amount: number;
+  toRemain?: boolean;
+  reasonToRemain?: string;
+}
+
+interface Beneficiary {
+  id: string;
   name: string;
+  personalNumber: string;
   relationship: string;
-  inheritanceShare?: number;
+  percentage: number;
+  accountNumber: string;
+  email?: string;
+  phone?: string;
   signed?: boolean;
   signedAt?: string;
 }
 
-interface SigningStatus {
-  heirPersonalNumber: string;
-  isSigning: boolean;
-  completed: boolean;
-  error?: string;
+interface Testament {
+  id: string;
+  filename: string;
+  uploadDate: string;
+  verified: boolean;
 }
 
-interface Step4Props {
-  heirs: Heir[];
-  setHeirs: (heirs: Heir[]) => void;
-  onNext: () => void;
+interface PowerOfAttorney {
+  id: string;
+  deceasedPersonalNumber: string;
+  representativePersonalNumber: string;
+  representativeName: string;
+  grantedBy: string;
+  grantedAt: string;
+  status: 'pending' | 'approved' | 'active';
+  approvals: {
+    heirPersonalNumber: string;
+    heirName: string;
+    approved: boolean;
+    approvedAt?: string;
+  }[];
+}
+
+interface Step6Props {
+  personalNumber: string;
+  assets: Asset[];
+  beneficiaries: Beneficiary[];
+  testament: Testament | null;
   onBack: () => void;
+  onComplete: () => void;
 }
 
-export const Step4Signing = ({ heirs, setHeirs, onNext, onBack }: Step4Props) => {
-  const [signingStatuses, setSigningStatuses] = useState<SigningStatus[]>(
-    heirs.map(h => ({
-      heirPersonalNumber: h.personalNumber,
-      isSigning: false,
-      completed: h.signed || false
-    }))
+export const Step4Signing = ({ 
+  personalNumber,
+  assets,
+  beneficiaries, 
+  testament,
+  onBack,
+  onComplete
+}: Step6Props) => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load power of attorneys for this deceased person
+  const powerOfAttorneys: PowerOfAttorney[] = JSON.parse(
+    localStorage.getItem(`powerOfAttorneys_${personalNumber.replace('-', '')}`) || '[]'
   );
 
-  const handleBankIdSign = async (heirPersonalNumber: string) => {
-    setSigningStatuses(prev => prev.map(status => 
-      status.heirPersonalNumber === heirPersonalNumber 
-        ? { ...status, isSigning: true, error: undefined }
-        : status
-    ));
+  const activePowerOfAttorneys = powerOfAttorneys.filter(poa => 
+    poa.approvals.every(approval => approval.approved)
+  );
 
+  const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
+  const distributedAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
+  const remainingAssets = assets.filter(asset => asset.toRemain);
+
+  // Mock bank contact information (in production this would come from PSD2/Open Banking)
+  const bankContacts = [
+    { name: "Swedbank", email: "estates@swedbank.se", groupEmail: "arv.groupprevlada@swedbank.se" },
+    { name: "Handelsbanken", email: "arvsskifte@handelsbanken.se", groupEmail: "estates.department@handelsbanken.se" },
+    { name: "SEB", email: "inheritance@seb.se", groupEmail: "estate.services@seb.se" },
+    { name: "Nordea", email: "arvs@nordea.se", groupEmail: "inheritance.group@nordea.se" },
+    { name: "Danske Bank", email: "estate@danskebank.se", groupEmail: "arv.avdelning@danskebank.se" }
+  ];
+
+  const relevantBanks = bankContacts.filter(bank => 
+    assets.some(asset => asset.bank.toLowerCase().includes(bank.name.toLowerCase()))
+  );
+
+  const handleSubmitInheritance = async () => {
+    setIsSubmitting(true);
+    
     try {
-      // Create signing request for inheritance document
-      const signRequest = {
-        personalNumber: heirPersonalNumber,
-        endUserIp: '127.0.0.1', // In production, get real IP
-        userVisibleData: BankIdService.encodeUserVisibleData(
-          `Arvsskifte - Signering av slutlig fördelning\n\n` +
-          `Genom att signera detta dokument bekräftar jag att jag har tagit del av ` +
-          `den föreslagna fördelningen av dödsboet och godkänner denna.\n\n` +
-          `Datum: ${new Date().toLocaleDateString('sv-SE')}`
-        )
-      };
+      // Simulate sending inheritance settlement to banks
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
-      const session = await BankIdService.sign(signRequest);
+      toast({
+        title: "Arvsskifte skickat",
+        description: `Arvsskiftet har skickats till ${relevantBanks.length} banker för genomförande.`,
+      });
       
-      if (!session) {
-        throw new Error('Kunde inte starta BankID-session');
-      }
-      
-      // Poll for completion
-      let attempts = 0;
-      const maxAttempts = 60; // 30 seconds with 500ms intervals
-      
-      while (attempts < maxAttempts) {
-        const status = await BankIdService.checkStatus(session.orderRef);
-        
-        if (status?.status === 'complete') {
-          // Update signing status
-          setSigningStatuses(prev => prev.map(signingStatus => 
-            signingStatus.heirPersonalNumber === heirPersonalNumber 
-              ? { 
-                  ...signingStatus, 
-                  isSigning: false, 
-                  completed: true,
-                  error: undefined 
-                }
-              : signingStatus
-          ));
-
-          // Update heir
-          const updatedHeirs = heirs.map(h => 
-            h.personalNumber === heirPersonalNumber 
-              ? { ...h, signed: true, signedAt: new Date().toLocaleString('sv-SE') }
-              : h
-          );
-          setHeirs(updatedHeirs);
-          break;
-        } else if (status?.status === 'failed') {
-          throw new Error('BankID-signering misslyckades');
-        }
-        
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      if (attempts >= maxAttempts) {
-        await BankIdService.cancel(session.orderRef);
-        throw new Error('BankID-signering tog för lång tid');
-      }
+      // Complete the process
+      setTimeout(() => {
+        onComplete();
+      }, 2000);
       
     } catch (error) {
-      setSigningStatuses(prev => prev.map(status => 
-        status.heirPersonalNumber === heirPersonalNumber 
-          ? { 
-              ...status, 
-              isSigning: false, 
-              error: error instanceof Error ? error.message : 'Signering misslyckades. Försök igen.' 
-            }
-          : status
-      ));
+      toast({
+        title: "Fel",
+        description: "Kunde inte skicka arvsskiftet. Försök igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const allSigned = heirs.every(h => h.signed);
-  const signedCount = heirs.filter(h => h.signed).length;
-
-  const getHeirSigningStatus = (heirPersonalNumber: string) => {
-    return signingStatuses.find(s => s.heirPersonalNumber === heirPersonalNumber);
   };
 
   return (
@@ -131,142 +132,203 @@ export const Step4Signing = ({ heirs, setHeirs, onNext, onBack }: Step4Props) =>
       <Card>
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <UserCheck className="w-6 h-6 text-primary" />
+            <FileText className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Digital signering</CardTitle>
+          <CardTitle className="text-2xl">Sammanfattning av arvsskifte</CardTitle>
           <CardDescription>
-            Alla dödsbodelägare måste signera digitalt med BankID för att genomföra arvsskiftet
+            Granska all information innan arvsskiftet skickas till bankerna
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Progress Overview */}
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium">Signeringsframsteg</span>
-              <Badge variant={allSigned ? "default" : "secondary"} className={allSigned ? "bg-success text-success-foreground" : ""}>
-                {signedCount} av {heirs.length} signerade
-              </Badge>
-            </div>
-            <div className="w-full bg-border rounded-full h-2">
-              <div 
-                className="bg-success h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(signedCount / heirs.length) * 100}%` }}
-              />
+        <CardContent className="space-y-8">
+          
+          {/* Deceased Person Info */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Avliden person
+            </h3>
+            <div className="p-4 bg-muted/30 rounded-lg">
+              <div className="font-medium">Personnummer: {personalNumber}</div>
             </div>
           </div>
 
-          {!allSigned && (
-            <Alert>
-              <Clock className="h-4 w-4" />
-              <AlertDescription>
-                Arvsskiftet kan endast genomföras när alla dödsbodelägare har signerat. 
-                Varje person måste använda sitt eget BankID för att bekräfta sin identitet.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Beneficiaries Signing List */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Dödsbodelägare som ska signera</h3>
-            
+          {/* Power of Attorney */}
+          {activePowerOfAttorneys.length > 0 && (
             <div className="space-y-3">
-              {heirs.map((heir) => {
-                const signingStatus = getHeirSigningStatus(heir.personalNumber);
-                
-                return (
-                  <div key={heir.personalNumber} className="p-4 border border-border rounded-lg">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Briefcase className="w-5 h-5" />
+                Aktiva fullmakter
+              </h3>
+              <div className="space-y-2">
+                {activePowerOfAttorneys.map(poa => (
+                  <div key={poa.id} className="p-4 bg-muted/30 rounded-lg">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-medium">{heir.name}</span>
-                          <Badge variant="secondary">{heir.relationship}</Badge>
-                          {heir.signed && (
-                            <Badge variant="default" className="bg-success text-success-foreground">
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Signerad
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Personnummer: {heir.personalNumber}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {heir.signedAt && (
-                            <span>Signerad: {heir.signedAt}</span>
-                          )}
+                      <div>
+                        <div className="font-medium">{poa.representativeName}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {poa.representativePersonalNumber}
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-4">
-                        {heir.signed ? (
-                          <div className="flex items-center gap-2 text-success">
-                            <CheckCircle2 className="w-5 h-5" />
-                            <span className="font-medium">Slutförd</span>
-                          </div>
-                        ) : (
-                          <Button
-                            onClick={() => handleBankIdSign(heir.personalNumber)}
-                            disabled={signingStatus?.isSigning}
-                            variant={signingStatus?.isSigning ? "secondary" : "default"}
-                          >
-                            {signingStatus?.isSigning ? (
-                              <>
-                                <Smartphone className="w-4 h-4 mr-2 animate-pulse" />
-                                Signerar...
-                              </>
-                            ) : (
-                              <>
-                                <Shield className="w-4 h-4 mr-2" />
-                                Signera med BankID
-                              </>
-                            )}
-                          </Button>
-                        )}
+                      <Badge variant="default">Aktiv fullmakt</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Testament */}
+          {testament && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Testamente
+              </h3>
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{testament.filename}</span>
+                  <Badge variant="default">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Inscannat
+                  </Badge>
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Uppladdad: {testament.uploadDate}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Distribution Summary */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Fördelning mellan dödsbodelägare
+            </h3>
+            <div className="space-y-3">
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-medium">Total summa att fördela:</span>
+                  <span className="text-xl font-bold text-primary">
+                    {distributedAmount.toLocaleString('sv-SE')} SEK
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {beneficiaries.map(beneficiary => (
+                    <div key={beneficiary.id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-background">
+                      <div>
+                        <div className="font-medium">{beneficiary.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {beneficiary.personalNumber} • {beneficiary.relationship}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Konto: {beneficiary.accountNumber}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">{beneficiary.percentage}%</div>
+                        <div className="text-sm text-muted-foreground">
+                          {((beneficiary.percentage / 100) * distributedAmount).toLocaleString('sv-SE')} SEK
+                        </div>
                       </div>
                     </div>
-                    
-                    {signingStatus?.isSigning && (
-                      <div className="mt-3 p-3 bg-muted rounded border-l-4 border-l-primary">
-                        <p className="text-sm font-medium">Väntar på BankID-signering</p>
-                        <p className="text-xs text-muted-foreground">
-                          {heir.name} behöver öppna sin BankID-app och bekräfta signeringen
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {allSigned && (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertDescription>
-                Alla dödsbodelägare har signerat! Du kan nu fortsätta till sammanfattningen 
-                för att slutföra arvsskiftet.
-              </AlertDescription>
-            </Alert>
+          {/* Remaining Assets */}
+          {remainingAssets.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Lock className="w-5 h-5" />
+                Konton som förblir låsta
+              </h3>
+              <div className="space-y-2">
+                {remainingAssets.map(asset => (
+                  <div key={asset.id} className="p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{asset.bank}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {asset.accountType} • {asset.accountNumber}
+                        </div>
+                        {asset.reasonToRemain && (
+                          <div className="text-sm text-muted-foreground mt-1">
+                            Anledning: {asset.reasonToRemain}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">{asset.amount.toLocaleString('sv-SE')} SEK</div>
+                        <Badge variant="secondary">
+                          <Lock className="w-3 h-3 mr-1" />
+                          Förblir låst
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          {/* Legal Information */}
+          {/* Bank Contact Information */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Banker som kommer att kontaktas
+            </h3>
+            <div className="space-y-2">
+              {relevantBanks.map(bank => (
+                <div key={bank.name} className="p-4 bg-muted/30 rounded-lg">
+                  <div className="font-medium">{bank.name}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Mail className="w-3 h-3" />
+                      Arvsskifte: {bank.email}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3 h-3" />
+                      Gruppbrevlåda: {bank.groupEmail}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <Alert>
-            <Shield className="h-4 w-4" />
+            <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              Genom digital signering med BankID bekräftar varje dödsbodelägare sin identitet 
-              och samtycke till fördelningen. Signeringen är juridiskt bindande.
+              Alla dödsbodelägare har signerat dokumentet. När du klickar "Skicka in arvsskifte" 
+              kommer all information att skickas till de relevanta bankerna via PSD2 och Open Banking.
             </AlertDescription>
           </Alert>
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onBack}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            <Button variant="outline" onClick={onBack} className="sm:w-auto">
               Tillbaka
             </Button>
+            
             <Button 
-              onClick={onNext} 
-              disabled={!allSigned}
+              onClick={handleSubmitInheritance}
+              disabled={isSubmitting}
+              size="lg"
+              className="flex-1 sm:flex-none"
             >
-              Fortsätt till sammanfattning
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Skickar arvsskifte...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Skicka in arvsskifte
+                </>
+              )}
             </Button>
           </div>
         </CardContent>

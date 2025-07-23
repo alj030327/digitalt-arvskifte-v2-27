@@ -6,7 +6,6 @@ import { Step3Distribution } from "@/components/steps/Step3Distribution";
 import { Step4ContactInfo } from "@/components/steps/Step4ContactInfo";
 import { Step5BeneficiarySigning } from "@/components/steps/Step5BeneficiarySigning";
 import { Step4Signing } from "@/components/steps/Step4Signing";
-import { Step5Summary } from "@/components/steps/Step5Summary";
 import { Scale } from "lucide-react";
 import { PhysicalAsset } from "@/components/PhysicalAssets";
 
@@ -77,15 +76,14 @@ const Index = () => {
     "Fördelning",
     "Kontaktuppgifter",
     "E-signering",
-    "Överföring",
-    "Slutförd"
+    "Sammanfattning"
   ];
 
   const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
   const totalDistributableAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
 
   const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 7));
+    setCurrentStep(prev => Math.min(prev + 1, 6));
   };
 
   const handleBack = () => {
@@ -130,7 +128,7 @@ const Index = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <ProgressIndicator 
           currentStep={currentStep} 
-          totalSteps={7} 
+          totalSteps={6} 
           stepLabels={stepLabels} 
         />
 
@@ -192,15 +190,6 @@ const Index = () => {
 
         {currentStep === 6 && (
           <Step4Signing
-            heirs={heirs}
-            setHeirs={setHeirs}
-            onNext={handleNext}
-            onBack={handleBack}
-          />
-        )}
-
-        {currentStep === 7 && (
-          <Step5Summary
             personalNumber={personalNumber}
             assets={assets}
             beneficiaries={beneficiaries}
