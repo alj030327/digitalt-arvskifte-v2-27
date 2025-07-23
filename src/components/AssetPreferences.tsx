@@ -74,10 +74,10 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
 
   const getAssetLabel = (assetType: string) => {
     switch (assetType) {
-      case 'warrants': return 'Warranter';
-      case 'certificates': return 'Certifikat';
-      case 'options': return 'Optioner';
-      case 'futures': return 'Terminer';
+      case 'warrants': return 'Fonder';
+      case 'certificates': return 'Aktier';
+      case 'options': return 'Försäkring';
+      case 'futures': return 'Andra värdepapper';
       default: return assetType;
     }
   };
@@ -101,10 +101,10 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />
-          Preferenser för strukturerade produkter och derivat
+          Preferenser för finansiella tillgångar
         </CardTitle>
         <CardDescription>
-          Ange hur varje dödsbodelägare vill hantera strukturerade produkter som warranter, certifikat, optioner och terminer
+          Ange hur varje dödsbodelägare vill hantera finansiella tillgångar som fonder, aktier, försäkringar och andra värdepapper
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -113,13 +113,13 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
             <AlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
             <div>
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                Viktigt att veta om strukturerade produkter och derivat
+                Viktigt att veta om finansiella tillgångar
               </h4>
               <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <p><strong>Överföring:</strong> Produkterna överförs direkt till arvingen. Kräver ofta specifika konton och kunskaper om riskprofiler.</p>
-                <p><strong>Försäljning:</strong> Produkterna säljs och kontantvärdet delas. Kan vara nödvändigt vid komplexa derivatinstrument.</p>
-                <p><strong>Riskaspekter:</strong> Dessa produkter har ofta höga risknivåer och kräver finansiell expertis.</p>
-                <p><strong>Löptider:</strong> Vissa produkter har specifika löptider som påverkar hanteringen.</p>
+                <p><strong>Överföring:</strong> Tillgångarna överförs direkt till arvingen i samma form. Detta kan innebära skattekonsekvenser och kräver ofta att mottagaren har rätt typ av konto.</p>
+                <p><strong>Försäljning:</strong> Tillgångarna säljs och kontantvärdet delas enligt fördelningen. Detta kan vara enklare administrativt men kan påverka marknadsexponering.</p>
+                <p><strong>Skatteaspekter:</strong> Konsultera en skatterådgivare för att förstå konsekvenserna av olika val.</p>
+                <p><strong>Försäkringar:</strong> Vissa försäkringar kan ha särskilda regler för överlåtelse eller uttag.</p>
               </div>
             </div>
           </div>
@@ -137,7 +137,7 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
             </div>
             
             <div className="space-y-4">
-              <h5 className="text-sm font-medium">Preferenser för produkttyper:</h5>
+              <h5 className="text-sm font-medium">Preferenser för tillgångstyper:</h5>
               <div className="space-y-4">
                 {assetTypes.map((assetType) => (
                   <div key={assetType} className="space-y-3">
@@ -224,20 +224,20 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
         
         <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
-            Vanliga scenarier för strukturerade produkter:
+            Vanliga scenarier och rekommendationer:
           </h4>
           <div className="text-sm text-yellow-800 dark:text-yellow-200 space-y-2">
             <div>
-              <strong>Warranter:</strong> Ofta korta löptider och hög risk. Försäljning är vanligen det praktiska valet.
+              <strong>Fonder i ISK/KF:</strong> Kan ofta överföras direkt till mottagarens ISK/KF utan skattekonsekvenser.
             </div>
             <div>
-              <strong>Certifikat:</strong> Kan ha komplexa villkor. Kontrollera underliggande tillgångar innan överföring.
+              <strong>Aktier på AF-konto:</strong> Överföring kan utlösa skattepliktig kapitalvinst. Överväg försäljning.
             </div>
             <div>
-              <strong>Optioner:</strong> Tidsbegränsade instrument som kan förfalla värdelösa. Snabb hantering krävs.
+              <strong>Försäkringar:</strong> Livförsäkringar och pensionsförsäkringar kan ha särskilda bestämmelser för förmånstagare.
             </div>
             <div>
-              <strong>Terminer:</strong> Kräver marginalhantering och specialistkunskap. Konsultera finansiell rådgivare.
+              <strong>Andra värdepapper:</strong> Obligationer, företagscertifikat och andra instrument kan kräva individuell bedömning.
             </div>
           </div>
         </div>
