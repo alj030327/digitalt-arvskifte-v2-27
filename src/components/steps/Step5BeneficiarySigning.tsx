@@ -7,31 +7,30 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { OpenBankingService } from "@/services/openBankingService";
 
-interface Beneficiary {
-  id: string;
-  name: string;
+interface Heir {
   personalNumber: string;
+  name: string;
   relationship: string;
-  percentage: number;
-  accountNumber: string;
+  inheritanceShare?: number;
+  signed?: boolean;
+  signedAt?: string;
   email?: string;
   phone?: string;
   documentSent?: boolean;
   sentAt?: string;
-  signed?: boolean;
-  signedAt?: string;
+  notificationPreference?: 'email' | 'sms' | 'both';
 }
 
 interface Step5Props {
-  beneficiaries: Beneficiary[];
-  setBeneficiaries: (beneficiaries: Beneficiary[]) => void;
+  heirs: Heir[];
+  setHeirs: (heirs: Heir[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
 export const Step5BeneficiarySigning = ({ 
-  beneficiaries, 
-  setBeneficiaries, 
+  heirs, 
+  setHeirs, 
   onNext, 
   onBack 
 }: Step5Props) => {
@@ -42,34 +41,34 @@ export const Step5BeneficiarySigning = ({
   // Simulate automatic status updates
   useEffect(() => {
     const interval = setInterval(() => {
-      // Randomly sign some beneficiaries if not all are signed
+      // Randomly sign some heirs if not all are signed
       if (!allSigned && Math.random() > 0.7) {
-        const unsignedBeneficiaries = beneficiaries.filter(b => b.documentSent && !b.signed);
-        if (unsignedBeneficiaries.length > 0) {
-          const randomBeneficiary = unsignedBeneficiaries[Math.floor(Math.random() * unsignedBeneficiaries.length)];
+        const unsignedHeirs = heirs.filter(h => h.documentSent && !h.signed);
+        if (unsignedHeirs.length > 0) {
+          const randomHeir = unsignedHeirs[Math.floor(Math.random() * unsignedHeirs.length)];
           
-          const updatedBeneficiaries = beneficiaries.map(b => 
-            b.id === randomBeneficiary.id 
-              ? { ...b, signed: true, signedAt: new Date().toISOString() }
-              : b
+          const updatedHeirs = heirs.map(h => 
+            h.personalNumber === randomHeir.personalNumber 
+              ? { ...h, signed: true, signedAt: new Date().toISOString() }
+              : h
           );
           
-          setBeneficiaries(updatedBeneficiaries);
+          setHeirs(updatedHeirs);
           setLastUpdate(new Date());
           
           toast({
-            title: "Signering mottagen",
-            description: `${randomBeneficiary.name} har signerat dokumentet.`,
+            title: "BankID-signering mottagen",
+            description: `${randomHeir.name} har signerat med BankID.`,
           });
         }
       }
     }, 10000); // Check every 10 seconds
 
     return () => clearInterval(interval);
-  }, [beneficiaries, setBeneficiaries, toast]);
+  }, [heirs, setHeirs, toast]);
 
-  const signedCount = beneficiaries.filter(b => b.signed).length;
-  const allSigned = beneficiaries.length > 0 && beneficiaries.every(b => b.signed);
+  const signedCount = heirs.filter(h => h.signed).length;
+  const allSigned = heirs.length > 0 && heirs.every(h => h.signed);
 
   const handleSendToBanks = async () => {
     if (!allSigned) return;
@@ -82,19 +81,20 @@ export const Step5BeneficiarySigning = ({
       
       // Log the inheritance data that would be sent to banks
       console.log("Sending inheritance data to banks:", {
-        beneficiaries: beneficiaries.map(b => ({
-          name: b.name,
-          personalNumber: b.personalNumber,
-          accountNumber: b.accountNumber,
-          percentage: b.percentage
+        heirs: heirs.map(h => ({
+          name: h.name,
+          personalNumber: h.personalNumber,
+          relationship: h.relationship,
+          inheritanceShare: h.inheritanceShare,
+          signedAt: h.signedAt
         })),
         documentId: `ARV-${Date.now()}`,
-        signedAt: new Date().toISOString()
+        allSignedAt: new Date().toISOString()
       });
       
       toast({
         title: "Skickat till banker",
-        description: "Arvsskiftet har skickats till alla relevanta banker via PSD2/Open Banking.",
+        description: "Alla arvingar har signerat med BankID. Arvsskiftet skickas nu till bankerna via PSD2/Open Banking.",
       });
       
       // Proceed to final summary
@@ -113,29 +113,29 @@ export const Step5BeneficiarySigning = ({
     }
   };
 
-  const getStatusIcon = (beneficiary: Beneficiary) => {
-    if (beneficiary.signed) {
+  const getStatusIcon = (heir: Heir) => {
+    if (heir.signed) {
       return <CheckCircle2 className="w-5 h-5 text-success" />;
     }
-    if (beneficiary.documentSent) {
+    if (heir.documentSent) {
       return <Clock className="w-5 h-5 text-warning" />;
     }
     return <div className="w-5 h-5 rounded-full bg-muted" />;
   };
 
-  const getStatusText = (beneficiary: Beneficiary) => {
-    if (beneficiary.signed) {
-      return "Signerat";
+  const getStatusText = (heir: Heir) => {
+    if (heir.signed) {
+      return "Signerat med BankID";
     }
-    if (beneficiary.documentSent) {
-      return "Väntar på signering";
+    if (heir.documentSent) {
+      return "Väntar på BankID-signering";
     }
     return "Ej skickat";
   };
 
-  const getStatusVariant = (beneficiary: Beneficiary): "default" | "secondary" | "destructive" => {
-    if (beneficiary.signed) return "default";
-    if (beneficiary.documentSent) return "secondary";
+  const getStatusVariant = (heir: Heir): "default" | "secondary" | "destructive" => {
+    if (heir.signed) return "default";
+    if (heir.documentSent) return "secondary";
     return "destructive";
   };
 
@@ -146,9 +146,9 @@ export const Step5BeneficiarySigning = ({
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <RefreshCw className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Signeringsstatus</CardTitle>
+          <CardTitle className="text-2xl">BankID-signeringsstatus</CardTitle>
           <CardDescription>
-            Följ signeringsprocessen i realtid. Sidan uppdateras automatiskt när signaturer kommer in.
+            Alla dödsbodelägare från Skatteverket måste signera med BankID innan arvsskiftet kan skickas till bankerna.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -156,13 +156,13 @@ export const Step5BeneficiarySigning = ({
             <div className="flex justify-between items-center mb-2">
               <span className="font-medium">Signeringsframsteg:</span>
               <span className="text-lg font-bold text-primary">
-                {signedCount} av {beneficiaries.length}
+                {signedCount} av {heirs.length}
               </span>
             </div>
             <div className="w-full bg-background rounded-full h-2">
               <div 
                 className="bg-primary h-2 rounded-full transition-all duration-500" 
-                style={{ width: `${beneficiaries.length > 0 ? (signedCount / beneficiaries.length) * 100 : 0}%` }}
+                style={{ width: `${heirs.length > 0 ? (signedCount / heirs.length) * 100 : 0}%` }}
               />
             </div>
           </div>
@@ -170,37 +170,42 @@ export const Step5BeneficiarySigning = ({
           <Alert>
             <RefreshCw className="h-4 w-4" />
             <AlertDescription>
-              Sidan uppdateras automatiskt när dödsbodelägarna signerar dokumentet. 
+              Sidan uppdateras automatiskt när dödsbodelägarna signerar med BankID. 
               Senaste uppdatering: {lastUpdate.toLocaleTimeString('sv-SE')}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Dödsbodelägares signeringsstatus</h3>
+            <h3 className="text-lg font-semibold">Dödsbodelägares BankID-signering</h3>
             
-            {beneficiaries.map((beneficiary) => (
-              <div key={beneficiary.id} className="p-4 border border-border rounded-lg">
+            {heirs.map((heir) => (
+              <div key={heir.personalNumber} className="p-4 border border-border rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {getStatusIcon(beneficiary)}
+                    {getStatusIcon(heir)}
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">{beneficiary.name}</span>
-                        <Badge variant="outline">{beneficiary.relationship}</Badge>
-                        <Badge variant="outline">{beneficiary.percentage}%</Badge>
+                        <span className="font-medium">{heir.name}</span>
+                        <Badge variant="outline">{heir.relationship}</Badge>
+                        <Badge variant="outline">{heir.inheritanceShare || 0}%</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {beneficiary.email} • {beneficiary.phone}
+                        {heir.personalNumber}
                       </p>
-                      {beneficiary.signedAt && (
+                      {heir.email && heir.phone && (
                         <p className="text-sm text-muted-foreground">
-                          Signerat: {new Date(beneficiary.signedAt).toLocaleString('sv-SE')}
+                          {heir.email} • {heir.phone}
+                        </p>
+                      )}
+                      {heir.signedAt && (
+                        <p className="text-sm text-muted-foreground">
+                          Signerat: {new Date(heir.signedAt).toLocaleString('sv-SE')}
                         </p>
                       )}
                     </div>
                   </div>
-                  <Badge variant={getStatusVariant(beneficiary)}>
-                    {getStatusText(beneficiary)}
+                  <Badge variant={getStatusVariant(heir)}>
+                    {getStatusText(heir)}
                   </Badge>
                 </div>
               </div>
@@ -211,7 +216,7 @@ export const Step5BeneficiarySigning = ({
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                Alla dödsbodelägare har signerat dokumentet! Nu kan arvsskiftet skickas till bankerna 
+                Alla dödsbodelägare har signerat med BankID! Nu kan arvsskiftet skickas till bankerna 
                 för genomförande via PSD2 och Open Banking.
               </AlertDescription>
             </Alert>

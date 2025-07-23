@@ -183,8 +183,8 @@ const Index = () => {
 
         {currentStep === 5 && (
           <Step5BeneficiarySigning
-            beneficiaries={beneficiaries}
-            setBeneficiaries={setBeneficiaries}
+            heirs={heirs}
+            setHeirs={setHeirs}
             onNext={handleNext}
             onBack={handleBack}
           />
