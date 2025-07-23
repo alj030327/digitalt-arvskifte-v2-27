@@ -18,6 +18,7 @@ interface Asset {
   accountNumber: string;
   amount: number;
   toRemain?: boolean;
+  amountToRemain?: number;
   reasonToRemain?: string;
 }
 
@@ -36,6 +37,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
     accountNumber: "",
     amount: "",
     toRemain: false,
+    amountToRemain: "",
     reasonToRemain: ""
   });
   const [isAutoImporting, setIsAutoImporting] = useState(false);
@@ -145,11 +147,12 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
       accountNumber: newAsset.accountNumber,
       amount: parseFloat(newAsset.amount),
       toRemain: newAsset.toRemain,
+      amountToRemain: newAsset.toRemain && newAsset.amountToRemain ? parseFloat(newAsset.amountToRemain) : undefined,
       reasonToRemain: newAsset.toRemain ? newAsset.reasonToRemain : undefined
     };
 
     setAssets([...assets, asset]);
-    setNewAsset({ bank: "", accountType: "", assetType: "", accountNumber: "", amount: "", toRemain: false, reasonToRemain: "" });
+    setNewAsset({ bank: "", accountType: "", assetType: "", accountNumber: "", amount: "", toRemain: false, amountToRemain: "", reasonToRemain: "" });
   };
 
   const handleRemoveAsset = (id: string) => {
@@ -159,7 +162,12 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
   const toggleAssetToRemain = (id: string) => {
     setAssets(assets.map(asset => 
       asset.id === id 
-        ? { ...asset, toRemain: !asset.toRemain, reasonToRemain: !asset.toRemain ? "" : asset.reasonToRemain }
+        ? { 
+            ...asset, 
+            toRemain: !asset.toRemain, 
+            amountToRemain: !asset.toRemain ? asset.amount : undefined,
+            reasonToRemain: !asset.toRemain ? "" : asset.reasonToRemain 
+          }
         : asset
     ));
   };
@@ -172,8 +180,23 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
     ));
   };
 
+  const updateAmountToRemain = (id: string, amount: string) => {
+    setAssets(assets.map(asset => 
+      asset.id === id 
+        ? { ...asset, amountToRemain: amount ? parseFloat(amount) : undefined }
+        : asset
+    ));
+  };
+
   const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
-  const totalDistributableAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
+  const totalDistributableAmount = assets.reduce((sum, asset) => {
+    if (asset.toRemain && asset.amountToRemain !== undefined) {
+      // Only the excess amount over what should remain is distributable
+      const distributableAmount = asset.amount - asset.amountToRemain;
+      return sum + Math.max(0, distributableAmount);
+    }
+    return sum + (asset.toRemain ? 0 : asset.amount);
+  }, 0);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -340,21 +363,39 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 </div>
                 
                 {newAsset.toRemain && (
-                  <div className="space-y-2">
-                    <Label htmlFor="reasonToRemain">
-                      {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
-                        ? 'Anledning till varför skulden ska vara kvar'
-                        : 'Anledning till varför kontot ska vara kvar'}
-                    </Label>
-                    <Textarea
-                      id="reasonToRemain"
-                      value={newAsset.reasonToRemain}
-                      onChange={(e) => setNewAsset({ ...newAsset, reasonToRemain: e.target.value })}
-                      placeholder={newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
-                        ? "T.ex. bolån som ska övertas av specifik arvinge, kvarstående månatliga betalningar, etc."
-                        : "T.ex. skatteåterbäring, löpande ärende, etc."}
-                      rows={2}
-                    />
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="amountToRemain">
+                        Belopp som ska vara kvar (SEK)
+                      </Label>
+                      <Input
+                        id="amountToRemain"
+                        type="number"
+                        value={newAsset.amountToRemain}
+                        onChange={(e) => setNewAsset({ ...newAsset, amountToRemain: e.target.value })}
+                        placeholder="0"
+                        max={newAsset.amount}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Ange hur mycket som ska vara kvar efter skiftet. Resterande belopp kommer att fördelas.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reasonToRemain">
+                        {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
+                          ? 'Anledning till varför skulden ska vara kvar'
+                          : 'Anledning till varför kontot ska vara kvar'}
+                      </Label>
+                      <Textarea
+                        id="reasonToRemain"
+                        value={newAsset.reasonToRemain}
+                        onChange={(e) => setNewAsset({ ...newAsset, reasonToRemain: e.target.value })}
+                        placeholder={newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
+                          ? "T.ex. bolån som ska övertas av specifik arvinge, kvarstående månatliga betalningar, etc."
+                          : "T.ex. skatteåterbäring, löpande ärende, etc."}
+                        rows={2}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -446,11 +487,32 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                         </div>
                         
                         {asset.toRemain && (
-                          <div className="space-y-2 pt-2 border-t border-border/50">
+                          <div className="space-y-3 pt-2 border-t border-border/50">
                             <div className="flex items-center gap-2">
                               <Lock className="w-4 h-4 text-warning" />
                               <span className="text-sm font-medium text-warning">Konto markerat att vara kvar</span>
                             </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor={`amount-remain-${asset.id}`} className="text-xs font-medium">
+                                Belopp som ska vara kvar (SEK):
+                              </Label>
+                              <Input
+                                id={`amount-remain-${asset.id}`}
+                                type="number"
+                                value={asset.amountToRemain || ""}
+                                onChange={(e) => updateAmountToRemain(asset.id, e.target.value)}
+                                placeholder="0"
+                                max={asset.amount}
+                                className="text-sm"
+                              />
+                              {asset.amountToRemain !== undefined && asset.amountToRemain < asset.amount && (
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-medium">Att fördela:</span> {(asset.amount - asset.amountToRemain).toLocaleString('sv-SE')} SEK
+                                </p>
+                              )}
+                            </div>
+                            
                             <div className="space-y-1">
                               <Label htmlFor={`reason-${asset.id}`} className="text-xs">
                                 Anledning till varför kontot ska vara kvar:
