@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Users, Building2, Lock, Mail, Briefcase, CheckCircle2, Send, UserCheck, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { PDFService } from "@/services/pdfService";
 
 interface Asset {
   id: string;
@@ -14,6 +15,7 @@ interface Asset {
   accountNumber: string;
   amount: number;
   toRemain?: boolean;
+  amountToRemain?: number;
   reasonToRemain?: string;
 }
 
@@ -73,6 +75,7 @@ interface Step6Props {
   assets: Asset[];
   beneficiaries: Beneficiary[];
   testament: Testament | null;
+  physicalAssets?: any[];
   onBack: () => void;
   onComplete: () => void;
 }
@@ -83,11 +86,13 @@ export const Step4Signing = ({
   assets,
   beneficiaries, 
   testament,
+  physicalAssets = [],
   onBack,
   onComplete
 }: Step6Props) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingPDF, setIsSendingPDF] = useState(false);
 
   // Load power of attorneys for this deceased person
   const powerOfAttorneys: PowerOfAttorney[] = JSON.parse(
@@ -115,16 +120,67 @@ export const Step4Signing = ({
     assets.some(asset => asset.bank.toLowerCase().includes(bank.name.toLowerCase()))
   );
 
+  const handleSendPDFSummary = async () => {
+    setIsSendingPDF(true);
+    
+    try {
+      // Generate comprehensive PDF with all information
+      const pdfBlob = await PDFService.generateDistributionPDF({
+        personalNumber,
+        assets,
+        beneficiaries: beneficiaries.map(b => ({
+          name: b.name,
+          personalNumber: b.personalNumber,
+          relationship: b.relationship,
+          percentage: b.percentage,
+          amount: (b.percentage / 100) * distributedAmount,
+          accountNumber: b.accountNumber
+        })),
+        totalAmount: distributedAmount
+      });
+
+      if (pdfBlob) {
+        // Get all email addresses from heirs
+        const emailAddresses = heirs
+          .filter(h => h.email)
+          .map(h => h.email)
+          .filter(Boolean);
+
+        // In production, you would send the PDF to these email addresses
+        console.log("Sending comprehensive PDF to:", emailAddresses);
+        
+        // Download the PDF locally as well
+        PDFService.downloadPDF(pdfBlob, PDFService.generateFilename(personalNumber));
+        
+        toast({
+          title: "Sammanfattning skickad",
+          description: `Komplett sammanfattning har skickats till ${emailAddresses.length} e-postadresser och laddats ner.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Kunde inte skicka sammanfattningen. Försök igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingPDF(false);
+    }
+  };
+
   const handleSubmitInheritance = async () => {
     setIsSubmitting(true);
     
     try {
-      // Simulate sending inheritance settlement to banks
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // First send the PDF summary
+      await handleSendPDFSummary();
+      
+      // Then simulate sending inheritance settlement to banks
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       toast({
-        title: "Arvsskifte skickat",
-        description: `Arvsskiftet har skickats till ${relevantBanks.length} banker för genomförande.`,
+        title: "Arvsskifte avslutat",
+        description: `Arvsskiftet har slutförts och skickats till ${relevantBanks.length} banker.`,
       });
       
       // Complete the process
@@ -135,7 +191,7 @@ export const Step4Signing = ({
     } catch (error) {
       toast({
         title: "Fel",
-        description: "Kunde inte skicka arvsskiftet. Försök igen.",
+        description: "Kunde inte slutföra arvsskiftet. Försök igen.",
         variant: "destructive",
       });
     } finally {
@@ -215,6 +271,100 @@ export const Step4Signing = ({
             </div>
           )}
 
+          {/* Assets from Step 2 */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Tillgångar (Steg 2)
+            </h3>
+            <div className="space-y-2">
+              {assets.map(asset => (
+                <div key={asset.id} className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{asset.bank}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {asset.accountType} • {asset.assetType}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Kontonummer: {asset.accountNumber}
+                      </div>
+                      {asset.toRemain && asset.reasonToRemain && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          <Badge variant="secondary" className="mr-2">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Förblir låst
+                          </Badge>
+                          {asset.reasonToRemain}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">{asset.amount.toLocaleString('sv-SE')} SEK</div>
+                      {asset.toRemain ? (
+                        <Badge variant="secondary">
+                          <Lock className="w-3 h-3 mr-1" />
+                          Kvar: {(asset.amountToRemain || asset.amount).toLocaleString('sv-SE')} SEK
+                        </Badge>
+                      ) : (
+                        <Badge variant="default">Ingår i fördelning</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Totalt värde:</span>
+                  <span className="text-xl font-bold text-primary">
+                    {totalAmount.toLocaleString('sv-SE')} SEK
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Physical Assets */}
+          {physicalAssets && physicalAssets.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Fysiska tillgångar
+              </h3>
+              <div className="space-y-2">
+                {physicalAssets.map((asset: any, index: number) => (
+                  <div key={index} className="p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{asset.description}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Typ: {asset.type}
+                        </div>
+                        {asset.location && (
+                          <div className="text-sm text-muted-foreground">
+                            Plats: {asset.location}
+                          </div>
+                        )}
+                        {asset.assignedTo && (
+                          <div className="text-sm text-muted-foreground">
+                            Tilldelas: {asset.assignedTo}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        {asset.estimatedValue && (
+                          <div className="font-medium">
+                            Uppskattat värde: {asset.estimatedValue.toLocaleString('sv-SE')} SEK
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Heirs from Skatteverket */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -277,7 +427,7 @@ export const Step4Signing = ({
           <div className="space-y-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
-              E-signeringar
+              BankID E-signeringar
             </h3>
             <div className="space-y-2">
               {heirs.map(heir => (
@@ -294,7 +444,7 @@ export const Step4Signing = ({
                         <>
                           <Badge variant="default" className="bg-success/10 text-success border-success/20">
                             <CheckCircle className="w-3 h-3 mr-1" />
-                            Signerat
+                            Signerat med BankID
                           </Badge>
                           {heir.signedAt && (
                             <div className="text-xs text-muted-foreground">
@@ -305,7 +455,7 @@ export const Step4Signing = ({
                       ) : heir.documentSent ? (
                         <Badge variant="outline" className="border-warning text-warning">
                           <Clock className="w-3 h-3 mr-1" />
-                          Väntar på signering
+                          Väntar på BankID-signering
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="border-muted-foreground text-muted-foreground">
@@ -324,7 +474,7 @@ export const Step4Signing = ({
           <div className="space-y-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Users className="w-5 h-5" />
-              Fördelning mellan arvingar
+              Fördelning mellan arvingar (Steg 3)
             </h3>
             <div className="space-y-3">
               <div className="p-4 bg-muted/30 rounded-lg">
@@ -423,8 +573,7 @@ export const Step4Signing = ({
           <Alert>
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              Alla arvingar har signerat dokumentet. När du klickar "Skicka in arvsskifte" 
-              kommer all information att skickas till de relevanta bankerna via PSD2 och Open Banking.
+              Komplett sammanfattning av alla steg. När du slutför kommer en PDF att skickas till alla angivna e-postadresser och arvsskiftet skickas till bankerna via PSD2/Open Banking.
             </AlertDescription>
           </Alert>
 
@@ -433,24 +582,46 @@ export const Step4Signing = ({
               Tillbaka
             </Button>
             
-            <Button 
-              onClick={handleSubmitInheritance}
-              disabled={isSubmitting}
-              size="lg"
-              className="flex-1 sm:flex-none"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Skickar arvsskifte...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Skicka in arvsskifte
-                </>
-              )}
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleSendPDFSummary}
+                disabled={isSendingPDF}
+                variant="secondary"
+                size="lg"
+                className="flex-1 sm:flex-none"
+              >
+                {isSendingPDF ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Skickar PDF...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Skicka sammanfattning
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                onClick={handleSubmitInheritance}
+                disabled={isSubmitting}
+                size="lg"
+                className="flex-1 sm:flex-none"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Slutför arvsskifte...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Slutför arvsskifte
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

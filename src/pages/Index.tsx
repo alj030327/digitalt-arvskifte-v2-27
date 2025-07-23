@@ -197,6 +197,7 @@ const Index = () => {
             assets={assets}
             beneficiaries={beneficiaries}
             testament={testament}
+            physicalAssets={physicalAssets}
             onBack={handleBack}
             onComplete={handleFinalComplete}
           />
