@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SkatteverketService, SkatteverketHeirData } from "@/services/skatteverketService";
 import { BankIdService } from "@/services/bankidService";
 import { useToast } from "@/hooks/use-toast";
+import { RepresentativeService, RepresentativeAccess } from "@/services/representativeService";
 
 interface Heir {
   personalNumber: string;
@@ -60,6 +61,13 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   const [representativeName, setRepresentativeName] = useState("");
   const [isGrantingPowerOfAttorney, setIsGrantingPowerOfAttorney] = useState(false);
   const [existingPowerOfAttorneys, setExistingPowerOfAttorneys] = useState<PowerOfAttorney[]>([]);
+  
+  // Representative access states
+  const [showRepresentativeLogin, setShowRepresentativeLogin] = useState(false);
+  const [representativeLoginPersonalNumber, setRepresentativeLoginPersonalNumber] = useState("");
+  const [isAuthenticatingRepresentative, setIsAuthenticatingRepresentative] = useState(false);
+  const [representativeAccesses, setRepresentativeAccesses] = useState<RepresentativeAccess[]>([]);
+  const [isLoggedInAsRepresentative, setIsLoggedInAsRepresentative] = useState(false);
 
   const validatePersonalNumber = (number: string) => {
     // Simplified validation for Swedish personal numbers (YYYYMMDD-XXXX)
@@ -273,6 +281,138 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     }
   };
 
+  const handleRepresentativeLogin = async () => {
+    if (!representativeLoginPersonalNumber) {
+      toast({
+        title: "Fel",
+        description: "Ange ditt personnummer för att logga in som företrädare.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validatePersonalNumber(representativeLoginPersonalNumber)) {
+      toast({
+        title: "Fel",
+        description: "Ange ett giltigt personnummer.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAuthenticatingRepresentative(true);
+
+    try {
+      // Authenticate with BankID first
+      const authRequest = {
+        personalNumber: representativeLoginPersonalNumber,
+        endUserIp: '127.0.0.1'
+      };
+      
+      const session = await BankIdService.authenticate(authRequest);
+      
+      if (!session) {
+        throw new Error("Kunde inte starta BankID-session");
+      }
+      
+      // Poll for completion
+      let attempts = 0;
+      const maxAttempts = 60;
+      
+      while (attempts < maxAttempts) {
+        const status = await BankIdService.checkStatus(session.orderRef);
+        
+        if (status?.status === 'complete') {
+          // Check if this person has any active power of attorneys
+          const accesses = await RepresentativeService.authenticateRepresentative(
+            representativeLoginPersonalNumber
+          );
+          
+          if (accesses.length === 0) {
+            toast({
+              title: "Ingen behörighet",
+              description: "Du har ingen aktiv fullmakt för något dödsbo.",
+              variant: "destructive",
+            });
+            setIsAuthenticatingRepresentative(false);
+            return;
+          }
+          
+          setRepresentativeAccesses(accesses);
+          setIsLoggedInAsRepresentative(true);
+          setShowRepresentativeLogin(false);
+          
+          toast({
+            title: "Inloggning lyckades",
+            description: `Du har tillgång till ${accesses.length} dödsbo.`,
+          });
+          
+          break;
+        } else if (status?.status === 'failed') {
+          throw new Error("BankID-autentisering misslyckades");
+        }
+        
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (attempts >= maxAttempts) {
+        await BankIdService.cancel(session.orderRef);
+        throw new Error("BankID-autentisering tog för lång tid");
+      }
+      
+    } catch (error) {
+      toast({
+        title: "Inloggning misslyckades",
+        description: error instanceof Error ? error.message : "Försök igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAuthenticatingRepresentative(false);
+    }
+  };
+
+  const handleSelectEstate = (deceasedPersonalNumber: string) => {
+    // Load the estate information
+    try {
+      const estateInfo = RepresentativeService.getEstateInformation(
+        deceasedPersonalNumber,
+        representativeLoginPersonalNumber
+      );
+      
+      // Set the deceased person's information
+      setPersonalNumber(deceasedPersonalNumber);
+      
+      // Convert estate assets to heirs format for compatibility
+      const mockHeirs: Heir[] = [
+        {
+          personalNumber: representativeLoginPersonalNumber,
+          name: representativeAccesses[0]?.name || "Företrädare",
+          relationship: "Företrädare",
+          signed: true,
+          signedAt: new Date().toISOString()
+        }
+      ];
+      
+      setLocalHeirs(mockHeirs);
+      setHeirs(mockHeirs);
+      setHasFetchedHeirs(true);
+      setHasSignedWithBankID(true);
+      
+      toast({
+        title: "Dödsbo valt",
+        description: `Du agerar nu som företrädare för dödsbo ${deceasedPersonalNumber}.`,
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Kunde inte ladda dödsbosinformation.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleNext = () => {
     if (!hasSignedWithBankID) {
       setBankIDError("Du måste signera med BankID för att fortsätta");
@@ -294,21 +434,129 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="personalNumber">Personnummer</Label>
-            <Input
-              id="personalNumber"
-              type="text"
-              placeholder="ÅÅÅÅMMDD-XXXX"
-              value={personalNumber}
-              onChange={handleInputChange}
-              maxLength={13}
-              className="text-lg"
-            />
-            <p className="text-sm text-muted-foreground">
-              Format: ÅÅÅÅMMDD-XXXX (t.ex. 19501231-1234)
-            </p>
-          </div>
+          {/* Representative Login Section */}
+          {!isLoggedInAsRepresentative && !hasFetchedHeirs && (
+            <div className="space-y-4">
+              <Alert>
+                <Briefcase className="h-4 w-4" />
+                <AlertDescription>
+                  Är du företrädare för ett dödsbo? Logga in med BankID för att komma åt dina fullmakter.
+                </AlertDescription>
+              </Alert>
+              
+              {!showRepresentativeLogin && (
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowRepresentativeLogin(true)}
+                  className="w-full"
+                >
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  Logga in som företrädare
+                </Button>
+              )}
+
+              {showRepresentativeLogin && (
+                <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Inloggning för företrädare</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowRepresentativeLogin(false)}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="representativeLoginPersonalNumber">Ditt personnummer</Label>
+                      <Input
+                        id="representativeLoginPersonalNumber"
+                        type="text"
+                        placeholder="ÅÅÅÅMMDD-XXXX"
+                        value={representativeLoginPersonalNumber}
+                        onChange={(e) => setRepresentativeLoginPersonalNumber(formatPersonalNumber(e.target.value))}
+                        maxLength={13}
+                      />
+                    </div>
+                    
+                    <Button 
+                      onClick={handleRepresentativeLogin}
+                      disabled={!representativeLoginPersonalNumber || isAuthenticatingRepresentative}
+                      className="w-full"
+                    >
+                      {isAuthenticatingRepresentative ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Autentiserar med BankID...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-4 h-4 mr-2" />
+                          Logga in med BankID
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Representative Estate Selection */}
+          {isLoggedInAsRepresentative && representativeAccesses.length > 0 && !hasFetchedHeirs && (
+            <div className="space-y-4">
+              <Alert>
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertDescription>
+                  Du är inloggad som företrädare. Välj vilket dödsbo du vill hantera:
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-2">
+                {representativeAccesses.map((access, index) => (
+                  <div key={index} className="space-y-2">
+                    {access.deceasedPersonalNumbers.map(deceasedPN => (
+                      <div key={deceasedPN} className="p-4 border border-border rounded-lg hover:bg-muted/50 cursor-pointer"
+                           onClick={() => handleSelectEstate(deceasedPN)}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium">Dödsbo: {deceasedPN}</div>
+                            <div className="text-sm text-muted-foreground">
+                              Fullmakt beviljad: {access.grantedAt.toLocaleDateString('sv-SE')}
+                            </div>
+                          </div>
+                          <Badge variant="default">Aktiv fullmakt</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Regular deceased person lookup */}
+          {!isLoggedInAsRepresentative && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="personalNumber">Personnummer</Label>
+                <Input
+                  id="personalNumber"
+                  type="text"
+                  placeholder="ÅÅÅÅMMDD-XXXX"
+                  value={personalNumber}
+                  onChange={handleInputChange}
+                  maxLength={13}
+                  className="text-lg"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Format: ÅÅÅÅMMDD-XXXX (t.ex. 19501231-1234)
+                </p>
+              </div>
+            </>
+          )}
 
           {validationError && (
             <Alert variant="destructive">
@@ -317,7 +565,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
             </Alert>
           )}
 
-          {!hasFetchedHeirs && !isValidating && (
+          {!hasFetchedHeirs && !isValidating && !isLoggedInAsRepresentative && (
             <Button 
               onClick={fetchHeirsFromSkatteverket} 
               disabled={!personalNumber}
@@ -409,7 +657,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                 ))}
               </div>
               
-              {!hasSignedWithBankID && (
+              {!hasSignedWithBankID && !isLoggedInAsRepresentative && (
                 <div className="space-y-4 border-t pt-4">
                   <Alert>
                     <Shield className="h-4 w-4" />
@@ -453,7 +701,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                 </div>
               )}
               
-              {hasSignedWithBankID && (
+              {hasSignedWithBankID && !isLoggedInAsRepresentative && (
                 <div className="space-y-4 border-t pt-4">
                   <Alert>
                     <CheckCircle2 className="h-4 w-4" />

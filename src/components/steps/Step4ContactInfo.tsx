@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Send, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { notificationService } from "@/services/notificationService";
+import { PDFService } from "@/services/pdfService";
 
 interface Beneficiary {
   id: string;
@@ -24,13 +26,17 @@ interface Beneficiary {
 interface Step4Props {
   beneficiaries: Beneficiary[];
   setBeneficiaries: (beneficiaries: Beneficiary[]) => void;
+  personalNumber?: string; // Added for PDF generation
+  totalAmount?: number; // Added for PDF generation
   onNext: () => void;
   onBack: () => void;
 }
 
 export const Step4ContactInfo = ({ 
   beneficiaries, 
-  setBeneficiaries, 
+  setBeneficiaries,
+  personalNumber = "",
+  totalAmount = 0,
   onNext, 
   onBack 
 }: Step4Props) => {
@@ -63,21 +69,59 @@ export const Step4ContactInfo = ({
     setIsSendingDocuments(true);
     
     try {
-      // Simulate PDF generation and document sending
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mark all documents as sent
-      const updatedBeneficiaries = beneficiaries.map(b => ({
-        ...b,
-        documentSent: true,
-        sentAt: new Date().toISOString()
-      }));
+      // Generate PDF for inheritance settlement
+      const settlementPdf = await PDFService.generateDistributionPDF({
+        personalNumber,
+        assets: [], // Would be passed from parent component in production
+        beneficiaries: beneficiaries.map(b => ({
+          name: b.name,
+          personalNumber: b.personalNumber,
+          relationship: b.relationship,
+          percentage: b.percentage,
+          amount: (b.percentage / 100) * totalAmount,
+          accountNumber: b.accountNumber
+        })),
+        totalAmount
+      });
+
+      if (!settlementPdf) {
+        throw new Error("Kunde inte generera PDF");
+      }
+
+      // Convert Blob to File for notification service
+      const pdfFile = new File([settlementPdf], "arvsskifte.pdf", { type: "application/pdf" });
+
+      // Send e-signature requests via email and SMS
+      const results = await notificationService.sendInheritanceSettlementForSigning(
+        beneficiaries.map(b => ({
+          name: b.name,
+          email: b.email || "",
+          phone: b.phone || "",
+          personalNumber: b.personalNumber
+        })),
+        pdfFile,
+        personalNumber
+      );
+
+      // Update beneficiaries with signature tracking info
+      const updatedBeneficiaries = beneficiaries.map(b => {
+        const result = results.find(r => r.beneficiary === b.name);
+        return {
+          ...b,
+          documentSent: true,
+          sentAt: new Date().toISOString(),
+          signatureId: result?.signatureId || "",
+          trackingUrl: result?.trackingUrl || ""
+        };
+      });
       
       setBeneficiaries(updatedBeneficiaries);
       
+      const successCount = results.filter(r => r.emailSent && r.smsSent).length;
+      
       toast({
         title: "Dokument skickade",
-        description: "Arvsskiftet har skickats till alla dödsbodelägare för e-signering.",
+        description: `Arvsskiftet har skickats till ${successCount} av ${beneficiaries.length} dödsbodelägare för e-signering.`,
       });
       
       // Proceed to signing step after a short delay
@@ -117,13 +161,13 @@ export const Step4ContactInfo = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Alert>
-            <Mail className="h-4 w-4" />
-            <AlertDescription>
-              Arvsskiftet kommer att skickas som en PDF till alla dödsbodelägare för e-signering. 
-              När alla har signerat kan dokumentet skickas vidare till bankerna.
-            </AlertDescription>
-          </Alert>
+            <Alert>
+              <Mail className="h-4 w-4" />
+              <AlertDescription>
+                Arvsskiftet kommer att skickas som en PDF till alla dödsbodelägare för e-signering via både e-post och SMS. 
+                När alla har signerat kan dokumentet skickas vidare till bankerna.
+              </AlertDescription>
+            </Alert>
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Dödsbodelägares kontaktuppgifter</h3>

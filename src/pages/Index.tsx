@@ -174,6 +174,8 @@ const Index = () => {
           <Step4ContactInfo
             beneficiaries={beneficiaries}
             setBeneficiaries={setBeneficiaries}
+            personalNumber={personalNumber}
+            totalAmount={totalDistributableAmount}
             onNext={handleNext}
             onBack={handleBack}
           />
