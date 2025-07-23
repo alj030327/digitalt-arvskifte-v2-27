@@ -18,6 +18,8 @@ interface Heir {
   inheritanceShare?: number;
   signed?: boolean;
   signedAt?: string;
+  email?: string;
+  phone?: string;
 }
 
 interface PowerOfAttorney {
@@ -61,6 +63,8 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   const [representativeName, setRepresentativeName] = useState("");
   const [isGrantingPowerOfAttorney, setIsGrantingPowerOfAttorney] = useState(false);
   const [existingPowerOfAttorneys, setExistingPowerOfAttorneys] = useState<PowerOfAttorney[]>([]);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [heirsWithContact, setHeirsWithContact] = useState<Heir[]>([]);
   
   // Representative access states
   const [showRepresentativeLogin, setShowRepresentativeLogin] = useState(false);
@@ -210,6 +214,48 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     }
   };
 
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const validatePhone = (phone: string) => {
+    const cleaned = phone.replace(/\D/g, '');
+    return cleaned.length >= 10;
+  };
+
+  const formatPhoneNumber = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 3) return cleaned;
+    if (cleaned.length <= 6) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+    if (cleaned.length <= 8) return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)} ${cleaned.slice(6, 8)} ${cleaned.slice(8, 10)}`;
+  };
+
+  const handleContactInfoChange = (heirPersonalNumber: string, field: 'email' | 'phone', value: string) => {
+    setHeirsWithContact(prev => {
+      const updated = [...prev];
+      const index = updated.findIndex(h => h.personalNumber === heirPersonalNumber);
+      if (index !== -1) {
+        updated[index] = { ...updated[index], [field]: value };
+      } else {
+        const heir = localHeirs.find(h => h.personalNumber === heirPersonalNumber);
+        if (heir) {
+          updated.push({ ...heir, [field]: value });
+        }
+      }
+      return updated;
+    });
+  };
+
+  const allContactInfoComplete = () => {
+    const otherHeirs = localHeirs.filter(heir => heir.personalNumber !== currentUserPersonalNumber);
+    return otherHeirs.every(heir => {
+      const heirWithContact = heirsWithContact.find(h => h.personalNumber === heir.personalNumber);
+      return heirWithContact?.email && validateEmail(heirWithContact.email) && 
+             heirWithContact?.phone && validatePhone(heirWithContact.phone);
+    });
+  };
+
   const handleGrantPowerOfAttorney = async () => {
     if (!representativePersonalNumber || !representativeName) {
       toast({
@@ -226,6 +272,12 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
         description: "Ange ett giltigt personnummer för företrädaren.",
         variant: "destructive",
       });
+      return;
+    }
+
+    // Check if all contact info is complete
+    if (!allContactInfoComplete()) {
+      setShowContactForm(true);
       return;
     }
 
@@ -257,18 +309,31 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
 
       setExistingPowerOfAttorneys(existing);
 
-      // Send BankID signing invitations to all other heirs (simulate)
+      // Send PDF documents and BankID signing invitations to all other heirs
       const otherHeirs = localHeirs.filter(heir => heir.personalNumber !== currentUserPersonalNumber);
+      const heirsWithContactInfo = otherHeirs.map(heir => {
+        const contactInfo = heirsWithContact.find(h => h.personalNumber === heir.personalNumber);
+        return {
+          ...heir,
+          email: contactInfo?.email || '',
+          phone: contactInfo?.phone || ''
+        };
+      });
+
+      // Here we would send the power of attorney PDF via email and SMS
+      // and initiate BankID signing for each heir
       
       toast({
-        title: "Fullmakt initierad",
-        description: `E-signeringslänkar har skickats till ${otherHeirs.length} dödsbodelägare för godkännande.`,
+        title: "Fullmakt skickad",
+        description: `Fullmaktshandlingar och BankID-signeringslänkar har skickats till ${otherHeirs.length} dödsbodelägare.`,
       });
 
       // Reset form
       setRepresentativePersonalNumber("");
       setRepresentativeName("");
       setShowPowerOfAttorneyForm(false);
+      setShowContactForm(false);
+      setHeirsWithContact([]);
 
     } catch (error) {
       toast({
@@ -766,6 +831,55 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                             onChange={(e) => setRepresentativeName(e.target.value)}
                           />
                         </div>
+
+                        {/* Contact Information Form */}
+                        {showContactForm && (
+                          <div className="space-y-4 border-t pt-4">
+                            <h5 className="font-medium">Kontaktuppgifter för dödsbodelägare</h5>
+                            <p className="text-sm text-muted-foreground">
+                              Ange e-post och telefonnummer för att skicka fullmaktshandlingar till övriga dödsbodelägare.
+                            </p>
+                            
+                            {localHeirs
+                              .filter(heir => heir.personalNumber !== currentUserPersonalNumber)
+                              .map(heir => {
+                                const heirWithContact = heirsWithContact.find(h => h.personalNumber === heir.personalNumber) || heir;
+                                return (
+                                  <div key={heir.personalNumber} className="p-3 border border-border rounded-lg space-y-3">
+                                    <div className="font-medium">{heir.name}</div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      <div className="space-y-2">
+                                        <Label>E-postadress</Label>
+                                        <Input
+                                          type="email"
+                                          value={heirWithContact.email || ''}
+                                          onChange={(e) => handleContactInfoChange(heir.personalNumber, 'email', e.target.value)}
+                                          placeholder="namn@exempel.se"
+                                        />
+                                        {heirWithContact.email && !validateEmail(heirWithContact.email) && (
+                                          <p className="text-sm text-destructive">Ange en giltig e-postadress</p>
+                                        )}
+                                      </div>
+                                      
+                                      <div className="space-y-2">
+                                        <Label>Telefonnummer</Label>
+                                        <Input
+                                          type="tel"
+                                          value={heirWithContact.phone || ''}
+                                          onChange={(e) => handleContactInfoChange(heir.personalNumber, 'phone', formatPhoneNumber(e.target.value))}
+                                          placeholder="070-123 45 67"
+                                        />
+                                        {heirWithContact.phone && !validatePhone(heirWithContact.phone) && (
+                                          <p className="text-sm text-destructive">Ange ett giltigt telefonnummer</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        )}
                         
                         <Button 
                           onClick={handleGrantPowerOfAttorney}
@@ -780,7 +894,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                           ) : (
                             <>
                               <Send className="w-4 h-4 mr-2" />
-                              Skicka fullmakt för godkännande
+                              {showContactForm ? "Skicka fullmakt för godkännande" : "Fortsätt"}
                             </>
                           )}
                         </Button>

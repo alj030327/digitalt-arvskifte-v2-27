@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, Send, CheckCircle2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Mail, Phone, Send, CheckCircle2, MessageSquare } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { notificationService } from "@/services/notificationService";
@@ -21,6 +22,7 @@ interface Beneficiary {
   phone?: string;
   documentSent?: boolean;
   sentAt?: string;
+  notificationPreference?: 'email' | 'sms' | 'both';
 }
 
 interface Step4Props {
@@ -44,7 +46,7 @@ export const Step4ContactInfo = ({
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isSendingDocuments, setIsSendingDocuments] = useState(false);
 
-  const handleContactInfoChange = (id: string, field: 'email' | 'phone', value: string) => {
+  const handleContactInfoChange = (id: string, field: 'email' | 'phone' | 'notificationPreference', value: string) => {
     setBeneficiaries(beneficiaries.map(b => 
       b.id === id ? { ...b, [field]: value } : b
     ));
@@ -59,9 +61,14 @@ export const Step4ContactInfo = ({
     return cleaned.length >= 10;
   };
 
-  const allContactInfoComplete = beneficiaries.every(b => 
-    b.email && validateEmail(b.email) && b.phone && validatePhone(b.phone)
-  );
+  const allContactInfoComplete = beneficiaries.every(b => {
+    const pref = b.notificationPreference || 'both';
+    const needsEmail = pref === 'email' || pref === 'both';
+    const needsSms = pref === 'sms' || pref === 'both';
+    
+    return (!needsEmail || (b.email && validateEmail(b.email))) &&
+           (!needsSms || (b.phone && validatePhone(b.phone)));
+  });
 
   const handleSendDocuments = async () => {
     if (!allContactInfoComplete) return;
@@ -161,13 +168,13 @@ export const Step4ContactInfo = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-            <Alert>
-              <Mail className="h-4 w-4" />
-              <AlertDescription>
-                Arvsskiftet kommer att skickas som en PDF till alla dödsbodelägare för e-signering via både e-post och SMS. 
-                När alla har signerat kan dokumentet skickas vidare till bankerna.
-              </AlertDescription>
-            </Alert>
+          <Alert>
+            <Mail className="h-4 w-4" />
+            <AlertDescription>
+              Arvsskiftet kommer att skickas som en PDF till alla dödsbodelägare för e-signering via e-post och/eller SMS enligt deras valda preferenser. 
+              När alla har signerat kan dokumentet skickas vidare till bankerna.
+            </AlertDescription>
+          </Alert>
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Dödsbodelägares kontaktuppgifter</h3>
@@ -187,34 +194,76 @@ export const Step4ContactInfo = ({
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor={`email-${beneficiary.id}`}>E-postadress</Label>
-                      <Input
-                        id={`email-${beneficiary.id}`}
-                        type="email"
-                        value={beneficiary.email || ''}
-                        onChange={(e) => handleContactInfoChange(beneficiary.id, 'email', e.target.value)}
-                        placeholder="namn@exempel.se"
+                  <div className="space-y-4">
+                    {/* Notification Preference */}
+                    <div className="space-y-3">
+                      <Label>Meddelanden via</Label>
+                      <RadioGroup
+                        value={beneficiary.notificationPreference || 'both'}
+                        onValueChange={(value) => handleContactInfoChange(beneficiary.id, 'notificationPreference', value)}
                         disabled={beneficiary.documentSent}
-                      />
-                      {beneficiary.email && !validateEmail(beneficiary.email) && (
-                        <p className="text-sm text-destructive">Ange en giltig e-postadress</p>
-                      )}
+                        className="flex flex-row gap-6"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="email" id={`email-only-${beneficiary.id}`} />
+                          <Label htmlFor={`email-only-${beneficiary.id}`} className="flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            Endast e-post
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="sms" id={`sms-only-${beneficiary.id}`} />
+                          <Label htmlFor={`sms-only-${beneficiary.id}`} className="flex items-center gap-1">
+                            <MessageSquare className="w-4 h-4" />
+                            Endast SMS
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="both" id={`both-${beneficiary.id}`} />
+                          <Label htmlFor={`both-${beneficiary.id}`} className="flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            <MessageSquare className="w-4 h-4" />
+                            Båda
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor={`phone-${beneficiary.id}`}>Telefonnummer</Label>
-                      <Input
-                        id={`phone-${beneficiary.id}`}
-                        type="tel"
-                        value={beneficiary.phone || ''}
-                        onChange={(e) => handleContactInfoChange(beneficiary.id, 'phone', formatPhoneNumber(e.target.value))}
-                        placeholder="070-123 45 67"
-                        disabled={beneficiary.documentSent}
-                      />
-                      {beneficiary.phone && !validatePhone(beneficiary.phone) && (
-                        <p className="text-sm text-destructive">Ange ett giltigt telefonnummer (minst 10 siffror)</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Email field - only required if preference includes email */}
+                      {(beneficiary.notificationPreference === 'email' || beneficiary.notificationPreference === 'both' || !beneficiary.notificationPreference) && (
+                        <div className="space-y-2">
+                          <Label htmlFor={`email-${beneficiary.id}`}>E-postadress</Label>
+                          <Input
+                            id={`email-${beneficiary.id}`}
+                            type="email"
+                            value={beneficiary.email || ''}
+                            onChange={(e) => handleContactInfoChange(beneficiary.id, 'email', e.target.value)}
+                            placeholder="namn@exempel.se"
+                            disabled={beneficiary.documentSent}
+                          />
+                          {beneficiary.email && !validateEmail(beneficiary.email) && (
+                            <p className="text-sm text-destructive">Ange en giltig e-postadress</p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Phone field - only required if preference includes SMS */}
+                      {(beneficiary.notificationPreference === 'sms' || beneficiary.notificationPreference === 'both' || !beneficiary.notificationPreference) && (
+                        <div className="space-y-2">
+                          <Label htmlFor={`phone-${beneficiary.id}`}>Telefonnummer</Label>
+                          <Input
+                            id={`phone-${beneficiary.id}`}
+                            type="tel"
+                            value={beneficiary.phone || ''}
+                            onChange={(e) => handleContactInfoChange(beneficiary.id, 'phone', formatPhoneNumber(e.target.value))}
+                            placeholder="070-123 45 67"
+                            disabled={beneficiary.documentSent}
+                          />
+                          {beneficiary.phone && !validatePhone(beneficiary.phone) && (
+                            <p className="text-sm text-destructive">Ange ett giltigt telefonnummer (minst 10 siffror)</p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
