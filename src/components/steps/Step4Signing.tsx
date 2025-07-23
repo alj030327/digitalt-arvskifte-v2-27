@@ -6,43 +6,41 @@ import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Shield, Smartphone, Clock, UserCheck, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface Beneficiary {
-  id: string;
-  name: string;
+interface Heir {
   personalNumber: string;
+  name: string;
   relationship: string;
-  percentage: number;
-  accountNumber: string;
+  inheritanceShare?: number;
   signed?: boolean;
   signedAt?: string;
 }
 
 interface SigningStatus {
-  beneficiaryId: string;
+  heirPersonalNumber: string;
   isSigning: boolean;
   completed: boolean;
 }
 
 interface Step4Props {
-  beneficiaries: Beneficiary[];
-  setBeneficiaries: (beneficiaries: Beneficiary[]) => void;
+  heirs: Heir[];
+  setHeirs: (heirs: Heir[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export const Step4Signing = ({ beneficiaries, setBeneficiaries, onNext, onBack }: Step4Props) => {
+export const Step4Signing = ({ heirs, setHeirs, onNext, onBack }: Step4Props) => {
   const [signingStatuses, setSigningStatuses] = useState<SigningStatus[]>(
-    beneficiaries.map(b => ({
-      beneficiaryId: b.id,
+    heirs.map(h => ({
+      heirPersonalNumber: h.personalNumber,
       isSigning: false,
-      completed: b.signed || false
+      completed: h.signed || false
     }))
   );
 
-  const handleBankIdSign = async (beneficiaryId: string) => {
+  const handleBankIdSign = async (heirPersonalNumber: string) => {
     // Update signing status
     setSigningStatuses(prev => prev.map(s => 
-      s.beneficiaryId === beneficiaryId 
+      s.heirPersonalNumber === heirPersonalNumber 
         ? { ...s, isSigning: true } 
         : s
     ));
@@ -52,25 +50,25 @@ export const Step4Signing = ({ beneficiaries, setBeneficiaries, onNext, onBack }
 
     // Mark as completed
     setSigningStatuses(prev => prev.map(s => 
-      s.beneficiaryId === beneficiaryId 
+      s.heirPersonalNumber === heirPersonalNumber 
         ? { ...s, isSigning: false, completed: true } 
         : s
     ));
 
-    // Update beneficiary
-    const updatedBeneficiaries = beneficiaries.map(b => 
-      b.id === beneficiaryId 
-        ? { ...b, signed: true, signedAt: new Date().toLocaleString('sv-SE') }
-        : b
+    // Update heir
+    const updatedHeirs = heirs.map(h => 
+      h.personalNumber === heirPersonalNumber 
+        ? { ...h, signed: true, signedAt: new Date().toLocaleString('sv-SE') }
+        : h
     );
-    setBeneficiaries(updatedBeneficiaries);
+    setHeirs(updatedHeirs);
   };
 
-  const allSigned = beneficiaries.every(b => b.signed);
-  const signedCount = beneficiaries.filter(b => b.signed).length;
+  const allSigned = heirs.every(h => h.signed);
+  const signedCount = heirs.filter(h => h.signed).length;
 
-  const getBeneficiarySigningStatus = (beneficiaryId: string) => {
-    return signingStatuses.find(s => s.beneficiaryId === beneficiaryId);
+  const getHeirSigningStatus = (heirPersonalNumber: string) => {
+    return signingStatuses.find(s => s.heirPersonalNumber === heirPersonalNumber);
   };
 
   return (
@@ -91,13 +89,13 @@ export const Step4Signing = ({ beneficiaries, setBeneficiaries, onNext, onBack }
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium">Signeringsframsteg</span>
               <Badge variant={allSigned ? "default" : "secondary"} className={allSigned ? "bg-success text-success-foreground" : ""}>
-                {signedCount} av {beneficiaries.length} signerade
+                {signedCount} av {heirs.length} signerade
               </Badge>
             </div>
             <div className="w-full bg-border rounded-full h-2">
               <div 
                 className="bg-success h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(signedCount / beneficiaries.length) * 100}%` }}
+                style={{ width: `${(signedCount / heirs.length) * 100}%` }}
               />
             </div>
           </div>
@@ -117,17 +115,17 @@ export const Step4Signing = ({ beneficiaries, setBeneficiaries, onNext, onBack }
             <h3 className="text-lg font-semibold">Dödsbodelägare som ska signera</h3>
             
             <div className="space-y-3">
-              {beneficiaries.map((beneficiary) => {
-                const signingStatus = getBeneficiarySigningStatus(beneficiary.id);
+              {heirs.map((heir) => {
+                const signingStatus = getHeirSigningStatus(heir.personalNumber);
                 
                 return (
-                  <div key={beneficiary.id} className="p-4 border border-border rounded-lg">
+                  <div key={heir.personalNumber} className="p-4 border border-border rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="font-medium">{beneficiary.name}</span>
-                          <Badge variant="secondary">{beneficiary.relationship}</Badge>
-                          {beneficiary.signed && (
+                          <span className="font-medium">{heir.name}</span>
+                          <Badge variant="secondary">{heir.relationship}</Badge>
+                          {heir.signed && (
                             <Badge variant="default" className="bg-success text-success-foreground">
                               <CheckCircle2 className="w-3 h-3 mr-1" />
                               Signerad
@@ -135,25 +133,24 @@ export const Step4Signing = ({ beneficiaries, setBeneficiaries, onNext, onBack }
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mb-1">
-                          Personnummer: {beneficiary.personalNumber}
+                          Personnummer: {heir.personalNumber}
                         </p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>Andel: {beneficiary.percentage}%</span>
-                          {beneficiary.signedAt && (
-                            <span>Signerad: {beneficiary.signedAt}</span>
+                          {heir.signedAt && (
+                            <span>Signerad: {heir.signedAt}</span>
                           )}
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-4">
-                        {beneficiary.signed ? (
+                        {heir.signed ? (
                           <div className="flex items-center gap-2 text-success">
                             <CheckCircle2 className="w-5 h-5" />
                             <span className="font-medium">Slutförd</span>
                           </div>
                         ) : (
                           <Button
-                            onClick={() => handleBankIdSign(beneficiary.id)}
+                            onClick={() => handleBankIdSign(heir.personalNumber)}
                             disabled={signingStatus?.isSigning}
                             variant={signingStatus?.isSigning ? "secondary" : "default"}
                           >
@@ -177,7 +174,7 @@ export const Step4Signing = ({ beneficiaries, setBeneficiaries, onNext, onBack }
                       <div className="mt-3 p-3 bg-muted rounded border-l-4 border-l-primary">
                         <p className="text-sm font-medium">Väntar på BankID-signering</p>
                         <p className="text-xs text-muted-foreground">
-                          {beneficiary.name} behöver öppna sin BankID-app och bekräfta signeringen
+                          {heir.name} behöver öppna sin BankID-app och bekräfta signeringen
                         </p>
                       </div>
                     )}

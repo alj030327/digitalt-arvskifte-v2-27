@@ -50,6 +50,9 @@ interface Step3Props {
   setPhysicalAssets: (assets: PhysicalAsset[]) => void;
   onNext: () => void;
   onBack: () => void;
+  onSave: () => void;
+  onComplete: () => void;
+  savedProgress: boolean;
 }
 
 export const Step3Distribution = ({ 
@@ -63,7 +66,10 @@ export const Step3Distribution = ({
   physicalAssets,
   setPhysicalAssets,
   onNext, 
-  onBack 
+  onBack,
+  onSave,
+  onComplete,
+  savedProgress
 }: Step3Props) => {
   const [newBeneficiary, setNewBeneficiary] = useState({
     name: "",
@@ -308,16 +314,35 @@ export const Step3Distribution = ({
             setBeneficiaries={setBeneficiaries}
           />
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onBack}>
+          {savedProgress && (
+            <div className="text-center p-3 bg-success/10 border border-success/20 rounded-lg">
+              <p className="text-sm font-medium text-success">Framsteg sparat!</p>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            <Button variant="outline" onClick={onBack} className="sm:w-auto">
               Tillbaka
             </Button>
-            <Button 
-              onClick={onNext} 
-              disabled={beneficiaries.length === 0 || !isValidDistribution || (hasTestament && (!testament || !testament.verified))}
-            >
-              Fortsätt till signering
-            </Button>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                variant="secondary" 
+                onClick={onSave}
+                size="lg"
+                className="flex-1 sm:flex-none"
+              >
+                Spara framsteg
+              </Button>
+              <Button 
+                onClick={onComplete}
+                disabled={beneficiaries.length === 0 || !isValidDistribution || (hasTestament && (!testament || !testament.verified))}
+                size="lg"
+                className="flex-1 sm:flex-none"
+              >
+                Färdigställ och signera
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

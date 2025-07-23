@@ -49,14 +49,25 @@ interface Testament {
   verified: boolean;
 }
 
+interface Heir {
+  personalNumber: string;
+  name: string;
+  relationship: string;
+  inheritanceShare?: number;
+  signed?: boolean;
+  signedAt?: string;
+}
+
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [personalNumber, setPersonalNumber] = useState("");
+  const [heirs, setHeirs] = useState<Heir[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [testament, setTestament] = useState<Testament | null>(null);
   const [hasTestament, setHasTestament] = useState(false);
   const [physicalAssets, setPhysicalAssets] = useState<PhysicalAsset[]>([]);
+  const [savedProgress, setSavedProgress] = useState(false);
 
   const stepLabels = [
     "Identifiering",
@@ -77,7 +88,19 @@ const Index = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
+  const handleSave = () => {
+    setSavedProgress(true);
+    // Simulate saving progress
+    console.log("Framsteg sparat!");
+  };
+
   const handleComplete = () => {
+    // Send BankID invitations to all heirs
+    console.log("Skickar BankID-signeringar till alla dödsbodelägare...");
+    setCurrentStep(4);
+  };
+
+  const handleFinalComplete = () => {
     // Reset or redirect to completion page
     console.log("Arvsskifte genomfört!");
   };
@@ -111,6 +134,8 @@ const Index = () => {
           <Step1PersonalNumber
             personalNumber={personalNumber}
             setPersonalNumber={setPersonalNumber}
+            heirs={heirs}
+            setHeirs={setHeirs}
             onNext={handleNext}
           />
         )}
@@ -137,13 +162,16 @@ const Index = () => {
             setPhysicalAssets={setPhysicalAssets}
             onNext={handleNext}
             onBack={handleBack}
+            onSave={handleSave}
+            onComplete={handleComplete}
+            savedProgress={savedProgress}
           />
         )}
 
         {currentStep === 4 && (
           <Step4Signing
-            beneficiaries={beneficiaries}
-            setBeneficiaries={setBeneficiaries}
+            heirs={heirs}
+            setHeirs={setHeirs}
             onNext={handleNext}
             onBack={handleBack}
           />
@@ -156,7 +184,7 @@ const Index = () => {
             beneficiaries={beneficiaries}
             testament={testament}
             onBack={handleBack}
-            onComplete={handleComplete}
+            onComplete={handleFinalComplete}
           />
         )}
       </div>

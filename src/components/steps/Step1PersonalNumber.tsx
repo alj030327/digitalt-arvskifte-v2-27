@@ -11,19 +11,23 @@ interface Heir {
   personalNumber: string;
   name: string;
   relationship: string;
-  inheritanceShare: number;
+  inheritanceShare?: number;
+  signed?: boolean;
+  signedAt?: string;
 }
 
 interface Step1Props {
   personalNumber: string;
   setPersonalNumber: (value: string) => void;
+  heirs: Heir[];
+  setHeirs: (heirs: Heir[]) => void;
   onNext: () => void;
 }
 
-export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, onNext }: Step1Props) => {
+export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, setHeirs, onNext }: Step1Props) => {
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState("");
-  const [heirs, setHeirs] = useState<Heir[]>([]);
+  const [localHeirs, setLocalHeirs] = useState<Heir[]>(heirs);
   const [currentUserPersonalNumber, setCurrentUserPersonalNumber] = useState("");
   const [hasFetchedHeirs, setHasFetchedHeirs] = useState(false);
   const [isSigningWithBankID, setIsSigningWithBankID] = useState(false);
@@ -82,6 +86,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, onNext 
         }
       ];
       
+      setLocalHeirs(mockHeirs);
       setHeirs(mockHeirs);
       setHasFetchedHeirs(true);
     } catch (error) {
@@ -110,7 +115,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, onNext 
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Check if current user is one of the heirs
-      const isAuthorizedHeir = heirs.some(heir => 
+      const isAuthorizedHeir = localHeirs.some(heir => 
         heir.personalNumber.replace('-', '') === currentUserPersonalNumber.replace('-', '')
       );
       
@@ -191,7 +196,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, onNext 
             </div>
           )}
 
-          {hasFetchedHeirs && heirs.length > 0 && (
+          {hasFetchedHeirs && localHeirs.length > 0 && (
             <div className="space-y-4">
               <Alert>
                 <Users className="h-4 w-4" />
@@ -201,7 +206,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, onNext 
               </Alert>
               
               <div className="space-y-2">
-                {heirs.map((heir, index) => (
+                {localHeirs.map((heir, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border border-border rounded-lg">
                     <div>
                       <div className="font-medium">{heir.name}</div>
