@@ -177,15 +177,6 @@ export const TestamentUpload = ({ testament, setTestament, hasTestament, setHasT
         </Card>
       )}
 
-      {hasTestament && !testament?.verified && testament && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Testamentet måste verifieras innan arvsskiftet kan fortsätta. 
-            Verifieringen kontrollerar att dokumentet är giltigt och juridiskt bindande.
-          </AlertDescription>
-        </Alert>
-      )}
     </div>
   );
 };
