@@ -187,7 +187,6 @@ export const Step5BeneficiarySigning = ({
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">{heir.name}</span>
                         <Badge variant="outline">{heir.relationship}</Badge>
-                        <Badge variant="outline">{heir.inheritanceShare || 0}%</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {heir.personalNumber}
