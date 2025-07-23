@@ -29,10 +29,16 @@ interface Beneficiary {
   signed?: boolean;
   signedAt?: string;
   assetPreferences?: {
-    funds: 'transfer' | 'sell';
-    stocks: 'transfer' | 'sell';
-    bonds: 'transfer' | 'sell';
-    crypto: 'transfer' | 'sell';
+    warrants: 'transfer' | 'sell';
+    certificates: 'transfer' | 'sell';
+    options: 'transfer' | 'sell';
+    futures: 'transfer' | 'sell';
+  };
+  assetNotApplicable?: {
+    warrants?: boolean;
+    certificates?: boolean;
+    options?: boolean;
+    futures?: boolean;
   };
 }
 

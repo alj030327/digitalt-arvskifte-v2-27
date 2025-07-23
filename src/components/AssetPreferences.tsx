@@ -11,12 +11,17 @@ interface Beneficiary {
   percentage: number;
   accountNumber: string;
   assetPreferences?: {
-    funds: 'transfer' | 'sell';
-    stocks: 'transfer' | 'sell';
-    bonds: 'transfer' | 'sell';
-    crypto: 'transfer' | 'sell';
+    warrants: 'transfer' | 'sell';
+    certificates: 'transfer' | 'sell';
+    options: 'transfer' | 'sell';
+    futures: 'transfer' | 'sell';
   };
-  financialAssetsNotApplicable?: boolean;
+  assetNotApplicable?: {
+    warrants?: boolean;
+    certificates?: boolean;
+    options?: boolean;
+    futures?: boolean;
+  };
 }
 
 interface AssetPreferencesProps {
@@ -39,14 +44,19 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
     ));
   };
 
-  const updateNotApplicable = (beneficiaryId: string, notApplicable: boolean) => {
+  const updateAssetNotApplicable = (beneficiaryId: string, assetType: keyof Beneficiary['assetNotApplicable'], notApplicable: boolean) => {
     setBeneficiaries(beneficiaries.map(beneficiary => 
       beneficiary.id === beneficiaryId 
         ? { 
             ...beneficiary, 
-            financialAssetsNotApplicable: notApplicable,
-            // Clear preferences if marking as not applicable
-            assetPreferences: notApplicable ? undefined : beneficiary.assetPreferences
+            assetNotApplicable: {
+              ...beneficiary.assetNotApplicable,
+              [assetType]: notApplicable
+            },
+            // Clear preference if marking as not applicable
+            assetPreferences: notApplicable 
+              ? { ...beneficiary.assetPreferences, [assetType]: undefined }
+              : beneficiary.assetPreferences
           }
         : beneficiary
     ));
@@ -54,20 +64,20 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
 
   const getAssetIcon = (assetType: string) => {
     switch (assetType) {
-      case 'funds': return <TrendingUp className="w-4 h-4" />;
-      case 'stocks': return <Building className="w-4 h-4" />;
-      case 'bonds': return <Coins className="w-4 h-4" />;
-      case 'crypto': return <Bitcoin className="w-4 h-4" />;
+      case 'warrants': return <TrendingUp className="w-4 h-4" />;
+      case 'certificates': return <Building className="w-4 h-4" />;
+      case 'options': return <Coins className="w-4 h-4" />;
+      case 'futures': return <Bitcoin className="w-4 h-4" />;
       default: return <TrendingUp className="w-4 h-4" />;
     }
   };
 
   const getAssetLabel = (assetType: string) => {
     switch (assetType) {
-      case 'funds': return 'Fonder';
-      case 'stocks': return 'Aktier';
-      case 'bonds': return 'Obligationer';
-      case 'crypto': return 'Kryptovaluta';
+      case 'warrants': return 'Warranter';
+      case 'certificates': return 'Certifikat';
+      case 'options': return 'Optioner';
+      case 'futures': return 'Terminer';
       default: return assetType;
     }
   };
@@ -80,7 +90,7 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
     }
   };
 
-  const assetTypes = ['funds', 'stocks', 'bonds', 'crypto'] as const;
+  const assetTypes = ['warrants', 'certificates', 'options', 'futures'] as const;
 
   if (beneficiaries.length === 0) {
     return null;
@@ -91,10 +101,10 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />
-          Preferenser för finansiella tillgångar
+          Preferenser för strukturerade produkter och derivat
         </CardTitle>
         <CardDescription>
-          Ange hur varje dödsbodelägare vill hantera finansiella tillgångar som fonder, aktier och obligationer
+          Ange hur varje dödsbodelägare vill hantera strukturerade produkter som warranter, certifikat, optioner och terminer
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -103,12 +113,13 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
             <AlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
             <div>
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                Viktigt att veta om finansiella tillgångar
+                Viktigt att veta om strukturerade produkter och derivat
               </h4>
               <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <p><strong>Överföring:</strong> Tillgångarna överförs direkt till arvingen i samma form. Detta kan innebära skattekonsekvenser och kräver ofta att mottagaren har rätt typ av konto.</p>
-                <p><strong>Försäljning:</strong> Tillgångarna säljs och kontantvärdet delas enligt fördelningen. Detta kan vara enklare administrativt men kan påverka marknadsexponering.</p>
-                <p><strong>Skatteaspekter:</strong> Konsultera en skatterådgivare för att förstå konsekvenserna av olika val.</p>
+                <p><strong>Överföring:</strong> Produkterna överförs direkt till arvingen. Kräver ofta specifika konton och kunskaper om riskprofiler.</p>
+                <p><strong>Försäljning:</strong> Produkterna säljs och kontantvärdet delas. Kan vara nödvändigt vid komplexa derivatinstrument.</p>
+                <p><strong>Riskaspekter:</strong> Dessa produkter har ofta höga risknivåer och kräver finansiell expertis.</p>
+                <p><strong>Löptider:</strong> Vissa produkter har specifika löptider som påverkar hanteringen.</p>
               </div>
             </div>
           </div>
@@ -125,38 +136,34 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
               </div>
             </div>
             
-            {/* Not Applicable Checkbox */}
-            <div className="flex items-start space-x-2">
-              <input
-                type="checkbox"
-                id={`notApplicable-${beneficiary.id}`}
-                checked={beneficiary.financialAssetsNotApplicable || false}
-                onChange={(e) => updateNotApplicable(beneficiary.id, e.target.checked)}
-                className="mt-1"
-              />
-              <div>
-                <Label htmlFor={`notApplicable-${beneficiary.id}`} className="text-sm font-medium cursor-pointer">
-                  Inte applicerbart
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Markera om det inte finns några finansiella tillgångar för denna dödsbodelägare
-                </p>
-              </div>
-            </div>
-            
-            {!beneficiary.financialAssetsNotApplicable && (
-              <div className="space-y-3">
-                <h5 className="text-sm font-medium">Preferenser för tillgångstyper:</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {assetTypes.map((assetType) => (
-                    <div key={assetType} className="space-y-2">
+            <div className="space-y-4">
+              <h5 className="text-sm font-medium">Preferenser för produkttyper:</h5>
+              <div className="space-y-4">
+                {assetTypes.map((assetType) => (
+                  <div key={assetType} className="space-y-3">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {getAssetIcon(assetType)}
                         <Label className="text-sm font-medium">
                           {getAssetLabel(assetType)}
                         </Label>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`notApplicable-${beneficiary.id}-${assetType}`}
+                          checked={beneficiary.assetNotApplicable?.[assetType] || false}
+                          onChange={(e) => updateAssetNotApplicable(beneficiary.id, assetType, e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                        <Label htmlFor={`notApplicable-${beneficiary.id}-${assetType}`} className="text-xs cursor-pointer">
+                          Inte applicerbart
+                        </Label>
+                      </div>
+                    </div>
+                    
+                    {!beneficiary.assetNotApplicable?.[assetType] && (
+                      <div className="flex gap-2 ml-6">
                         <button
                           type="button"
                           onClick={() => updateAssetPreference(beneficiary.id, assetType, 'transfer')}
@@ -180,34 +187,35 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
                           Sälj
                         </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
             
             <div className="pt-3 border-t border-border">
               <h6 className="text-xs font-medium mb-2">Nuvarande preferenser:</h6>
               <div className="flex flex-wrap gap-1">
-                {beneficiary.financialAssetsNotApplicable ? (
-                  <Badge variant="secondary" className="text-xs">
-                    Inte applicerbart - inga finansiella tillgångar
-                  </Badge>
-                ) : (
-                  <>
-                    {assetTypes.map((assetType) => {
-                      const preference = beneficiary.assetPreferences?.[assetType];
-                      if (!preference) return null;
-                      return (
-                        <Badge key={assetType} variant="outline" className="text-xs">
-                          {getAssetLabel(assetType)}: {getPreferenceLabel(preference)}
-                        </Badge>
-                      );
-                    })}
-                    {!assetTypes.some(type => beneficiary.assetPreferences?.[type]) && (
-                      <span className="text-xs text-muted-foreground">Inga preferenser angivna</span>
-                    )}
-                  </>
+                {assetTypes.map((assetType) => {
+                  if (beneficiary.assetNotApplicable?.[assetType]) {
+                    return (
+                      <Badge key={assetType} variant="secondary" className="text-xs">
+                        {getAssetLabel(assetType)}: Inte applicerbart
+                      </Badge>
+                    );
+                  }
+                  const preference = beneficiary.assetPreferences?.[assetType];
+                  if (!preference) return null;
+                  return (
+                    <Badge key={assetType} variant="outline" className="text-xs">
+                      {getAssetLabel(assetType)}: {getPreferenceLabel(preference)}
+                    </Badge>
+                  );
+                })}
+                {!assetTypes.some(type => 
+                  beneficiary.assetNotApplicable?.[type] || beneficiary.assetPreferences?.[type]
+                ) && (
+                  <span className="text-xs text-muted-foreground">Inga preferenser angivna</span>
                 )}
               </div>
             </div>
@@ -216,20 +224,20 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
         
         <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
-            Vanliga bankscenarier och rekommendationer:
+            Vanliga scenarier för strukturerade produkter:
           </h4>
           <div className="text-sm text-yellow-800 dark:text-yellow-200 space-y-2">
             <div>
-              <strong>Fonder i ISK/KF:</strong> Kan ofta överföras direkt till mottagarens ISK/KF utan skattekonsekvenser.
+              <strong>Warranter:</strong> Ofta korta löptider och hög risk. Försäljning är vanligen det praktiska valet.
             </div>
             <div>
-              <strong>Aktier på AF-konto:</strong> Överföring kan utlösa skattepliktig kapitalvinst. Överväg försäljning.
+              <strong>Certifikat:</strong> Kan ha komplexa villkor. Kontrollera underliggande tillgångar innan överföring.
             </div>
             <div>
-              <strong>Företagsobligationer:</strong> Kan vara svåra att dela - försäljning är ofta det praktiska valet.
+              <strong>Optioner:</strong> Tidsbegränsade instrument som kan förfalla värdelösa. Snabb hantering krävs.
             </div>
             <div>
-              <strong>Kryptovaluta:</strong> Reglering är komplex - konsultera specialist före överföring.
+              <strong>Terminer:</strong> Kräver marginalhantering och specialistkunskap. Konsultera finansiell rådgivare.
             </div>
           </div>
         </div>

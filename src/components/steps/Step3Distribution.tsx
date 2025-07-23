@@ -18,12 +18,17 @@ interface Beneficiary {
   percentage: number;
   accountNumber: string;
   assetPreferences?: {
-    funds: 'transfer' | 'sell';
-    stocks: 'transfer' | 'sell';
-    bonds: 'transfer' | 'sell';
-    crypto: 'transfer' | 'sell';
+    warrants: 'transfer' | 'sell';
+    certificates: 'transfer' | 'sell';
+    options: 'transfer' | 'sell';
+    futures: 'transfer' | 'sell';
   };
-  financialAssetsNotApplicable?: boolean;
+  assetNotApplicable?: {
+    warrants?: boolean;
+    certificates?: boolean;
+    options?: boolean;
+    futures?: boolean;
+  };
 }
 
 interface Testament {
