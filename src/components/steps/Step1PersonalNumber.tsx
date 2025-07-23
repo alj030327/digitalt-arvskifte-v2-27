@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { UserCheck, AlertCircle, Shield, Users, CheckCircle2 } from "lucide-react";
+import { UserCheck, AlertCircle, Shield, Users, CheckCircle2, Briefcase, Send } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SkatteverketService, SkatteverketHeirData } from "@/services/skatteverketService";
 import { BankIdService } from "@/services/bankidService";
+import { useToast } from "@/hooks/use-toast";
 
 interface Heir {
   personalNumber: string;
@@ -16,6 +17,22 @@ interface Heir {
   inheritanceShare?: number;
   signed?: boolean;
   signedAt?: string;
+}
+
+interface PowerOfAttorney {
+  id: string;
+  deceasedPersonalNumber: string;
+  representativePersonalNumber: string;
+  representativeName: string;
+  grantedBy: string; // Personal number of the heir who granted it
+  grantedAt: string;
+  status: 'pending' | 'approved' | 'active';
+  approvals: {
+    heirPersonalNumber: string;
+    heirName: string;
+    approved: boolean;
+    approvedAt?: string;
+  }[];
 }
 
 interface Step1Props {
@@ -27,6 +44,7 @@ interface Step1Props {
 }
 
 export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, setHeirs, onNext }: Step1Props) => {
+  const { toast } = useToast();
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState("");
   const [localHeirs, setLocalHeirs] = useState<Heir[]>(heirs);
@@ -35,6 +53,13 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   const [isSigningWithBankID, setIsSigningWithBankID] = useState(false);
   const [hasSignedWithBankID, setHasSignedWithBankID] = useState(false);
   const [bankIDError, setBankIDError] = useState("");
+  
+  // Power of Attorney states
+  const [showPowerOfAttorneyForm, setShowPowerOfAttorneyForm] = useState(false);
+  const [representativePersonalNumber, setRepresentativePersonalNumber] = useState("");
+  const [representativeName, setRepresentativeName] = useState("");
+  const [isGrantingPowerOfAttorney, setIsGrantingPowerOfAttorney] = useState(false);
+  const [existingPowerOfAttorneys, setExistingPowerOfAttorneys] = useState<PowerOfAttorney[]>([]);
 
   const validatePersonalNumber = (number: string) => {
     // Simplified validation for Swedish personal numbers (YYYYMMDD-XXXX)
@@ -57,6 +82,15 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     const formatted = formatPersonalNumber(e.target.value);
     setPersonalNumber(formatted);
     setValidationError("");
+  };
+
+  
+  // Load existing power of attorneys for this deceased person
+  const loadExistingPowerOfAttorneys = () => {
+    const stored = localStorage.getItem(`powerOfAttorneys_${personalNumber.replace('-', '')}`);
+    if (stored) {
+      setExistingPowerOfAttorneys(JSON.parse(stored));
+    }
   };
 
   const fetchHeirsFromSkatteverket = async () => {
@@ -84,6 +118,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
         setLocalHeirs(convertedHeirs);
         setHeirs(convertedHeirs);
         setHasFetchedHeirs(true);
+        loadExistingPowerOfAttorneys(); // Load existing power of attorneys when heirs are loaded
       } else {
         setValidationError(response.error || "Inga arvingar hittades för det angivna personnumret.");
       }
@@ -167,6 +202,77 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     }
   };
 
+  const handleGrantPowerOfAttorney = async () => {
+    if (!representativePersonalNumber || !representativeName) {
+      toast({
+        title: "Fel",
+        description: "Ange personnummer och namn för företrädaren.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validatePersonalNumber(representativePersonalNumber)) {
+      toast({
+        title: "Fel", 
+        description: "Ange ett giltigt personnummer för företrädaren.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGrantingPowerOfAttorney(true);
+
+    try {
+      // Create power of attorney request
+      const powerOfAttorney: PowerOfAttorney = {
+        id: Date.now().toString(),
+        deceasedPersonalNumber: personalNumber,
+        representativePersonalNumber,
+        representativeName,
+        grantedBy: currentUserPersonalNumber,
+        grantedAt: new Date().toISOString(),
+        status: 'pending',
+        approvals: localHeirs.map(heir => ({
+          heirPersonalNumber: heir.personalNumber,
+          heirName: heir.name,
+          approved: heir.personalNumber === currentUserPersonalNumber, // Auto-approve for the grantor
+          approvedAt: heir.personalNumber === currentUserPersonalNumber ? new Date().toISOString() : undefined
+        }))
+      };
+
+      // Save to localStorage (in production, this would be a database)
+      const key = `powerOfAttorneys_${personalNumber.replace('-', '')}`;
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      existing.push(powerOfAttorney);
+      localStorage.setItem(key, JSON.stringify(existing));
+
+      setExistingPowerOfAttorneys(existing);
+
+      // Send BankID signing invitations to all other heirs (simulate)
+      const otherHeirs = localHeirs.filter(heir => heir.personalNumber !== currentUserPersonalNumber);
+      
+      toast({
+        title: "Fullmakt initierad",
+        description: `E-signeringslänkar har skickats till ${otherHeirs.length} dödsbodelägare för godkännande.`,
+      });
+
+      // Reset form
+      setRepresentativePersonalNumber("");
+      setRepresentativeName("");
+      setShowPowerOfAttorneyForm(false);
+
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Kunde inte initiera fullmakt. Försök igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGrantingPowerOfAttorney(false);
+    }
+  };
+
   const handleNext = () => {
     if (!hasSignedWithBankID) {
       setBankIDError("Du måste signera med BankID för att fortsätta");
@@ -232,6 +338,57 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
 
           {hasFetchedHeirs && localHeirs.length > 0 && (
             <div className="space-y-4">
+              {/* Existing Power of Attorneys */}
+              {existingPowerOfAttorneys.length > 0 && (
+                <div className="space-y-4">
+                  <Alert>
+                    <Briefcase className="h-4 w-4" />
+                    <AlertDescription>
+                      Befintliga fullmakter för detta dödsbo:
+                    </AlertDescription>
+                  </Alert>
+                  
+                  {existingPowerOfAttorneys.map((poa) => {
+                    const approvedCount = poa.approvals.filter(a => a.approved).length;
+                    const isActive = approvedCount === localHeirs.length;
+                    
+                    return (
+                      <div key={poa.id} className="p-4 border border-border rounded-lg bg-muted/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <div className="font-medium">{poa.representativeName}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {poa.representativePersonalNumber}
+                            </div>
+                          </div>
+                          <Badge variant={isActive ? "default" : "secondary"}>
+                            {isActive ? "Aktiv fullmakt" : `${approvedCount}/${localHeirs.length} godkännanden`}
+                          </Badge>
+                        </div>
+                        
+                        <div className="text-sm text-muted-foreground">
+                          Beviljad av: {localHeirs.find(h => h.personalNumber === poa.grantedBy)?.name || poa.grantedBy}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Datum: {new Date(poa.grantedAt).toLocaleDateString('sv-SE')}
+                        </div>
+                        
+                        {!isActive && (
+                          <div className="mt-2 text-sm">
+                            <div className="font-medium mb-1">Väntar på godkännande från:</div>
+                            {poa.approvals.filter(a => !a.approved).map(approval => (
+                              <div key={approval.heirPersonalNumber} className="text-muted-foreground">
+                                • {approval.heirName}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <Alert>
                 <Users className="h-4 w-4" />
                 <AlertDescription>
@@ -297,12 +454,92 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
               )}
               
               {hasSignedWithBankID && (
-                <Alert>
-                  <CheckCircle2 className="h-4 w-4" />
-                  <AlertDescription>
-                    BankID-signering genomförd. Du är verifierad som dödsbodelägare och kan nu fortsätta.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-4 border-t pt-4">
+                  <Alert>
+                    <CheckCircle2 className="h-4 w-4" />
+                    <AlertDescription>
+                      BankID-signering genomförd. Du är verifierad som dödsbodelägare.
+                    </AlertDescription>
+                  </Alert>
+
+                  {/* Power of Attorney Section */}
+                  {!showPowerOfAttorneyForm && (
+                    <Button 
+                      variant="outline"
+                      onClick={() => setShowPowerOfAttorneyForm(true)}
+                      className="w-full"
+                    >
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      Ge fullmakt för företrädare
+                    </Button>
+                  )}
+
+                  {showPowerOfAttorneyForm && (
+                    <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Ge fullmakt för företrädare</h4>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setShowPowerOfAttorneyForm(false)}
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                      
+                      <Alert>
+                        <Briefcase className="h-4 w-4" />
+                        <AlertDescription>
+                          Genom att ge fullmakt kan en företrädare (t.ex. jurist) agera på dödsboets vägnar. 
+                          Alla dödsbodelägare måste godkänna detta via BankID-signering.
+                        </AlertDescription>
+                      </Alert>
+
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="representativePersonalNumber">Företrädarens personnummer</Label>
+                          <Input
+                            id="representativePersonalNumber"
+                            type="text"
+                            placeholder="ÅÅÅÅMMDD-XXXX"
+                            value={representativePersonalNumber}
+                            onChange={(e) => setRepresentativePersonalNumber(formatPersonalNumber(e.target.value))}
+                            maxLength={13}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="representativeName">Företrädarens namn</Label>
+                          <Input
+                            id="representativeName"
+                            type="text"
+                            placeholder="För- och efternamn"
+                            value={representativeName}
+                            onChange={(e) => setRepresentativeName(e.target.value)}
+                          />
+                        </div>
+                        
+                        <Button 
+                          onClick={handleGrantPowerOfAttorney}
+                          disabled={!representativePersonalNumber || !representativeName || isGrantingPowerOfAttorney}
+                          className="w-full"
+                        >
+                          {isGrantingPowerOfAttorney ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Skickar fullmakt...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4 mr-2" />
+                              Skicka fullmakt för godkännande
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
