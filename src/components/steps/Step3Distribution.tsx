@@ -196,7 +196,7 @@ export const Step3Distribution = ({
           />
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Lägg till dödsbodelägare</h3>
+            <h3 className="text-lg font-semibold">Lägg till arvinge</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -263,7 +263,7 @@ export const Step3Distribution = ({
             
             <Button onClick={handleAddBeneficiary} className="w-full">
               <Plus className="w-4 h-4 mr-2" />
-              Lägg till dödsbodelägare
+              Lägg till arvinge
             </Button>
           </div>
 

@@ -11,13 +11,13 @@ import { useToast } from "@/hooks/use-toast";
 import { notificationService } from "@/services/notificationService";
 import { PDFService } from "@/services/pdfService";
 
-interface Beneficiary {
-  id: string;
-  name: string;
+interface Heir {
   personalNumber: string;
+  name: string;
   relationship: string;
-  percentage: number;
-  accountNumber: string;
+  inheritanceShare?: number;
+  signed?: boolean;
+  signedAt?: string;
   email?: string;
   phone?: string;
   documentSent?: boolean;
@@ -26,8 +26,8 @@ interface Beneficiary {
 }
 
 interface Step4Props {
-  beneficiaries: Beneficiary[];
-  setBeneficiaries: (beneficiaries: Beneficiary[]) => void;
+  heirs: Heir[];
+  setHeirs: (heirs: Heir[]) => void;
   personalNumber?: string; // Added for PDF generation
   totalAmount?: number; // Added for PDF generation
   onNext: () => void;
@@ -35,8 +35,8 @@ interface Step4Props {
 }
 
 export const Step4ContactInfo = ({ 
-  beneficiaries, 
-  setBeneficiaries,
+  heirs, 
+  setHeirs,
   personalNumber = "",
   totalAmount = 0,
   onNext, 
@@ -46,9 +46,9 @@ export const Step4ContactInfo = ({
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isSendingDocuments, setIsSendingDocuments] = useState(false);
 
-  const handleContactInfoChange = (id: string, field: 'email' | 'phone' | 'notificationPreference', value: string) => {
-    setBeneficiaries(beneficiaries.map(b => 
-      b.id === id ? { ...b, [field]: value } : b
+  const handleContactInfoChange = (personalNumber: string, field: 'email' | 'phone' | 'notificationPreference', value: string) => {
+    setHeirs(heirs.map(h => 
+      h.personalNumber === personalNumber ? { ...h, [field]: value } : h
     ));
   };
 
@@ -61,13 +61,13 @@ export const Step4ContactInfo = ({
     return cleaned.length >= 10;
   };
 
-  const allContactInfoComplete = beneficiaries.every(b => {
-    const pref = b.notificationPreference || 'both';
+  const allContactInfoComplete = heirs.every(h => {
+    const pref = h.notificationPreference || 'both';
     const needsEmail = pref === 'email' || pref === 'both';
     const needsSms = pref === 'sms' || pref === 'both';
     
-    return (!needsEmail || (b.email && validateEmail(b.email))) &&
-           (!needsSms || (b.phone && validatePhone(b.phone)));
+    return (!needsEmail || (h.email && validateEmail(h.email))) &&
+           (!needsSms || (h.phone && validatePhone(h.phone)));
   });
 
   const handleSendDocuments = async () => {
@@ -80,13 +80,13 @@ export const Step4ContactInfo = ({
       const settlementPdf = await PDFService.generateDistributionPDF({
         personalNumber,
         assets: [], // Would be passed from parent component in production
-        beneficiaries: beneficiaries.map(b => ({
-          name: b.name,
-          personalNumber: b.personalNumber,
-          relationship: b.relationship,
-          percentage: b.percentage,
-          amount: (b.percentage / 100) * totalAmount,
-          accountNumber: b.accountNumber
+        beneficiaries: heirs.map(h => ({
+          name: h.name,
+          personalNumber: h.personalNumber,
+          relationship: h.relationship,
+          percentage: h.inheritanceShare || 0,
+          amount: ((h.inheritanceShare || 0) / 100) * totalAmount,
+          accountNumber: "" // Would need to be collected if not available
         })),
         totalAmount
       });
@@ -100,21 +100,21 @@ export const Step4ContactInfo = ({
 
       // Send e-signature requests via email and SMS
       const results = await notificationService.sendInheritanceSettlementForSigning(
-        beneficiaries.map(b => ({
-          name: b.name,
-          email: b.email || "",
-          phone: b.phone || "",
-          personalNumber: b.personalNumber
+        heirs.map(h => ({
+          name: h.name,
+          email: h.email || "",
+          phone: h.phone || "",
+          personalNumber: h.personalNumber
         })),
         pdfFile,
         personalNumber
       );
 
-      // Update beneficiaries with signature tracking info
-      const updatedBeneficiaries = beneficiaries.map(b => {
-        const result = results.find(r => r.beneficiary === b.name);
+      // Update heirs with signature tracking info
+      const updatedHeirs = heirs.map(h => {
+        const result = results.find(r => r.beneficiary === h.name);
         return {
-          ...b,
+          ...h,
           documentSent: true,
           sentAt: new Date().toISOString(),
           signatureId: result?.signatureId || "",
@@ -122,13 +122,13 @@ export const Step4ContactInfo = ({
         };
       });
       
-      setBeneficiaries(updatedBeneficiaries);
+      setHeirs(updatedHeirs);
       
       const successCount = results.filter(r => r.emailSent && r.smsSent).length;
       
       toast({
         title: "Dokument skickade",
-        description: `Arvsskiftet har skickats till ${successCount} av ${beneficiaries.length} dödsbodelägare för e-signering.`,
+        description: `Arvsskiftet har skickats till ${successCount} av ${heirs.length} arvingar för e-signering.`,
       });
       
       // Proceed to signing step after a short delay
@@ -177,16 +177,16 @@ export const Step4ContactInfo = ({
           </Alert>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Dödsbodelägares kontaktuppgifter</h3>
+            <h3 className="text-lg font-semibold">Arvingarnas kontaktuppgifter</h3>
             
-            {beneficiaries.map((beneficiary) => (
-              <div key={beneficiary.id} className="p-4 border border-border rounded-lg">
+            {heirs.map((heir) => (
+              <div key={heir.personalNumber} className="p-4 border border-border rounded-lg">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="font-medium">{beneficiary.name}</span>
-                    <Badge variant="secondary">{beneficiary.relationship}</Badge>
-                    <Badge variant="outline">{beneficiary.percentage}%</Badge>
-                    {beneficiary.documentSent && (
+                    <span className="font-medium">{heir.name}</span>
+                    <Badge variant="secondary">{heir.relationship}</Badge>
+                    <Badge variant="outline">{heir.inheritanceShare || 0}%</Badge>
+                    {heir.documentSent && (
                       <Badge variant="default" className="bg-success/10 text-success border-success/20">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
                         Skickat
@@ -199,28 +199,28 @@ export const Step4ContactInfo = ({
                     <div className="space-y-3">
                       <Label>Meddelanden via</Label>
                       <RadioGroup
-                        value={beneficiary.notificationPreference || 'both'}
-                        onValueChange={(value) => handleContactInfoChange(beneficiary.id, 'notificationPreference', value)}
-                        disabled={beneficiary.documentSent}
+                        value={heir.notificationPreference || 'both'}
+                        onValueChange={(value) => handleContactInfoChange(heir.personalNumber, 'notificationPreference', value)}
+                        disabled={heir.documentSent}
                         className="flex flex-row gap-6"
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="email" id={`email-only-${beneficiary.id}`} />
-                          <Label htmlFor={`email-only-${beneficiary.id}`} className="flex items-center gap-1">
+                          <RadioGroupItem value="email" id={`email-only-${heir.personalNumber}`} />
+                          <Label htmlFor={`email-only-${heir.personalNumber}`} className="flex items-center gap-1">
                             <Mail className="w-4 h-4" />
                             Endast e-post
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="sms" id={`sms-only-${beneficiary.id}`} />
-                          <Label htmlFor={`sms-only-${beneficiary.id}`} className="flex items-center gap-1">
+                          <RadioGroupItem value="sms" id={`sms-only-${heir.personalNumber}`} />
+                          <Label htmlFor={`sms-only-${heir.personalNumber}`} className="flex items-center gap-1">
                             <MessageSquare className="w-4 h-4" />
                             Endast SMS
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="both" id={`both-${beneficiary.id}`} />
-                          <Label htmlFor={`both-${beneficiary.id}`} className="flex items-center gap-1">
+                          <RadioGroupItem value="both" id={`both-${heir.personalNumber}`} />
+                          <Label htmlFor={`both-${heir.personalNumber}`} className="flex items-center gap-1">
                             <Mail className="w-4 h-4" />
                             <MessageSquare className="w-4 h-4" />
                             Båda
@@ -231,36 +231,36 @@ export const Step4ContactInfo = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Email field - only required if preference includes email */}
-                      {(beneficiary.notificationPreference === 'email' || beneficiary.notificationPreference === 'both' || !beneficiary.notificationPreference) && (
+                      {(heir.notificationPreference === 'email' || heir.notificationPreference === 'both' || !heir.notificationPreference) && (
                         <div className="space-y-2">
-                          <Label htmlFor={`email-${beneficiary.id}`}>E-postadress</Label>
+                          <Label htmlFor={`email-${heir.personalNumber}`}>E-postadress</Label>
                           <Input
-                            id={`email-${beneficiary.id}`}
+                            id={`email-${heir.personalNumber}`}
                             type="email"
-                            value={beneficiary.email || ''}
-                            onChange={(e) => handleContactInfoChange(beneficiary.id, 'email', e.target.value)}
+                            value={heir.email || ''}
+                            onChange={(e) => handleContactInfoChange(heir.personalNumber, 'email', e.target.value)}
                             placeholder="namn@exempel.se"
-                            disabled={beneficiary.documentSent}
+                            disabled={heir.documentSent}
                           />
-                          {beneficiary.email && !validateEmail(beneficiary.email) && (
+                          {heir.email && !validateEmail(heir.email) && (
                             <p className="text-sm text-destructive">Ange en giltig e-postadress</p>
                           )}
                         </div>
                       )}
                       
                       {/* Phone field - only required if preference includes SMS */}
-                      {(beneficiary.notificationPreference === 'sms' || beneficiary.notificationPreference === 'both' || !beneficiary.notificationPreference) && (
+                      {(heir.notificationPreference === 'sms' || heir.notificationPreference === 'both' || !heir.notificationPreference) && (
                         <div className="space-y-2">
-                          <Label htmlFor={`phone-${beneficiary.id}`}>Telefonnummer</Label>
+                          <Label htmlFor={`phone-${heir.personalNumber}`}>Telefonnummer</Label>
                           <Input
-                            id={`phone-${beneficiary.id}`}
+                            id={`phone-${heir.personalNumber}`}
                             type="tel"
-                            value={beneficiary.phone || ''}
-                            onChange={(e) => handleContactInfoChange(beneficiary.id, 'phone', formatPhoneNumber(e.target.value))}
+                            value={heir.phone || ''}
+                            onChange={(e) => handleContactInfoChange(heir.personalNumber, 'phone', formatPhoneNumber(e.target.value))}
                             placeholder="070-123 45 67"
-                            disabled={beneficiary.documentSent}
+                            disabled={heir.documentSent}
                           />
-                          {beneficiary.phone && !validatePhone(beneficiary.phone) && (
+                          {heir.phone && !validatePhone(heir.phone) && (
                             <p className="text-sm text-destructive">Ange ett giltigt telefonnummer (minst 10 siffror)</p>
                           )}
                         </div>
@@ -268,9 +268,9 @@ export const Step4ContactInfo = ({
                     </div>
                   </div>
                   
-                  {beneficiary.documentSent && beneficiary.sentAt && (
+                  {heir.documentSent && heir.sentAt && (
                     <div className="text-sm text-muted-foreground">
-                      Skickat: {new Date(beneficiary.sentAt).toLocaleString('sv-SE')}
+                      Skickat: {new Date(heir.sentAt).toLocaleString('sv-SE')}
                     </div>
                   )}
                 </div>
@@ -278,11 +278,11 @@ export const Step4ContactInfo = ({
             ))}
           </div>
 
-          {beneficiaries.some(b => b.documentSent) && (
+          {heirs.some(h => h.documentSent) && (
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                Dokument har skickats till dödsbodelägarna. De kommer att få ett e-postmeddelande 
+                Dokument har skickats till arvingarna. De kommer att få ett e-postmeddelande 
                 med instruktioner för digital signering.
               </AlertDescription>
             </Alert>
@@ -294,7 +294,7 @@ export const Step4ContactInfo = ({
             </Button>
             
             <div className="flex gap-3">
-              {!beneficiaries.every(b => b.documentSent) ? (
+              {!heirs.every(h => h.documentSent) ? (
                 <Button 
                   onClick={handleSendDocuments}
                   disabled={!allContactInfoComplete || isSendingDocuments}

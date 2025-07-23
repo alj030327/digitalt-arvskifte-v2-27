@@ -172,8 +172,8 @@ const Index = () => {
 
         {currentStep === 4 && (
           <Step4ContactInfo
-            beneficiaries={beneficiaries}
-            setBeneficiaries={setBeneficiaries}
+            heirs={heirs}
+            setHeirs={setHeirs}
             personalNumber={personalNumber}
             totalAmount={totalDistributableAmount}
             onNext={handleNext}
