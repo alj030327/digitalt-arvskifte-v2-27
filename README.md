@@ -1,73 +1,63 @@
-# Welcome to your Lovable project
+# Digital Arvsskifte - Inheritance Settlement System
 
-## Project info
+En digital lösning för att hantera arvsskiften med integration till Skatteverkets API och BankID för säker autentisering och signering.
 
-**URL**: https://lovable.dev/projects/c410ed21-f8e3-4f9c-89e1-ddb889afdccd
+## Funktioner
 
-## How can I edit this code?
+- **Digital identifiering** av avliden person via Skatteverkets API
+- **Automatisk hämtning** av arvingar från bouppteckning
+- **BankID-autentisering** för säker åtkomst
+- **Digital signering** av arvsdokument
+- **Bankintegration** för hantering av tillgångar
+- **Testamenthantering** med verifiering
 
-There are several ways of editing your application.
+## Teknisk Setup
 
-**Use Lovable**
+### Förutsättningar för produktion
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c410ed21-f8e3-4f9c-89e1-ddb889afdccd) and start prompting.
+För att använda systemet i produktion behöver följande integrationer konfigureras:
 
-Changes made via Lovable will be committed automatically to this repo.
+#### 1. Skatteverkets API
+```typescript
+// src/config/integrations.ts
+export const integrationConfig = {
+  skatteverket: {
+    enabled: true,
+    apiBaseUrl: 'https://api.skatteverket.se/prod',
+    apiKey: 'DIN_SKATTEVERKET_API_NYCKEL',
+    certificatePath: '/path/to/certificate.p12',
+  }
+}
+```
 
-**Use your preferred IDE**
+#### 2. BankID Integration
+```typescript
+// src/config/integrations.ts
+export const integrationConfig = {
+  bankid: {
+    enabled: true,
+    environment: 'production',
+    apiBaseUrl: 'https://appapi2.bankid.com/rp/v6.0',
+    certificatePath: '/path/to/bankid-certificate.p12',
+    certificatePassword: 'CERTIFICATE_PASSWORD',
+  }
+}
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Development Setup
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+För att aktivera riktiga API:er:
+1. Uppdatera `src/config/integrations.ts`
+2. Implementera backend endpoints (rekommenderat via Supabase)
+3. Sätt `enabled: true` för respektive service
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Säkerhet
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/c410ed21-f8e3-4f9c-89e1-ddb889afdccd) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Certifikat**: Lagras säkert i backend, aldrig i frontend
+- **API-nycklar**: Hanteras via environment variables eller Supabase secrets
+- **BankID**: Följer svenska myndighetskrav för digital identifiering

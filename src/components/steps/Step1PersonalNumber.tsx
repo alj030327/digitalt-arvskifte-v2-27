@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { UserCheck, AlertCircle, Shield, Users, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SkatteverketService, SkatteverketHeirData } from "@/services/skatteverketService";
+import { BankIdService } from "@/services/bankidService";
 
 interface Heir {
   personalNumber: string;
@@ -58,7 +60,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   };
 
   const fetchHeirsFromSkatteverket = async () => {
-    if (!validatePersonalNumber(personalNumber)) {
+    if (!SkatteverketService.validatePersonalNumber(personalNumber)) {
       setValidationError("Vänligen ange ett giltigt personnummer (ÅÅÅÅMMDD-XXXX)");
       return;
     }
@@ -67,28 +69,24 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     setValidationError("");
     
     try {
-      // Simulate API call to Skatteverket
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use SkatteverketService to fetch heirs
+      const response = await SkatteverketService.fetchHeirs(personalNumber);
       
-      // Mock data representing heirs from bouppteckning
-      const mockHeirs: Heir[] = [
-        {
-          personalNumber: "19901201-1234",
-          name: "Anna Andersson",
-          relationship: "Barn",
-          inheritanceShare: 50
-        },
-        {
-          personalNumber: "19851115-5678",
-          name: "Erik Andersson", 
-          relationship: "Barn",
-          inheritanceShare: 50
-        }
-      ];
-      
-      setLocalHeirs(mockHeirs);
-      setHeirs(mockHeirs);
-      setHasFetchedHeirs(true);
+      if (response.success && response.heirs.length > 0) {
+        // Convert SkatteverketHeirData to Heir format
+        const convertedHeirs: Heir[] = response.heirs.map(heir => ({
+          personalNumber: heir.personalNumber,
+          name: heir.name,
+          relationship: heir.relationship,
+          inheritanceShare: heir.inheritanceShare * 100 // Convert to percentage
+        }));
+        
+        setLocalHeirs(convertedHeirs);
+        setHeirs(convertedHeirs);
+        setHasFetchedHeirs(true);
+      } else {
+        setValidationError(response.error || "Inga arvingar hittades för det angivna personnumret.");
+      }
     } catch (error) {
       setValidationError("Kunde inte hämta arvsinformation från Skatteverket. Försök igen.");
     } finally {
@@ -111,21 +109,57 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     setBankIDError("");
     
     try {
-      // Simulate BankID signing process
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Use BankIdService for authentication
+      const authRequest = {
+        personalNumber: currentUserPersonalNumber,
+        endUserIp: '127.0.0.1' // In production, get real IP
+      };
       
-      // Check if current user is one of the heirs
-      const isAuthorizedHeir = localHeirs.some(heir => 
-        heir.personalNumber.replace('-', '') === currentUserPersonalNumber.replace('-', '')
-      );
+      const session = await BankIdService.authenticate(authRequest);
       
-      if (!isAuthorizedHeir) {
-        setBankIDError("Du är inte registrerad som arvinge för denna bouppteckning och kan därför inte fortsätta.");
+      if (!session) {
+        setBankIDError("Kunde inte starta BankID-session. Försök igen.");
         setIsSigningWithBankID(false);
         return;
       }
       
-      setHasSignedWithBankID(true);
+      // Poll for completion
+      let attempts = 0;
+      const maxAttempts = 60; // 30 seconds with 500ms intervals
+      
+      while (attempts < maxAttempts) {
+        const status = await BankIdService.checkStatus(session.orderRef);
+        
+        if (status?.status === 'complete') {
+          // Check if current user is one of the heirs
+          const isAuthorizedHeir = localHeirs.some(heir => 
+            heir.personalNumber.replace('-', '') === currentUserPersonalNumber.replace('-', '')
+          );
+          
+          if (!isAuthorizedHeir) {
+            setBankIDError("Du är inte registrerad som arvinge för denna bouppteckning och kan därför inte fortsätta.");
+            setIsSigningWithBankID(false);
+            return;
+          }
+          
+          setHasSignedWithBankID(true);
+          break;
+        } else if (status?.status === 'failed') {
+          setBankIDError("BankID-signering misslyckades. Försök igen.");
+          setIsSigningWithBankID(false);
+          return;
+        }
+        
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (attempts >= maxAttempts) {
+        setBankIDError("BankID-signering tog för lång tid. Försök igen.");
+        await BankIdService.cancel(session.orderRef);
+        setIsSigningWithBankID(false);
+        return;
+      }
     } catch (error) {
       setBankIDError("BankID-signering misslyckades. Försök igen.");
     } finally {

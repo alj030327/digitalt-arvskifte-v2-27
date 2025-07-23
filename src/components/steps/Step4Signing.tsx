@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Shield, Smartphone, Clock, UserCheck, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BankIdService } from "@/services/bankidService";
 
 interface Heir {
   personalNumber: string;
@@ -19,6 +20,7 @@ interface SigningStatus {
   heirPersonalNumber: string;
   isSigning: boolean;
   completed: boolean;
+  error?: string;
 }
 
 interface Step4Props {
@@ -38,30 +40,83 @@ export const Step4Signing = ({ heirs, setHeirs, onNext, onBack }: Step4Props) =>
   );
 
   const handleBankIdSign = async (heirPersonalNumber: string) => {
-    // Update signing status
-    setSigningStatuses(prev => prev.map(s => 
-      s.heirPersonalNumber === heirPersonalNumber 
-        ? { ...s, isSigning: true } 
-        : s
+    setSigningStatuses(prev => prev.map(status => 
+      status.heirPersonalNumber === heirPersonalNumber 
+        ? { ...status, isSigning: true, error: undefined }
+        : status
     ));
 
-    // Simulate BankID process
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    try {
+      // Create signing request for inheritance document
+      const signRequest = {
+        personalNumber: heirPersonalNumber,
+        endUserIp: '127.0.0.1', // In production, get real IP
+        userVisibleData: BankIdService.encodeUserVisibleData(
+          `Arvsskifte - Signering av slutlig fördelning\n\n` +
+          `Genom att signera detta dokument bekräftar jag att jag har tagit del av ` +
+          `den föreslagna fördelningen av dödsboet och godkänner denna.\n\n` +
+          `Datum: ${new Date().toLocaleDateString('sv-SE')}`
+        )
+      };
+      
+      const session = await BankIdService.sign(signRequest);
+      
+      if (!session) {
+        throw new Error('Kunde inte starta BankID-session');
+      }
+      
+      // Poll for completion
+      let attempts = 0;
+      const maxAttempts = 60; // 30 seconds with 500ms intervals
+      
+      while (attempts < maxAttempts) {
+        const status = await BankIdService.checkStatus(session.orderRef);
+        
+        if (status?.status === 'complete') {
+          // Update signing status
+          setSigningStatuses(prev => prev.map(signingStatus => 
+            signingStatus.heirPersonalNumber === heirPersonalNumber 
+              ? { 
+                  ...signingStatus, 
+                  isSigning: false, 
+                  completed: true,
+                  error: undefined 
+                }
+              : signingStatus
+          ));
 
-    // Mark as completed
-    setSigningStatuses(prev => prev.map(s => 
-      s.heirPersonalNumber === heirPersonalNumber 
-        ? { ...s, isSigning: false, completed: true } 
-        : s
-    ));
-
-    // Update heir
-    const updatedHeirs = heirs.map(h => 
-      h.personalNumber === heirPersonalNumber 
-        ? { ...h, signed: true, signedAt: new Date().toLocaleString('sv-SE') }
-        : h
-    );
-    setHeirs(updatedHeirs);
+          // Update heir
+          const updatedHeirs = heirs.map(h => 
+            h.personalNumber === heirPersonalNumber 
+              ? { ...h, signed: true, signedAt: new Date().toLocaleString('sv-SE') }
+              : h
+          );
+          setHeirs(updatedHeirs);
+          break;
+        } else if (status?.status === 'failed') {
+          throw new Error('BankID-signering misslyckades');
+        }
+        
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (attempts >= maxAttempts) {
+        await BankIdService.cancel(session.orderRef);
+        throw new Error('BankID-signering tog för lång tid');
+      }
+      
+    } catch (error) {
+      setSigningStatuses(prev => prev.map(status => 
+        status.heirPersonalNumber === heirPersonalNumber 
+          ? { 
+              ...status, 
+              isSigning: false, 
+              error: error instanceof Error ? error.message : 'Signering misslyckades. Försök igen.' 
+            }
+          : status
+      ));
+    }
   };
 
   const allSigned = heirs.every(h => h.signed);

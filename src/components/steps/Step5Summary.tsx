@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, FileText, Shield, Download, Smartphone } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BankIdService } from "@/services/bankidService";
 
 interface Asset {
   id: string;
@@ -48,16 +49,60 @@ export const Step5Summary = ({ personalNumber, assets, beneficiaries, testament,
   const handleBankIdSign = async () => {
     setIsSigning(true);
     
-    // Simulate BankID process
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    setIsSigning(false);
-    setIsCompleted(true);
-    
-    // Complete after showing success
-    setTimeout(() => {
-      onComplete();
-    }, 2000);
+    try {
+      // Create signing request for final inheritance document
+      const signRequest = {
+        personalNumber: personalNumber,
+        endUserIp: '127.0.0.1', // In production, get real IP
+        userVisibleData: BankIdService.encodeUserVisibleData(
+          `Arvsskifte - Slutgiltig sammanfattning\n\n` +
+          `Genom att signera detta dokument bekräftar jag att jag har granskat ` +
+          `den slutliga fördelningen av dödsboet och godkänner alla detaljer.\n\n` +
+          `Totalt värde: ${totalAmount.toLocaleString('sv-SE')} kr\n` +
+          `Datum: ${new Date().toLocaleDateString('sv-SE')}\n\n` +
+          `Detta dokument utgör en juridiskt bindande överenskommelse.`
+        )
+      };
+      
+      const session = await BankIdService.sign(signRequest);
+      
+      if (!session) {
+        throw new Error('Kunde inte starta BankID-session');
+      }
+      
+      // Poll for completion
+      let attempts = 0;
+      const maxAttempts = 60; // 30 seconds with 500ms intervals
+      
+      while (attempts < maxAttempts) {
+        const status = await BankIdService.checkStatus(session.orderRef);
+        
+        if (status?.status === 'complete') {
+          setIsCompleted(true);
+          // Complete after showing success
+          setTimeout(() => {
+            onComplete();
+          }, 2000);
+          break;
+        } else if (status?.status === 'failed') {
+          throw new Error('BankID-signering misslyckades');
+        }
+        
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (attempts >= maxAttempts) {
+        await BankIdService.cancel(session.orderRef);
+        throw new Error('BankID-signering tog för lång tid');
+      }
+      
+    } catch (error) {
+      console.error('BankID signing failed:', error);
+      // Could show error toast here
+    } finally {
+      setIsSigning(false);
+    }
   };
 
   if (isCompleted) {
