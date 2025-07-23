@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TestamentUpload } from "@/components/TestamentUpload";
+import { PhysicalAssets, PhysicalAsset } from "@/components/PhysicalAssets";
+import { AssetPreferences } from "@/components/AssetPreferences";
 
 interface Beneficiary {
   id: string;
@@ -15,6 +17,12 @@ interface Beneficiary {
   relationship: string;
   percentage: number;
   accountNumber: string;
+  assetPreferences?: {
+    funds: 'transfer' | 'sell';
+    stocks: 'transfer' | 'sell';
+    bonds: 'transfer' | 'sell';
+    crypto: 'transfer' | 'sell';
+  };
 }
 
 interface Testament {
@@ -32,6 +40,8 @@ interface Step3Props {
   setTestament: (testament: Testament | null) => void;
   hasTestament: boolean;
   setHasTestament: (hasTestament: boolean) => void;
+  physicalAssets: PhysicalAsset[];
+  setPhysicalAssets: (assets: PhysicalAsset[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -44,6 +54,8 @@ export const Step3Distribution = ({
   setTestament, 
   hasTestament, 
   setHasTestament, 
+  physicalAssets,
+  setPhysicalAssets,
   onNext, 
   onBack 
 }: Step3Props) => {
@@ -276,6 +288,19 @@ export const Step3Distribution = ({
               )}
             </div>
           )}
+
+          {/* Physical Assets Section */}
+          <PhysicalAssets
+            physicalAssets={physicalAssets}
+            setPhysicalAssets={setPhysicalAssets}
+            beneficiaries={beneficiaries.map(b => ({ id: b.id, name: b.name }))}
+          />
+
+          {/* Asset Preferences Section */}
+          <AssetPreferences
+            beneficiaries={beneficiaries}
+            setBeneficiaries={setBeneficiaries}
+          />
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={onBack}>

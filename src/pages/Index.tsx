@@ -6,13 +6,17 @@ import { Step3Distribution } from "@/components/steps/Step3Distribution";
 import { Step4Signing } from "@/components/steps/Step4Signing";
 import { Step5Summary } from "@/components/steps/Step5Summary";
 import { Scale } from "lucide-react";
+import { PhysicalAsset } from "@/components/PhysicalAssets";
 
 interface Asset {
   id: string;
   bank: string;
   accountType: string;
+  assetType: string;
   accountNumber: string;
   amount: number;
+  toRemain?: boolean;
+  reasonToRemain?: string;
 }
 
 interface Beneficiary {
@@ -24,6 +28,12 @@ interface Beneficiary {
   accountNumber: string;
   signed?: boolean;
   signedAt?: string;
+  assetPreferences?: {
+    funds: 'transfer' | 'sell';
+    stocks: 'transfer' | 'sell';
+    bonds: 'transfer' | 'sell';
+    crypto: 'transfer' | 'sell';
+  };
 }
 
 interface Testament {
@@ -40,6 +50,7 @@ const Index = () => {
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [testament, setTestament] = useState<Testament | null>(null);
   const [hasTestament, setHasTestament] = useState(false);
+  const [physicalAssets, setPhysicalAssets] = useState<PhysicalAsset[]>([]);
 
   const stepLabels = [
     "Identifiering",
@@ -50,6 +61,7 @@ const Index = () => {
   ];
 
   const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
+  const totalDistributableAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
 
   const handleNext = () => {
     setCurrentStep(prev => Math.min(prev + 1, 5));
@@ -110,11 +122,13 @@ const Index = () => {
           <Step3Distribution
             beneficiaries={beneficiaries}
             setBeneficiaries={setBeneficiaries}
-            totalAmount={totalAmount}
+            totalAmount={totalDistributableAmount}
             testament={testament}
             setTestament={setTestament}
             hasTestament={hasTestament}
             setHasTestament={setHasTestament}
+            physicalAssets={physicalAssets}
+            setPhysicalAssets={setPhysicalAssets}
             onNext={handleNext}
             onBack={handleBack}
           />

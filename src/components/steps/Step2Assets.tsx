@@ -5,15 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Plus, Trash2, Upload, DollarSign } from "lucide-react";
+import { Building2, Plus, Trash2, Upload, DollarSign, Lock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Asset {
   id: string;
   bank: string;
   accountType: string;
+  assetType: string;
   accountNumber: string;
   amount: number;
+  toRemain?: boolean;
+  reasonToRemain?: string;
 }
 
 interface Step2Props {
@@ -27,8 +32,11 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
   const [newAsset, setNewAsset] = useState({
     bank: "",
     accountType: "",
+    assetType: "",
     accountNumber: "",
-    amount: ""
+    amount: "",
+    toRemain: false,
+    reasonToRemain: ""
   });
   const [isAutoImporting, setIsAutoImporting] = useState(false);
 
@@ -38,7 +46,11 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
   ];
 
   const accountTypes = [
-    "Sparkonto", "Transaktionskonto", "Pensionskonto", "ISK", "Kapitalförsäkring"
+    "Sparkonto", "Transaktionskonto", "Pensionskonto", "ISK", "Kapitalförsäkring", "Investeringssparkonto", "Fondkonto"
+  ];
+
+  const assetTypes = [
+    "Kontant", "Aktier", "Fonder", "Obligationer", "Bankinsättning", "Pension", "Försäkring", "Kryptovaluta", "Skuld"
   ];
 
   const handleAutoImport = async () => {
@@ -51,6 +63,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
         id: "1",
         bank: "Handelsbanken",
         accountType: "Sparkonto",
+        assetType: "Bankinsättning",
         accountNumber: "6000 123 456 789",
         amount: 450000
       },
@@ -58,8 +71,19 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
         id: "2",
         bank: "SEB",
         accountType: "ISK",
+        assetType: "Fonder",
         accountNumber: "5000 987 654 321",
         amount: 275000
+      },
+      {
+        id: "3",
+        bank: "Skatteverket",
+        accountType: "Återbetalning",
+        assetType: "Kontant",
+        accountNumber: "Skatteåterbäring 2024",
+        amount: 8500,
+        toRemain: true,
+        reasonToRemain: "Skatteåterbäring som kommer att betalas ut senare"
       }
     ];
     
@@ -68,7 +92,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
   };
 
   const handleAddAsset = () => {
-    if (!newAsset.bank || !newAsset.accountType || !newAsset.accountNumber || !newAsset.amount) {
+    if (!newAsset.bank || !newAsset.accountType || !newAsset.assetType || !newAsset.accountNumber || !newAsset.amount) {
       return;
     }
 
@@ -76,12 +100,15 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
       id: Date.now().toString(),
       bank: newAsset.bank,
       accountType: newAsset.accountType,
+      assetType: newAsset.assetType,
       accountNumber: newAsset.accountNumber,
-      amount: parseFloat(newAsset.amount)
+      amount: parseFloat(newAsset.amount),
+      toRemain: newAsset.toRemain,
+      reasonToRemain: newAsset.toRemain ? newAsset.reasonToRemain : undefined
     };
 
     setAssets([...assets, asset]);
-    setNewAsset({ bank: "", accountType: "", accountNumber: "", amount: "" });
+    setNewAsset({ bank: "", accountType: "", assetType: "", accountNumber: "", amount: "", toRemain: false, reasonToRemain: "" });
   };
 
   const handleRemoveAsset = (id: string) => {
@@ -89,6 +116,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
   };
 
   const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
+  const totalDistributableAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -173,6 +201,20 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 </div>
                 
                 <div className="space-y-2">
+                  <Label htmlFor="assetType">Tillgångstyp</Label>
+                  <select
+                    className="w-full p-2 border border-border rounded-md bg-background"
+                    value={newAsset.assetType}
+                    onChange={(e) => setNewAsset({ ...newAsset, assetType: e.target.value })}
+                  >
+                    <option value="">Välj tillgångstyp</option>
+                    {assetTypes.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
                   <Label htmlFor="accountNumber">Kontonummer</Label>
                   <Input
                     id="accountNumber"
@@ -194,6 +236,37 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 </div>
               </div>
               
+              <div className="space-y-4">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="toRemain"
+                    checked={newAsset.toRemain}
+                    onCheckedChange={(checked) => setNewAsset({ ...newAsset, toRemain: !!checked })}
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="toRemain" className="text-sm font-medium">
+                      Konto ska vara kvar
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Markera om kontot inte ska ingå i fördelningen (t.ex. skatteåterbäring)
+                    </p>
+                  </div>
+                </div>
+                
+                {newAsset.toRemain && (
+                  <div className="space-y-2">
+                    <Label htmlFor="reasonToRemain">Anledning till varför kontot ska vara kvar</Label>
+                    <Textarea
+                      id="reasonToRemain"
+                      value={newAsset.reasonToRemain}
+                      onChange={(e) => setNewAsset({ ...newAsset, reasonToRemain: e.target.value })}
+                      placeholder="T.ex. skatteåterbäring, löpande ärende, etc."
+                      rows={2}
+                    />
+                  </div>
+                )}
+              </div>
+              
               <Button onClick={handleAddAsset} className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Lägg till tillgång
@@ -211,14 +284,31 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">{asset.bank}</span>
                         <Badge variant="secondary">{asset.accountType}</Badge>
+                        <Badge variant="outline">{asset.assetType}</Badge>
+                        {asset.toRemain && (
+                          <Badge variant="default" className="bg-warning text-warning-foreground">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Kvar
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">{asset.accountNumber}</p>
+                      {asset.toRemain && asset.reasonToRemain && (
+                        <p className="text-xs text-muted-foreground mt-1 italic">
+                          Anledning: {asset.reasonToRemain}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div className="font-semibold text-lg">
                           {asset.amount.toLocaleString('sv-SE')} SEK
                         </div>
+                        {asset.toRemain && (
+                          <div className="text-xs text-muted-foreground">
+                            (Ingår ej i fördelning)
+                          </div>
+                        )}
                       </div>
                       <Button
                         variant="ghost"
@@ -232,11 +322,21 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 ))}
               </div>
               
-              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                <span className="font-semibold">Total tillgångar:</span>
-                <span className="text-xl font-bold text-primary">
-                  {totalAmount.toLocaleString('sv-SE')} SEK
-                </span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <span className="font-semibold">Total tillgångar:</span>
+                  <span className="text-xl font-bold text-primary">
+                    {totalAmount.toLocaleString('sv-SE')} SEK
+                  </span>
+                </div>
+                {totalAmount !== totalDistributableAmount && (
+                  <div className="flex items-center justify-between p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                    <span className="font-medium text-warning-foreground">Att fördela:</span>
+                    <span className="text-lg font-bold text-warning-foreground">
+                      {totalDistributableAmount.toLocaleString('sv-SE')} SEK
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
