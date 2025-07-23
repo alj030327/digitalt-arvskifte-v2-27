@@ -138,11 +138,11 @@ export const TestamentUpload = ({ testament, setTestament, hasTestament, setHasT
                     {testament.verified ? (
                       <Badge variant="default" className="bg-success text-success-foreground">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Verifierat
+                        Inscannat
                       </Badge>
                     ) : (
                       <Badge variant="secondary">
-                        {isVerifying ? "Verifierar..." : "Ej verifierat"}
+                        {isVerifying ? "Scannar..." : "Ej inscannat"}
                       </Badge>
                     )}
                   </div>
@@ -151,14 +151,14 @@ export const TestamentUpload = ({ testament, setTestament, hasTestament, setHasT
                   </p>
                   {isVerifying && (
                     <p className="text-xs text-muted-foreground mt-1 animate-pulse">
-                      Kontrollerar testamentets giltighet...
+                      Scannar in testamentets innehåll...
                     </p>
                   )}
                   {testament.verified && (
                     <Alert className="mt-3">
                       <CheckCircle2 className="h-4 w-4" />
                       <AlertDescription>
-                        Testamentet har verifierats och kommer att påverka arvsfördelningen. 
+                        Testamentet har scannats in och kommer att påverka arvsfördelningen. 
                         Kontrollera att fördelningen överensstämmer med testamentets innehåll.
                       </AlertDescription>
                     </Alert>
