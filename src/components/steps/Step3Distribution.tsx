@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TestamentUpload } from "@/components/TestamentUpload";
 import { PhysicalAssets, PhysicalAsset } from "@/components/PhysicalAssets";
 import { AssetPreferences } from "@/components/AssetPreferences";
+import { PDFService } from "@/services/pdfService";
+import { useToast } from "@/hooks/use-toast";
 
 interface Beneficiary {
   id: string;
@@ -71,6 +73,7 @@ export const Step3Distribution = ({
   onComplete,
   savedProgress
 }: Step3Props) => {
+  const { toast } = useToast();
   const [newBeneficiary, setNewBeneficiary] = useState({
     name: "",
     personalNumber: "",
@@ -120,6 +123,39 @@ export const Step3Distribution = ({
 
   const totalPercentage = beneficiaries.reduce((sum, b) => sum + b.percentage, 0);
   const isValidDistribution = totalPercentage === 100;
+
+  const handleSaveWithPDF = async () => {
+    try {
+      // Generate and download PDF using static method
+      await PDFService.generateDistributionPDF({
+        personalNumber: "",
+        assets: [],
+        beneficiaries: beneficiaries.map(b => ({
+          name: b.name,
+          personalNumber: b.personalNumber,
+          relationship: b.relationship,
+          percentage: b.percentage,
+          amount: (b.percentage / 100) * totalAmount,
+          accountNumber: b.accountNumber
+        })),
+        totalAmount
+      });
+
+      toast({
+        title: "PDF genererad",
+        description: "Arvsskiftet har laddats ner som PDF.",
+      });
+
+      // Call the original save function
+      onSave();
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Kunde inte generera PDF. Försök igen.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const formatPersonalNumber = (value: string) => {
     const cleaned = value.replace(/\D/g, "");
@@ -328,11 +364,11 @@ export const Step3Distribution = ({
             <div className="flex flex-col sm:flex-row gap-3">
               <Button 
                 variant="secondary" 
-                onClick={onSave}
+                onClick={handleSaveWithPDF}
                 size="lg"
                 className="flex-1 sm:flex-none"
               >
-                Spara framsteg
+                Spara framsteg (Ladda ner PDF)
               </Button>
               <Button 
                 onClick={onComplete}

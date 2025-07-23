@@ -3,6 +3,8 @@ import { ProgressIndicator } from "@/components/ProgressIndicator";
 import { Step1PersonalNumber } from "@/components/steps/Step1PersonalNumber";
 import { Step2Assets } from "@/components/steps/Step2Assets";
 import { Step3Distribution } from "@/components/steps/Step3Distribution";
+import { Step4ContactInfo } from "@/components/steps/Step4ContactInfo";
+import { Step5BeneficiarySigning } from "@/components/steps/Step5BeneficiarySigning";
 import { Step4Signing } from "@/components/steps/Step4Signing";
 import { Step5Summary } from "@/components/steps/Step5Summary";
 import { Scale } from "lucide-react";
@@ -73,7 +75,9 @@ const Index = () => {
     "Identifiering",
     "Tillgångar", 
     "Fördelning",
-    "Signering",
+    "Kontaktuppgifter",
+    "E-signering",
+    "Överföring",
     "Slutförd"
   ];
 
@@ -81,7 +85,7 @@ const Index = () => {
   const totalDistributableAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
 
   const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 5));
+    setCurrentStep(prev => Math.min(prev + 1, 7));
   };
 
   const handleBack = () => {
@@ -95,8 +99,8 @@ const Index = () => {
   };
 
   const handleComplete = () => {
-    // Send BankID invitations to all heirs
-    console.log("Skickar BankID-signeringar till alla dödsbodelägare...");
+    // Go to contact info step
+    console.log("Går till kontaktuppgifter...");
     setCurrentStep(4);
   };
 
@@ -126,7 +130,7 @@ const Index = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <ProgressIndicator 
           currentStep={currentStep} 
-          totalSteps={5} 
+          totalSteps={7} 
           stepLabels={stepLabels} 
         />
 
@@ -169,6 +173,24 @@ const Index = () => {
         )}
 
         {currentStep === 4 && (
+          <Step4ContactInfo
+            beneficiaries={beneficiaries}
+            setBeneficiaries={setBeneficiaries}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 5 && (
+          <Step5BeneficiarySigning
+            beneficiaries={beneficiaries}
+            setBeneficiaries={setBeneficiaries}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 6 && (
           <Step4Signing
             heirs={heirs}
             setHeirs={setHeirs}
@@ -177,7 +199,7 @@ const Index = () => {
           />
         )}
 
-        {currentStep === 5 && (
+        {currentStep === 7 && (
           <Step5Summary
             personalNumber={personalNumber}
             assets={assets}
