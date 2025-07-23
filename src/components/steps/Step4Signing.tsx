@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Users, Building2, Lock, Mail, Briefcase, CheckCircle2, Send } from "lucide-react";
+import { FileText, Users, Building2, Lock, Mail, Briefcase, CheckCircle2, Send, UserCheck, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +15,20 @@ interface Asset {
   amount: number;
   toRemain?: boolean;
   reasonToRemain?: string;
+}
+
+interface Heir {
+  personalNumber: string;
+  name: string;
+  relationship: string;
+  inheritanceShare?: number;
+  signed?: boolean;
+  signedAt?: string;
+  email?: string;
+  phone?: string;
+  documentSent?: boolean;
+  sentAt?: string;
+  notificationPreference?: 'email' | 'sms' | 'both';
 }
 
 interface Beneficiary {
@@ -55,6 +69,7 @@ interface PowerOfAttorney {
 
 interface Step6Props {
   personalNumber: string;
+  heirs: Heir[];
   assets: Asset[];
   beneficiaries: Beneficiary[];
   testament: Testament | null;
@@ -64,6 +79,7 @@ interface Step6Props {
 
 export const Step4Signing = ({ 
   personalNumber,
+  heirs,
   assets,
   beneficiaries, 
   testament,
@@ -199,11 +215,116 @@ export const Step4Signing = ({
             </div>
           )}
 
+          {/* Heirs from Skatteverket */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <UserCheck className="w-5 h-5" />
+              Dödsbodelägare (från Skatteverket)
+            </h3>
+            <div className="space-y-2">
+              {heirs.map(heir => (
+                <div key={heir.personalNumber} className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{heir.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {heir.personalNumber} • {heir.relationship}
+                      </div>
+                      {heir.email && (
+                        <div className="text-sm text-muted-foreground">
+                          E-post: {heir.email}
+                        </div>
+                      )}
+                      {heir.phone && (
+                        <div className="text-sm text-muted-foreground">
+                          Telefon: {heir.phone}
+                        </div>
+                      )}
+                      {heir.notificationPreference && (
+                        <div className="text-sm text-muted-foreground">
+                          Meddelanden via: {heir.notificationPreference === 'both' ? 'E-post & SMS' : heir.notificationPreference === 'email' ? 'E-post' : 'SMS'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">{heir.inheritanceShare || 0}%</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {heir.documentSent ? (
+                          <Badge variant="default" className="bg-success/10 text-success border-success/20">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Dokument skickat
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Väntar på kontaktinfo
+                          </Badge>
+                        )}
+                      </div>
+                      {heir.sentAt && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Skickat: {new Date(heir.sentAt).toLocaleString('sv-SE')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* E-signatures Status */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              E-signeringar
+            </h3>
+            <div className="space-y-2">
+              {heirs.map(heir => (
+                <div key={`signature-${heir.personalNumber}`} className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{heir.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {heir.personalNumber}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {heir.signed ? (
+                        <>
+                          <Badge variant="default" className="bg-success/10 text-success border-success/20">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Signerat
+                          </Badge>
+                          {heir.signedAt && (
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(heir.signedAt).toLocaleString('sv-SE')}
+                            </div>
+                          )}
+                        </>
+                      ) : heir.documentSent ? (
+                        <Badge variant="outline" className="border-warning text-warning">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Väntar på signering
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-muted-foreground text-muted-foreground">
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Ej skickat
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Distribution Summary */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Users className="w-5 h-5" />
-              Fördelning mellan dödsbodelägare
+              Fördelning mellan arvingar
             </h3>
             <div className="space-y-3">
               <div className="p-4 bg-muted/30 rounded-lg">
@@ -302,7 +423,7 @@ export const Step4Signing = ({
           <Alert>
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              Alla dödsbodelägare har signerat dokumentet. När du klickar "Skicka in arvsskifte" 
+              Alla arvingar har signerat dokumentet. När du klickar "Skicka in arvsskifte" 
               kommer all information att skickas till de relevanta bankerna via PSD2 och Open Banking.
             </AlertDescription>
           </Alert>

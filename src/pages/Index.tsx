@@ -193,6 +193,7 @@ const Index = () => {
         {currentStep === 6 && (
           <Step4Signing
             personalNumber={personalNumber}
+            heirs={heirs}
             assets={assets}
             beneficiaries={beneficiaries}
             testament={testament}
