@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Plus, Trash2, Upload, DollarSign, Lock } from "lucide-react";
+import { Building2, Plus, Trash2, Upload, DollarSign, Lock, Unlock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -154,6 +154,22 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
 
   const handleRemoveAsset = (id: string) => {
     setAssets(assets.filter(asset => asset.id !== id));
+  };
+
+  const toggleAssetToRemain = (id: string) => {
+    setAssets(assets.map(asset => 
+      asset.id === id 
+        ? { ...asset, toRemain: !asset.toRemain, reasonToRemain: !asset.toRemain ? "" : asset.reasonToRemain }
+        : asset
+    ));
+  };
+
+  const updateReasonToRemain = (id: string, reason: string) => {
+    setAssets(assets.map(asset => 
+      asset.id === id 
+        ? { ...asset, reasonToRemain: reason }
+        : asset
+    ));
   };
 
   const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
@@ -364,69 +380,25 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   return groups;
                 }, {} as Record<string, typeof assets>)
               ).map(([bank, bankAssets]) => (
-                <div key={bank} className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                <div key={bank} className="border border-border rounded-lg p-4 space-y-4">
+                  <h4 className="font-semibold text-lg flex items-center gap-2">
                     <Building2 className="w-5 h-5" />
                     {bank}
                   </h4>
                   
-                  <div className="space-y-2 mb-4">
-                    {bankAssets.map((asset) => (
-                      <div key={asset.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="secondary">{asset.accountType}</Badge>
-                            <Badge variant="outline">{asset.assetType}</Badge>
-                            {asset.toRemain && (
-                              <Badge variant="default" className="bg-warning text-warning-foreground">
-                                <Lock className="w-3 h-3 mr-1" />
-                                Kvar
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{asset.accountNumber}</p>
-                          {asset.toRemain && asset.reasonToRemain && (
-                            <p className="text-xs text-muted-foreground mt-1 italic">
-                              Anledning: {asset.reasonToRemain}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <div className="font-semibold">
-                              {asset.amount.toLocaleString('sv-SE')} SEK
-                            </div>
-                            {asset.toRemain && (
-                              <div className="text-xs text-muted-foreground">
-                                (Ingår ej i fördelning)
-                              </div>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveAsset(asset.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Bank totals */}
-                  <div className="pt-3 border-t space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">Totala tillgångar hos {bank}:</span>
-                      <span className="font-semibold">
+                  {/* Bank totals first */}
+                  <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Totala tillgångar:</span>
+                      <span className="font-semibold text-primary">
                         {bankAssets
                           .filter(a => !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
                           .reduce((sum, a) => sum + a.amount, 0)
                           .toLocaleString('sv-SE')} SEK
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">Totala skulder hos {bank}:</span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Totala skulder:</span>
                       <span className="font-semibold text-destructive">
                         {bankAssets
                           .filter(a => ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
@@ -434,6 +406,68 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                           .toLocaleString('sv-SE')} SEK
                       </span>
                     </div>
+                  </div>
+                  
+                  {/* Individual accounts listed vertically */}
+                  <div className="space-y-3">
+                    <h5 className="font-medium text-sm text-muted-foreground">Konton och innehav:</h5>
+                    {bankAssets.map((asset) => (
+                      <div key={asset.id} className="border border-border/50 rounded-md p-3 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="secondary" className="text-xs">{asset.accountType}</Badge>
+                              <Badge variant="outline" className="text-xs">{asset.assetType}</Badge>
+                            </div>
+                            <p className="font-medium text-sm">{asset.accountNumber}</p>
+                            <p className="text-lg font-semibold">
+                              {asset.amount.toLocaleString('sv-SE')} SEK
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleAssetToRemain(asset.id)}
+                              className={`p-2 ${asset.toRemain ? 'text-warning' : 'text-muted-foreground'}`}
+                              title={asset.toRemain ? 'Kontot kommer att vara kvar' : 'Klicka för att markera att kontot ska vara kvar'}
+                            >
+                              {asset.toRemain ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveAsset(asset.id)}
+                              className="p-2 text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {asset.toRemain && (
+                          <div className="space-y-2 pt-2 border-t border-border/50">
+                            <div className="flex items-center gap-2">
+                              <Lock className="w-4 h-4 text-warning" />
+                              <span className="text-sm font-medium text-warning">Konto markerat att vara kvar</span>
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`reason-${asset.id}`} className="text-xs">
+                                Anledning till varför kontot ska vara kvar:
+                              </Label>
+                              <Textarea
+                                id={`reason-${asset.id}`}
+                                value={asset.reasonToRemain || ""}
+                                onChange={(e) => updateReasonToRemain(asset.id, e.target.value)}
+                                placeholder="T.ex. skatteåterbäring, löpande ärende, bolån som ska övertas..."
+                                className="text-sm"
+                                rows={2}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
