@@ -82,6 +82,16 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
       accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Pensionskonto", "Ungdomskonto"],
       assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Pension"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort"]
+    },
+    "Avanza": {
+      accountTypes: ["ISK", "Kapitalförsäkring", "Pensionskonto", "AF-konto"],
+      assetTypes: ["Aktier", "Fonder", "ETF:er", "Pension", "Räntefonder"],
+      debtTypes: ["Blancolån"]
+    },
+    "Skandiabanken": {
+      accountTypes: ["Sparkonto", "Lönekonto", "ISK", "Liv & Pension"],
+      assetTypes: ["Bankinsättning", "Fonder", "Pension", "Livförsäkring"],
+      debtTypes: ["Bolån", "Privatlån"]
     }
   };
 
@@ -120,13 +130,35 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
       },
       {
         id: "3",
-        bank: "Skatteverket",
-        accountType: "Återbetalning",
-        assetType: "Kontant",
-        accountNumber: "Skatteåterbäring 2024",
-        amount: 8500,
-        toRemain: true,
-        reasonToRemain: "Skatteåterbäring som kommer att betalas ut senare"
+        bank: "Nordea",
+        accountType: "Pluskonto",
+        assetType: "Bankinsättning",
+        accountNumber: "3000 111 222 333",
+        amount: 89000
+      },
+      {
+        id: "4",
+        bank: "Swedbank",
+        accountType: "Kapitalförsäkring",
+        assetType: "Försäkring",
+        accountNumber: "7000 444 555 666",
+        amount: 340000
+      },
+      {
+        id: "5",
+        bank: "Danske Bank",
+        accountType: "Pensionskonto",
+        assetType: "Pension",
+        accountNumber: "1200 777 888 999",
+        amount: 1200000
+      },
+      {
+        id: "6",
+        bank: "Länsförsäkringar Bank",
+        accountType: "Billån",
+        assetType: "Billån",
+        accountNumber: "3400 555 666 777",
+        amount: 180000
       }
     ];
     
@@ -221,8 +253,8 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
               <Alert>
                 <Upload className="h-4 w-4" />
                 <AlertDescription>
-                  Genom att ansluta till bankernas system kan vi automatiskt hämta kontoinformation. 
-                  Detta kräver fullmakt eller dödsbevis.
+                  Via PSD2/Open Banking kan vi automatiskt hämta kontoinformation från era banker. 
+                  Detta kräver din godkännande och BankID-autentisering hos respektive bank.
                 </AlertDescription>
               </Alert>
               
