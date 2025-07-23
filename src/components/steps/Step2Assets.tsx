@@ -40,18 +40,59 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
   });
   const [isAutoImporting, setIsAutoImporting] = useState(false);
 
-  const commonBanks = [
-    "Handelsbanken", "SEB", "Swedbank", "Nordea", "Danske Bank", 
-    "Länsförsäkringar Bank", "ICA Banken", "Sparbanken"
-  ];
+  const banksWithDetails = {
+    "Handelsbanken": {
+      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Kapitalförsäkring", "Pensionskonto", "Företagskonto"],
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Försäkring"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Billån"]
+    },
+    "SEB": {
+      accountTypes: ["Sparkonto", "Lönekonot", "ISK", "Kapitalförsäkring", "Investeringssparkonto", "Pensionskonto"],
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Strukturerade produkter"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Företagslån", "Billån"]
+    },
+    "Swedbank": {
+      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Robur fonder", "Pensionskonto", "Ungdomskonto"],
+      assetTypes: ["Bankinsättning", "Aktier", "Robur fonder", "Obligationer", "Pension", "Försäkring"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Företagslån"]
+    },
+    "Nordea": {
+      accountTypes: ["Sparkonto", "Pluskonto", "ISK", "Kapitalförsäkring", "Pensionskonto", "Företagskonto"],
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Livförsäkring"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Billån"]
+    },
+    "Danske Bank": {
+      accountTypes: ["Sparkonto", "Lönekonto", "ISK", "Danske Invest", "Pensionskonto"],
+      assetTypes: ["Bankinsättning", "Aktier", "Danske Invest fonder", "Obligationer", "Pension"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Företagslån"]
+    },
+    "Länsförsäkringar Bank": {
+      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Försäkringssparande", "Pensionskonto"],
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Försäkringssparande", "Pension"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån"]
+    },
+    "ICA Banken": {
+      accountTypes: ["Sparkonto", "Lönekonto", "ISK", "Buffert", "ICA Konto"],
+      assetTypes: ["Bankinsättning", "Fonder", "ICA-poäng", "Sparkonto"],
+      debtTypes: ["Privatlån", "Kreditkort", "Billån"]
+    },
+    "Sparbanken": {
+      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Pensionskonto", "Ungdomskonto"],
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Pension"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort"]
+    }
+  };
 
-  const accountTypes = [
-    "Sparkonto", "Transaktionskonto", "Pensionskonto", "ISK", "Kapitalförsäkring", "Investeringssparkonto", "Fondkonto"
-  ];
+  const commonBanks = Object.keys(banksWithDetails);
 
-  const assetTypes = [
-    "Kontant", "Aktier", "Fonder", "Obligationer", "Bankinsättning", "Pension", "Försäkring", "Kryptovaluta", "Skuld"
-  ];
+  const getAccountTypesForBank = (bank: string) => {
+    return banksWithDetails[bank as keyof typeof banksWithDetails]?.accountTypes || [];
+  };
+
+  const getAssetTypesForBank = (bank: string) => {
+    const bankData = banksWithDetails[bank as keyof typeof banksWithDetails];
+    return bankData ? [...bankData.assetTypes, ...bankData.debtTypes] : [];
+  };
 
   const handleAutoImport = async () => {
     setIsAutoImporting(true);
@@ -192,26 +233,42 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                     className="w-full p-2 border border-border rounded-md bg-background"
                     value={newAsset.accountType}
                     onChange={(e) => setNewAsset({ ...newAsset, accountType: e.target.value })}
+                    disabled={!newAsset.bank}
                   >
-                    <option value="">Välj kontotyp</option>
-                    {accountTypes.map((type) => (
+                    <option value="">
+                      {newAsset.bank ? "Välj kontotyp" : "Välj bank först"}
+                    </option>
+                    {newAsset.bank && getAccountTypesForBank(newAsset.bank).map((type) => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
+                  {newAsset.bank && (
+                    <p className="text-xs text-muted-foreground">
+                      Visar kontotyper tillgängliga hos {newAsset.bank}
+                    </p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="assetType">Tillgångstyp</Label>
+                  <Label htmlFor="assetType">Tillgångs-/Skuldtyp</Label>
                   <select
                     className="w-full p-2 border border-border rounded-md bg-background"
                     value={newAsset.assetType}
                     onChange={(e) => setNewAsset({ ...newAsset, assetType: e.target.value })}
+                    disabled={!newAsset.bank}
                   >
-                    <option value="">Välj tillgångstyp</option>
-                    {assetTypes.map((type) => (
+                    <option value="">
+                      {newAsset.bank ? "Välj tillgångs-/skuldtyp" : "Välj bank först"}
+                    </option>
+                    {newAsset.bank && getAssetTypesForBank(newAsset.bank).map((type) => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
+                  {newAsset.bank && (
+                    <p className="text-xs text-muted-foreground">
+                      Visar tillgångs- och skuldtyper tillgängliga hos {newAsset.bank}
+                    </p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -225,7 +282,11 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Belopp (SEK)</Label>
+                  <Label htmlFor="amount">
+                    {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType) 
+                      ? 'Skuld (SEK)' 
+                      : 'Belopp (SEK)'}
+                  </Label>
                   <Input
                     id="amount"
                     type="number"
@@ -233,6 +294,11 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                     onChange={(e) => setNewAsset({ ...newAsset, amount: e.target.value })}
                     placeholder="0"
                   />
+                  {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType) && (
+                    <p className="text-xs text-muted-foreground">
+                      Ange skuldbeloppet som ett positivt tal
+                    </p>
+                  )}
                 </div>
               </div>
               
@@ -245,22 +311,32 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   />
                   <div className="space-y-1">
                     <Label htmlFor="toRemain" className="text-sm font-medium">
-                      Konto ska vara kvar
+                      {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
+                        ? 'Skuld ska vara kvar'
+                        : 'Konto ska vara kvar'}
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Markera om kontot inte ska ingå i fördelningen (t.ex. skatteåterbäring)
+                      {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
+                        ? 'Markera om skulden inte ska ingå i fördelningen (t.ex. bolån som ska fortsätta gälla)'
+                        : 'Markera om kontot inte ska ingå i fördelningen (t.ex. skatteåterbäring)'}
                     </p>
                   </div>
                 </div>
                 
                 {newAsset.toRemain && (
                   <div className="space-y-2">
-                    <Label htmlFor="reasonToRemain">Anledning till varför kontot ska vara kvar</Label>
+                    <Label htmlFor="reasonToRemain">
+                      {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
+                        ? 'Anledning till varför skulden ska vara kvar'
+                        : 'Anledning till varför kontot ska vara kvar'}
+                    </Label>
                     <Textarea
                       id="reasonToRemain"
                       value={newAsset.reasonToRemain}
                       onChange={(e) => setNewAsset({ ...newAsset, reasonToRemain: e.target.value })}
-                      placeholder="T.ex. skatteåterbäring, löpande ärende, etc."
+                      placeholder={newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
+                        ? "T.ex. bolån som ska övertas av specifik arvinge, kvarstående månatliga betalningar, etc."
+                        : "T.ex. skatteåterbäring, löpande ärende, etc."}
                       rows={2}
                     />
                   </div>
