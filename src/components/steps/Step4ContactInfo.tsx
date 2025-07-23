@@ -185,7 +185,6 @@ export const Step4ContactInfo = ({
                   <div className="flex items-center gap-2 mb-3">
                     <span className="font-medium">{heir.name}</span>
                     <Badge variant="secondary">{heir.relationship}</Badge>
-                    <Badge variant="outline">{heir.inheritanceShare || 0}%</Badge>
                     {heir.documentSent && (
                       <Badge variant="default" className="bg-success/10 text-success border-success/20">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
