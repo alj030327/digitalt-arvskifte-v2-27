@@ -16,6 +16,7 @@ interface Beneficiary {
     bonds: 'transfer' | 'sell';
     crypto: 'transfer' | 'sell';
   };
+  financialAssetsNotApplicable?: boolean;
 }
 
 interface AssetPreferencesProps {
@@ -33,6 +34,19 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
               ...beneficiary.assetPreferences,
               [assetType]: preference
             }
+          }
+        : beneficiary
+    ));
+  };
+
+  const updateNotApplicable = (beneficiaryId: string, notApplicable: boolean) => {
+    setBeneficiaries(beneficiaries.map(beneficiary => 
+      beneficiary.id === beneficiaryId 
+        ? { 
+            ...beneficiary, 
+            financialAssetsNotApplicable: notApplicable,
+            // Clear preferences if marking as not applicable
+            assetPreferences: notApplicable ? undefined : beneficiary.assetPreferences
           }
         : beneficiary
     ));
@@ -111,60 +125,89 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
               </div>
             </div>
             
-            <div className="space-y-3">
-              <h5 className="text-sm font-medium">Preferenser för tillgångstyper:</h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {assetTypes.map((assetType) => (
-                  <div key={assetType} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      {getAssetIcon(assetType)}
-                      <Label className="text-sm font-medium">
-                        {getAssetLabel(assetType)}
-                      </Label>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => updateAssetPreference(beneficiary.id, assetType, 'transfer')}
-                        className={`flex-1 px-3 py-2 text-xs rounded-md border transition-colors ${
-                          beneficiary.assetPreferences?.[assetType] === 'transfer'
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-background border-border hover:bg-muted'
-                        }`}
-                      >
-                        Överför
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateAssetPreference(beneficiary.id, assetType, 'sell')}
-                        className={`flex-1 px-3 py-2 text-xs rounded-md border transition-colors ${
-                          beneficiary.assetPreferences?.[assetType] === 'sell'
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-background border-border hover:bg-muted'
-                        }`}
-                      >
-                        Sälj
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            {/* Not Applicable Checkbox */}
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`notApplicable-${beneficiary.id}`}
+                checked={beneficiary.financialAssetsNotApplicable || false}
+                onChange={(e) => updateNotApplicable(beneficiary.id, e.target.checked)}
+                className="mt-1"
+              />
+              <div>
+                <Label htmlFor={`notApplicable-${beneficiary.id}`} className="text-sm font-medium cursor-pointer">
+                  Inte applicerbart
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Markera om det inte finns några finansiella tillgångar för denna dödsbodelägare
+                </p>
               </div>
             </div>
+            
+            {!beneficiary.financialAssetsNotApplicable && (
+              <div className="space-y-3">
+                <h5 className="text-sm font-medium">Preferenser för tillgångstyper:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {assetTypes.map((assetType) => (
+                    <div key={assetType} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {getAssetIcon(assetType)}
+                        <Label className="text-sm font-medium">
+                          {getAssetLabel(assetType)}
+                        </Label>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateAssetPreference(beneficiary.id, assetType, 'transfer')}
+                          className={`flex-1 px-3 py-2 text-xs rounded-md border transition-colors ${
+                            beneficiary.assetPreferences?.[assetType] === 'transfer'
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background border-border hover:bg-muted'
+                          }`}
+                        >
+                          Överför
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateAssetPreference(beneficiary.id, assetType, 'sell')}
+                          className={`flex-1 px-3 py-2 text-xs rounded-md border transition-colors ${
+                            beneficiary.assetPreferences?.[assetType] === 'sell'
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background border-border hover:bg-muted'
+                          }`}
+                        >
+                          Sälj
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="pt-3 border-t border-border">
               <h6 className="text-xs font-medium mb-2">Nuvarande preferenser:</h6>
               <div className="flex flex-wrap gap-1">
-                {assetTypes.map((assetType) => {
-                  const preference = beneficiary.assetPreferences?.[assetType];
-                  if (!preference) return null;
-                  return (
-                    <Badge key={assetType} variant="outline" className="text-xs">
-                      {getAssetLabel(assetType)}: {getPreferenceLabel(preference)}
-                    </Badge>
-                  );
-                })}
-                {!assetTypes.some(type => beneficiary.assetPreferences?.[type]) && (
-                  <span className="text-xs text-muted-foreground">Inga preferenser angivna</span>
+                {beneficiary.financialAssetsNotApplicable ? (
+                  <Badge variant="secondary" className="text-xs">
+                    Inte applicerbart - inga finansiella tillgångar
+                  </Badge>
+                ) : (
+                  <>
+                    {assetTypes.map((assetType) => {
+                      const preference = beneficiary.assetPreferences?.[assetType];
+                      if (!preference) return null;
+                      return (
+                        <Badge key={assetType} variant="outline" className="text-xs">
+                          {getAssetLabel(assetType)}: {getPreferenceLabel(preference)}
+                        </Badge>
+                      );
+                    })}
+                    {!assetTypes.some(type => beneficiary.assetPreferences?.[type]) && (
+                      <span className="text-xs text-muted-foreground">Inga preferenser angivna</span>
+                    )}
+                  </>
                 )}
               </div>
             </div>

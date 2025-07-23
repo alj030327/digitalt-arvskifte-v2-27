@@ -209,9 +209,6 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, onNext 
                         {heir.personalNumber} • {heir.relationship}
                       </div>
                     </div>
-                    <Badge variant="secondary">
-                      {heir.inheritanceShare}% arvsandel
-                    </Badge>
                   </div>
                 ))}
               </div>

@@ -23,6 +23,7 @@ interface Beneficiary {
     bonds: 'transfer' | 'sell';
     crypto: 'transfer' | 'sell';
   };
+  financialAssetsNotApplicable?: boolean;
 }
 
 interface Testament {
