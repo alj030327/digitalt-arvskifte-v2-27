@@ -148,6 +148,7 @@ const Index = () => {
             heirs={heirs}
             setHeirs={setHeirs}
             onNext={handleNext}
+            t={t}
           />
         )}
 
@@ -179,6 +180,7 @@ const Index = () => {
             onSave={handleSave}
             onComplete={handleComplete}
             savedProgress={savedProgress}
+            t={t}
           />
         )}
 
@@ -190,6 +192,7 @@ const Index = () => {
             totalAmount={totalDistributableAmount}
             onNext={handleNext}
             onBack={handleBack}
+            t={t}
           />
         )}
 
@@ -199,6 +202,7 @@ const Index = () => {
             setHeirs={setHeirs}
             onNext={handleNext}
             onBack={handleBack}
+            t={t}
           />
         )}
 
@@ -212,6 +216,7 @@ const Index = () => {
             physicalAssets={physicalAssets}
             onBack={handleBack}
             onComplete={handleFinalComplete}
+            t={t}
           />
         )}
       </div>

@@ -32,6 +32,7 @@ interface Step4Props {
   totalAmount?: number; // Added for PDF generation
   onNext: () => void;
   onBack: () => void;
+  t: (key: string) => string;
 }
 
 export const Step4ContactInfo = ({ 
@@ -39,8 +40,9 @@ export const Step4ContactInfo = ({
   setHeirs,
   personalNumber = "",
   totalAmount = 0,
-  onNext, 
-  onBack 
+  onNext,
+  onBack,
+  t
 }: Step4Props) => {
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);

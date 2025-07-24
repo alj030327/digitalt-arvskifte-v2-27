@@ -84,6 +84,66 @@ const translations: Translations = {
     'category.loan_accounts': '🏠 Lånekonton',
     'category.pension_accounts': '⚖️ Pensionskonton & försäkringar',
     
+    // Step 1 - Identification
+    'step1.title': 'Identifiering med BankID',
+    'step1.subtitle': 'Ange den avlidnes personnummer för att hämta information från Skatteverket',
+    'step1.personal_number': 'Personnummer',
+    'step1.personal_number_placeholder': 'YYYYMMDD-XXXX',
+    'step1.fetch_info': 'Hämta information',
+    'step1.fetching': 'Hämtar information...',
+    'step1.deceased_info': 'Information om avliden',
+    'step1.name': 'Namn',
+    'step1.born': 'Född',
+    'step1.died': 'Avliden',
+    'step1.last_residence': 'Senaste folkbokföringsadress',
+    'step1.heirs_info': 'Arvingar enligt Skatteverket',
+    'step1.relationship': 'Relation',
+    'step1.inheritance_share': 'Arvslott',
+    'step1.no_heirs': 'Inga arvingar registrerade',
+    'step1.continue_assets': 'Fortsätt till tillgångar',
+    
+    // Step 3 - Distribution
+    'step3.title': 'Fördelning av tillgångar',
+    'step3.subtitle': 'Bestäm hur tillgångarna ska fördelas mellan arvingarna',
+    'step3.testament_question': 'Finns det ett testamente?',
+    'step3.yes': 'Ja',
+    'step3.no': 'Nej',
+    'step3.upload_testament': 'Ladda upp testamente',
+    'step3.physical_assets': 'Fysiska tillgångar',
+    'step3.add_physical_asset': 'Lägg till fysisk tillgång',
+    'step3.beneficiaries': 'Förmånstagare',
+    'step3.add_beneficiary': 'Lägg till förmånstagare',
+    'step3.total_percentage': 'Total procent',
+    'step3.continue_contact': 'Fortsätt till kontaktuppgifter',
+    'step3.save_progress': 'Spara framsteg',
+    
+    // Step 4 - Contact Info
+    'step4.title': 'Kontaktuppgifter',
+    'step4.subtitle': 'Samla in kontaktuppgifter från alla arvingar',
+    'step4.heir_contact': 'Kontaktuppgifter för arvingar',
+    'step4.phone': 'Telefonnummer',
+    'step4.email': 'E-postadress',
+    'step4.address': 'Adress',
+    'step4.continue_signing': 'Fortsätt till e-signering',
+    
+    // Step 5 - Beneficiary Signing
+    'step5.title': 'Arvingar signerar',
+    'step5.subtitle': 'Alla arvingar måste signera arvskiftet med BankID',
+    'step5.signing_status': 'Signeringsstatus',
+    'step5.signed': 'Signerad',
+    'step5.pending': 'Väntar på signering',
+    'step5.sign_with_bankid': 'Signera med BankID',
+    'step5.complete_signing': 'Slutför signering',
+    
+    // Step 6 - Summary/Signing
+    'step6.title': 'Sammanfattning och slutsignering',
+    'step6.subtitle': 'Granska alla uppgifter och slutför arvskiftet',
+    'step6.estate_summary': 'Sammanfattning av dödsbo',
+    'step6.assets_summary': 'Tillgångar',
+    'step6.distribution_summary': 'Fördelning',
+    'step6.final_signature': 'Slutsignering',
+    'step6.complete_estate': 'Slutför arvsskifte',
+    
     // Footer
     'footer.copyright': '© 2024 Digitalt Arvsskifte - Säker hantering av arvsskiften',
     'footer.privacy': 'Integritet',
@@ -165,6 +225,66 @@ const translations: Translations = {
     'category.payment_accounts': '💸 Payment & credit accounts',
     'category.loan_accounts': '🏠 Loan accounts',
     'category.pension_accounts': '⚖️ Pension accounts & insurance',
+    
+    // Step 1 - Identification
+    'step1.title': 'Identification with BankID',
+    'step1.subtitle': 'Enter the deceased\'s personal number to retrieve information from the Tax Agency',
+    'step1.personal_number': 'Personal number',
+    'step1.personal_number_placeholder': 'YYYYMMDD-XXXX',
+    'step1.fetch_info': 'Fetch information',
+    'step1.fetching': 'Fetching information...',
+    'step1.deceased_info': 'Information about deceased',
+    'step1.name': 'Name',
+    'step1.born': 'Born',
+    'step1.died': 'Died',
+    'step1.last_residence': 'Last registered address',
+    'step1.heirs_info': 'Heirs according to Tax Agency',
+    'step1.relationship': 'Relationship',
+    'step1.inheritance_share': 'Inheritance share',
+    'step1.no_heirs': 'No heirs registered',
+    'step1.continue_assets': 'Continue to assets',
+    
+    // Step 3 - Distribution
+    'step3.title': 'Asset distribution',
+    'step3.subtitle': 'Determine how assets should be distributed among heirs',
+    'step3.testament_question': 'Is there a will?',
+    'step3.yes': 'Yes',
+    'step3.no': 'No',
+    'step3.upload_testament': 'Upload will',
+    'step3.physical_assets': 'Physical assets',
+    'step3.add_physical_asset': 'Add physical asset',
+    'step3.beneficiaries': 'Beneficiaries',
+    'step3.add_beneficiary': 'Add beneficiary',
+    'step3.total_percentage': 'Total percentage',
+    'step3.continue_contact': 'Continue to contact information',
+    'step3.save_progress': 'Save progress',
+    
+    // Step 4 - Contact Info
+    'step4.title': 'Contact information',
+    'step4.subtitle': 'Collect contact information from all heirs',
+    'step4.heir_contact': 'Contact information for heirs',
+    'step4.phone': 'Phone number',
+    'step4.email': 'Email address',
+    'step4.address': 'Address',
+    'step4.continue_signing': 'Continue to e-signing',
+    
+    // Step 5 - Beneficiary Signing
+    'step5.title': 'Heirs signing',
+    'step5.subtitle': 'All heirs must sign the estate settlement with BankID',
+    'step5.signing_status': 'Signing status',
+    'step5.signed': 'Signed',
+    'step5.pending': 'Pending signature',
+    'step5.sign_with_bankid': 'Sign with BankID',
+    'step5.complete_signing': 'Complete signing',
+    
+    // Step 6 - Summary/Signing
+    'step6.title': 'Summary and final signing',
+    'step6.subtitle': 'Review all information and complete the estate settlement',
+    'step6.estate_summary': 'Estate summary',
+    'step6.assets_summary': 'Assets',
+    'step6.distribution_summary': 'Distribution',
+    'step6.final_signature': 'Final signature',
+    'step6.complete_estate': 'Complete estate settlement',
     
     // Footer
     'footer.copyright': '© 2024 Digital Estate Settlement - Secure estate settlement management',

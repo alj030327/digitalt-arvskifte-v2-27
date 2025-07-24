@@ -80,6 +80,7 @@ interface Step3Props {
   onSave: () => void;
   onComplete: () => void;
   savedProgress: boolean;
+  t: (key: string) => string;
 }
 
 export const Step3Distribution = ({ 
@@ -98,7 +99,8 @@ export const Step3Distribution = ({
   onBack,
   onSave,
   onComplete,
-  savedProgress
+  savedProgress,
+  t
 }: Step3Props) => {
   const { toast } = useToast();
   const [newBeneficiary, setNewBeneficiary] = useState({

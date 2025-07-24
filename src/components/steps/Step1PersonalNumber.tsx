@@ -44,9 +44,10 @@ interface Step1Props {
   heirs: Heir[];
   setHeirs: (heirs: Heir[]) => void;
   onNext: () => void;
+  t: (key: string) => string;
 }
 
-export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, setHeirs, onNext }: Step1Props) => {
+export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, setHeirs, onNext, t }: Step1Props) => {
   const { toast } = useToast();
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState("");
@@ -503,9 +504,9 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <UserCheck className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Identifiering av den avlidne</CardTitle>
+          <CardTitle className="text-2xl">{t('step1.title')}</CardTitle>
           <CardDescription>
-            Ange personnumret för den person vars arvsskifte ska hanteras. Vi hämtar sedan information om dödsbodelägarna från Skatteverket.
+            {t('step1.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

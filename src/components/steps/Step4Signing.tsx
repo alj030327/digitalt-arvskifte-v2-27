@@ -78,6 +78,7 @@ interface Step6Props {
   physicalAssets?: any[];
   onBack: () => void;
   onComplete: () => void;
+  t: (key: string) => string;
 }
 
 export const Step4Signing = ({ 
@@ -88,7 +89,8 @@ export const Step4Signing = ({
   testament,
   physicalAssets = [],
   onBack,
-  onComplete
+  onComplete,
+  t
 }: Step6Props) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);

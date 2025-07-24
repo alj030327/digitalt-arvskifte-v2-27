@@ -26,13 +26,15 @@ interface Step5Props {
   setHeirs: (heirs: Heir[]) => void;
   onNext: () => void;
   onBack: () => void;
+  t: (key: string) => string;
 }
 
 export const Step5BeneficiarySigning = ({ 
   heirs, 
   setHeirs, 
   onNext, 
-  onBack 
+  onBack,
+  t
 }: Step5Props) => {
   const { toast } = useToast();
   const [isSendingToBanks, setIsSendingToBanks] = useState(false);
