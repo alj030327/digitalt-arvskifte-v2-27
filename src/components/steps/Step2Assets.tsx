@@ -27,9 +27,10 @@ interface Step2Props {
   setAssets: (assets: Asset[]) => void;
   onNext: () => void;
   onBack: () => void;
+  t: (key: string) => string;
 }
 
-export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) => {
+export const Step2Assets = ({ assets, setAssets, onNext, onBack, t }: Step2Props) => {
   const [newAsset, setNewAsset] = useState({
     bank: "",
     accountType: "",
@@ -348,24 +349,23 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Building2 className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Tillgångar och bankkonton</CardTitle>
+          <CardTitle className="text-2xl">{t('assets.title')}</CardTitle>
           <CardDescription>
-            Samla in information om den avlidnes tillgångar från olika banker
+            {t('assets.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="auto" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="auto">Automatisk hämtning</TabsTrigger>
-              <TabsTrigger value="manual">Manuell inmatning</TabsTrigger>
+              <TabsTrigger value="auto">{t('assets.auto_import')}</TabsTrigger>
+              <TabsTrigger value="manual">{t('assets.manual_input')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="auto" className="space-y-6">
               <Alert>
                 <Upload className="h-4 w-4" />
                 <AlertDescription>
-                  Via PSD2/Open Banking kan vi automatiskt hämta kontoinformation från era banker. 
-                  Detta kräver din godkännande och BankID-autentisering hos respektive bank.
+                  {t('assets.auto_import_description')}
                 </AlertDescription>
               </Alert>
               
@@ -389,20 +389,20 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 className="w-full"
                 size="lg"
               >
-                {isAutoImporting ? "Hämtar kontoinformation..." : "Starta automatisk hämtning"}
+                {isAutoImporting ? t('assets.importing') : t('assets.start_auto_import')}
               </Button>
             </TabsContent>
             
             <TabsContent value="manual" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="bank">Bank</Label>
+                  <Label htmlFor="bank">{t('assets.bank')}</Label>
                   <select
                     className="w-full p-2 border border-border rounded-md bg-background"
                     value={newAsset.bank}
                     onChange={(e) => setNewAsset({ ...newAsset, bank: e.target.value })}
                   >
-                    <option value="">Välj bank</option>
+                    <option value="">{t('button.choose')} {t('assets.bank').toLowerCase()}</option>
                     {commonBanks.map((bank) => (
                       <option key={bank} value={bank}>{bank}</option>
                     ))}
@@ -410,7 +410,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="accountType">Kontotyp</Label>
+                  <Label htmlFor="accountType">{t('assets.account_type')}</Label>
                   <select
                     className="w-full p-2 border border-border rounded-md bg-background"
                     value={newAsset.accountType}
@@ -418,7 +418,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                     disabled={!newAsset.bank}
                   >
                     <option value="">
-                      {newAsset.bank ? "Välj kontotyp" : "Välj bank först"}
+                      {newAsset.bank ? t('assets.select_account_type') : t('assets.select_bank_first')}
                     </option>
                     {newAsset.bank && getAccountTypesForBank(newAsset.bank).map((type) => (
                       <option key={type} value={type}>{type}</option>
@@ -426,13 +426,13 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   </select>
                   {newAsset.bank && (
                     <p className="text-xs text-muted-foreground">
-                      Visar kontotyper tillgängliga hos {newAsset.bank}
+                      {t('assets.account_type')} {t('button.select').toLowerCase()} {newAsset.bank}
                     </p>
                   )}
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="assetType">Tillgångs-/Skuldtyp</Label>
+                  <Label htmlFor="assetType">{t('assets.asset_type')}</Label>
                   <select
                     className="w-full p-2 border border-border rounded-md bg-background"
                     value={newAsset.assetType}
@@ -440,7 +440,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                     disabled={!newAsset.bank}
                   >
                     <option value="">
-                      {newAsset.bank ? "Välj tillgångs-/skuldtyp" : "Välj bank först"}
+                      {newAsset.bank ? t('assets.select_asset_type') : t('assets.select_bank_first')}
                     </option>
                     {newAsset.bank && getAssetTypesForBank(newAsset.bank).map((type) => (
                       <option key={type} value={type}>{type}</option>
@@ -448,13 +448,13 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   </select>
                   {newAsset.bank && (
                     <p className="text-xs text-muted-foreground">
-                      Visar tillgångs- och skuldtyper tillgängliga hos {newAsset.bank}
+                      {t('assets.asset_type')} {t('button.select').toLowerCase()} {newAsset.bank}
                     </p>
                   )}
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="accountNumber">Kontonummer</Label>
+                  <Label htmlFor="accountNumber">{t('assets.account_number')}</Label>
                   <Input
                     id="accountNumber"
                     value={newAsset.accountNumber}
@@ -466,8 +466,8 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 <div className="space-y-2">
                   <Label htmlFor="amount">
                     {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType) 
-                      ? 'Skuld (SEK)' 
-                      : 'Belopp (SEK)'}
+                      ? t('assets.debt') 
+                      : t('assets.amount')}
                   </Label>
                   <Input
                     id="amount"
@@ -478,7 +478,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   />
                   {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType) && (
                     <p className="text-xs text-muted-foreground">
-                      Ange skuldbeloppet som ett positivt tal
+                      {t('assets.debt_amount_help')}
                     </p>
                   )}
                 </div>
@@ -494,13 +494,13 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   <div className="space-y-1">
                     <Label htmlFor="toRemain" className="text-sm font-medium">
                       {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
-                        ? 'Skuld ska vara kvar'
-                        : 'Konto ska vara kvar'}
+                        ? t('assets.debt_remain')
+                        : t('assets.account_remain')}
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
-                        ? 'Markera om skulden inte ska ingå i fördelningen (t.ex. bolån som ska fortsätta gälla)'
-                        : 'Markera om kontot inte ska ingå i fördelningen (t.ex. skatteåterbäring)'}
+                        ? t('assets.remain_help_debt')
+                        : t('assets.remain_help_asset')}
                     </p>
                   </div>
                 </div>
@@ -509,7 +509,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="amountToRemain">
-                        Belopp som ska vara kvar (SEK)
+                        {t('assets.amount_remain')}
                       </Label>
                       <Input
                         id="amountToRemain"
@@ -520,22 +520,22 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                         max={newAsset.amount}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Ange hur mycket som ska vara kvar efter skiftet. Resterande belopp kommer att fördelas.
+                        {t('assets.remain_amount_help')}
                       </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="reasonToRemain">
                         {newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
-                          ? 'Anledning till varför skulden ska vara kvar'
-                          : 'Anledning till varför kontot ska vara kvar'}
+                          ? t('assets.reason_debt_remain')
+                          : t('assets.reason_remain')}
                       </Label>
                       <Textarea
                         id="reasonToRemain"
                         value={newAsset.reasonToRemain}
                         onChange={(e) => setNewAsset({ ...newAsset, reasonToRemain: e.target.value })}
                         placeholder={newAsset.assetType && ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(newAsset.assetType)
-                          ? "T.ex. bolån som ska övertas av specifik arvinge, kvarstående månatliga betalningar, etc."
-                          : "T.ex. skatteåterbäring, löpande ärende, etc."}
+                          ? t('assets.reason_placeholder_debt')
+                          : t('assets.reason_placeholder_asset')}
                         rows={2}
                       />
                     </div>
@@ -545,14 +545,14 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
               
               <Button onClick={handleAddAsset} className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
-                Lägg till tillgång
+                {t('assets.add_asset')}
               </Button>
             </TabsContent>
           </Tabs>
 
           {assets.length > 0 && (
             <div className="mt-8 space-y-4">
-              <h3 className="text-lg font-semibold">Registrerade tillgångar och skulder</h3>
+              <h3 className="text-lg font-semibold">{t('assets.registered_assets')}</h3>
               
               {/* Group assets by bank */}
               {Object.entries(
@@ -573,7 +573,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   {/* Bank totals first */}
                   <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">Totala tillgångar:</span>
+                      <span className="font-medium">{t('assets.total_assets')}:</span>
                       <span className="font-semibold text-primary">
                         {bankAssets
                           .filter(a => !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
@@ -582,7 +582,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">Totala skulder:</span>
+                      <span className="font-medium">{t('assets.total_debts')}:</span>
                       <span className="font-semibold text-destructive">
                         {bankAssets
                           .filter(a => ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
@@ -594,7 +594,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   
                   {/* Individual accounts listed vertically */}
                   <div className="space-y-3">
-                    <h5 className="font-medium text-sm text-muted-foreground">Konton och innehav:</h5>
+                    <h5 className="font-medium text-sm text-muted-foreground">{t('assets.accounts_holdings')}</h5>
                     {bankAssets.map((asset) => (
                       <div key={asset.id} className="border border-border/50 rounded-md p-3 space-y-3">
                         <div className="flex items-start justify-between">
@@ -614,7 +614,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                               size="sm"
                               onClick={() => toggleAssetToRemain(asset.id)}
                               className={`p-2 ${asset.toRemain ? 'text-warning' : 'text-muted-foreground'}`}
-                              title={asset.toRemain ? 'Kontot kommer att vara kvar' : 'Klicka för att markera att kontot ska vara kvar'}
+                              title={asset.toRemain ? t('assets.remain_tooltip_on') : t('assets.remain_tooltip_off')}
                             >
                               {asset.toRemain ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                             </Button>
@@ -633,12 +633,12 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                           <div className="space-y-3 pt-2 border-t border-border/50">
                             <div className="flex items-center gap-2">
                               <Lock className="w-4 h-4 text-warning" />
-                              <span className="text-sm font-medium text-warning">Konto markerat att vara kvar</span>
+                              <span className="text-sm font-medium text-warning">{t('assets.marked_remain')}</span>
                             </div>
                             
                             <div className="space-y-2">
                               <Label htmlFor={`amount-remain-${asset.id}`} className="text-xs font-medium">
-                                Belopp som ska vara kvar (SEK):
+                                {t('assets.amount_remain')}:
                               </Label>
                               <Input
                                 id={`amount-remain-${asset.id}`}
@@ -651,20 +651,20 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                               />
                               {asset.amountToRemain !== undefined && asset.amountToRemain < asset.amount && (
                                 <p className="text-xs text-muted-foreground">
-                                  <span className="font-medium">Att fördela:</span> {(asset.amount - asset.amountToRemain).toLocaleString('sv-SE')} SEK
+                                  <span className="font-medium">{t('assets.to_distribute')}:</span> {(asset.amount - asset.amountToRemain).toLocaleString('sv-SE')} SEK
                                 </p>
                               )}
                             </div>
                             
                             <div className="space-y-1">
                               <Label htmlFor={`reason-${asset.id}`} className="text-xs">
-                                Anledning till varför kontot ska vara kvar:
+                                {t('assets.reason_remain')}:
                               </Label>
                               <Textarea
                                 id={`reason-${asset.id}`}
                                 value={asset.reasonToRemain || ""}
                                 onChange={(e) => updateReasonToRemain(asset.id, e.target.value)}
-                                placeholder="T.ex. skatteåterbäring, löpande ärende, bolån som ska övertas..."
+                                placeholder={t('assets.reason_remain_general')}
                                 className="text-sm"
                                 rows={2}
                               />
@@ -679,7 +679,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <span className="font-medium">Total tillgångar:</span>
+                  <span className="font-medium">{t('assets.total_assets')}:</span>
                   <span className="text-xl font-bold text-primary">
                     {assets
                       .filter(a => !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
@@ -688,7 +688,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <span className="font-medium">Total skulder:</span>
+                  <span className="font-medium">{t('assets.total_debts')}:</span>
                   <span className="text-xl font-bold text-destructive">
                     {assets
                       .filter(a => ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
@@ -697,7 +697,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <span className="font-medium">Nettotillgångar att fördela:</span>
+                  <span className="font-medium">{t('assets.net_distributable')}:</span>
                   <span className="text-xl font-bold text-success">
                     {safeDistributableAmount.toLocaleString('sv-SE')} SEK
                   </span>
@@ -708,13 +708,13 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
 
           <div className="flex justify-between mt-8">
             <Button variant="outline" onClick={onBack}>
-              Tillbaka
+              {t('button.back')}
             </Button>
             <Button 
               onClick={onNext} 
               disabled={assets.length === 0}
             >
-              Fortsätt till fördelning
+              {t('assets.continue_distribution')}
             </Button>
           </div>
         </CardContent>

@@ -157,6 +157,7 @@ const Index = () => {
             setAssets={setAssets}
             onNext={handleNext}
             onBack={handleBack}
+            t={t}
           />
         )}
 
