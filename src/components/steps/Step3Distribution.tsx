@@ -134,7 +134,7 @@ export const Step3Distribution = ({
   const handleAssetSelection = (assetId: string, selected: boolean, percentage: number = 100) => {
     setSelectedAssets(prev => ({
       ...prev,
-      [assetId]: { selected, percentage }
+      [assetId]: { selected, percentage: Math.max(0, Math.min(100, percentage)) }
     }));
   };
 
@@ -375,7 +375,7 @@ export const Step3Distribution = ({
                       <Label className="text-sm font-medium">Välj konton/tillgångar</Label>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Välj specifika konton som denna arvinge ska få. Du kan ange procent för partiell tilldelning.
+                      Välj specifika konton som denna arvinge ska få. Du kan ange 0-100% för exklusiv tilldelning.
                     </p>
                     <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
                       {getAvailableAssets().map((asset) => {
@@ -411,11 +411,11 @@ export const Step3Distribution = ({
                                 <Label className="text-xs">Andel:</Label>
                                 <Input
                                   type="number"
-                                  min="1"
+                                  min="0"
                                   max="100"
                                   value={selection.percentage}
                                   onChange={(e) => 
-                                    handleAssetSelection(asset.id, true, parseInt(e.target.value) || 100)
+                                    handleAssetSelection(asset.id, true, parseInt(e.target.value) || 0)
                                   }
                                   className="w-16 h-7 text-xs"
                                 />
