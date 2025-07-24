@@ -276,7 +276,7 @@ export const Step3Distribution = ({
         <CardContent className="space-y-6">
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Total att fördela:</span>
+              <span className="font-medium">{t('step3.total_amount')}:</span>
               <span className="text-xl font-bold text-primary">
                 {totalAmount.toLocaleString('sv-SE')} SEK
               </span>
@@ -292,11 +292,11 @@ export const Step3Distribution = ({
           />
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Lägg till arvinge</h3>
+            <h3 className="text-lg font-semibold">{t('step3.add_beneficiary')}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Namn</Label>
+                <Label htmlFor="name">{t('step3.name')}</Label>
                 <Input
                   id="name"
                   value={newBeneficiary.name}
@@ -306,7 +306,7 @@ export const Step3Distribution = ({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="personalNumber">Personnummer</Label>
+                <Label htmlFor="personalNumber">{t('step3.personal_number')}</Label>
                 <Input
                   id="personalNumber"
                   value={newBeneficiary.personalNumber}
@@ -320,7 +320,7 @@ export const Step3Distribution = ({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="relationship">Relation till avliden</Label>
+                <Label htmlFor="relationship">{t('step3.relationship')}</Label>
                 <select
                   className="w-full p-2 border border-border rounded-md bg-background"
                   value={newBeneficiary.relationship}
@@ -347,7 +347,7 @@ export const Step3Distribution = ({
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="accountNumber">Kontonummer för utbetalning</Label>
+                <Label htmlFor="accountNumber">{t('step3.account_number')}</Label>
                 <Input
                   id="accountNumber"
                   value={newBeneficiary.accountNumber}
@@ -449,7 +449,7 @@ export const Step3Distribution = ({
             
             <Button onClick={handleAddBeneficiary} className="w-full">
               <Plus className="w-4 h-4 mr-2" />
-              Lägg till arvinge
+              {t('step3.add_beneficiary')}
             </Button>
           </div>
 
@@ -546,7 +546,7 @@ export const Step3Distribution = ({
 
           {savedProgress && (
             <div className="text-center p-3 bg-success/10 border border-success/20 rounded-lg">
-              <p className="text-sm font-medium text-success">Framsteg sparat!</p>
+              <p className="text-sm font-medium text-success">{t('step3.progress_saved')}</p>
             </div>
           )}
 

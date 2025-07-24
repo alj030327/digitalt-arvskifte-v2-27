@@ -252,7 +252,7 @@ export const Step4ContactInfo = ({
                       {/* Phone field - only required if preference includes SMS */}
                       {(heir.notificationPreference === 'sms' || heir.notificationPreference === 'both' || !heir.notificationPreference) && (
                         <div className="space-y-2">
-                          <Label htmlFor={`phone-${heir.personalNumber}`}>Telefonnummer</Label>
+                          <Label htmlFor={`phone-${heir.personalNumber}`}>{t('step4.phone')}</Label>
                           <Input
                             id={`phone-${heir.personalNumber}`}
                             type="tel"

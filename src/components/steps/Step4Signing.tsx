@@ -239,7 +239,7 @@ export const Step4Signing = ({
           <div className="space-y-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Users className="w-5 h-5" />
-              Avliden person
+              {t('step6.deceased_person')}
             </h3>
             <div className="p-4 bg-muted/30 rounded-lg">
               <div className="font-medium">Personnummer: {personalNumber}</div>
