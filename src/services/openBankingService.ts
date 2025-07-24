@@ -1,4 +1,4 @@
-import { integrationConfig, isIntegrationReady } from '../config/integrations';
+import { IntegrationManager, OPEN_BANKING_CONFIG } from '@/config/integrationSettings';
 
 export interface OpenBankingAccount {
   accountId: string;
@@ -32,47 +32,50 @@ export class OpenBankingService {
    * Get list of supported banks for PSD2/Open Banking
    */
   static getSupportedBanks(): string[] {
-    return [
-      'handelsbanken',
-      'seb',
-      'swedbank', 
-      'nordea',
-      'danske-bank',
-      'lansforsakringar',
-      'ica-banken',
-      'sparbanken'
-    ];
+    if (!IntegrationManager.isConfigured('openBanking')) {
+      console.log('🏦 Open Banking not configured - returning mock banks');
+      return ['swedbank', 'handelsbanken', 'seb', 'nordea'];
+    }
+    
+    const config = OPEN_BANKING_CONFIG;
+    return Object.keys(config.supportedBanks);
   }
 
   /**
    * Initiate PSD2 authentication flow
    */
   static async initiateAuth(bankCode: string): Promise<string | null> {
-    if (!isIntegrationReady.supabase()) {
-      console.warn('Open Banking requires Supabase backend integration');
-      return null;
-    }
-
     try {
-      // TODO: Implement actual PSD2 authentication
-      // This would typically redirect to bank's OAuth flow
-      const authRequest: PSD2AuthRequest = {
-        bankCode,
-        redirectUri: `${window.location.origin}/callback`,
-        scopes: ['accounts', 'balances']
-      };
+      if (!IntegrationManager.isConfigured('openBanking')) {
+        console.log('🏦 Open Banking not configured - using mock auth flow');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return `mock_auth_code_${bankCode}_${Date.now()}`;
+      }
 
-      // In production, this would call your backend endpoint
-      const response = await fetch('/api/psd2/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(authRequest)
-      });
-
-      const data = await response.json();
-      return data.authUrl;
+      console.log('🏦 Using real Open Banking/PSD2 API');
+      const config = OPEN_BANKING_CONFIG;
+      const bankConfig = config.supportedBanks[bankCode];
+      
+      if (!bankConfig) {
+        throw new Error(`Unsupported bank: ${bankCode}`);
+      }
+      
+      const authUrl = `${bankConfig.apiBaseUrl}${bankConfig.authEndpoint}?` +
+        `client_id=${config.credentials.clientId}&` +
+        `redirect_uri=${config.credentials.redirectUri}&` +
+        `scope=accounts&` +
+        `response_type=code&` +
+        `state=${Date.now()}`;
+      
+      console.log(`Initiating real PSD2 auth for ${bankCode}:`, authUrl);
+      
+      // In a real implementation, this would redirect the user to the bank's auth page
+      // The user would be redirected back with an authorization code
+      window.location.href = authUrl;
+      
+      return null; // The actual code will come from the redirect
     } catch (error) {
-      console.error('PSD2 auth initiation failed:', error);
+      console.error('PSD2 Auth initiation failed:', error);
       return null;
     }
   }
@@ -100,21 +103,31 @@ export class OpenBankingService {
    * Fetch accounts from bank using PSD2
    */
   static async fetchAccounts(bankCode: string, accessToken: string): Promise<OpenBankingAccount[]> {
-    if (!isIntegrationReady.supabase()) {
-      console.warn('Open Banking not configured, using mock data');
+    if (!IntegrationManager.isConfigured('openBanking')) {
+      console.log('🏦 Open Banking not configured - using mock account data');
       return this.getMockAccounts(bankCode);
     }
 
     try {
-      // TODO: Implement actual PSD2 API call
-      const response = await fetch('/api/psd2/accounts', {
+      console.log('🏦 Fetching real accounts via PSD2 API');
+      const config = OPEN_BANKING_CONFIG;
+      const bankConfig = config.supportedBanks[bankCode];
+      
+      if (!bankConfig) {
+        throw new Error(`Unsupported bank: ${bankCode}`);
+      }
+
+      const response = await fetch(`${bankConfig.apiBaseUrl}${bankConfig.accountsEndpoint}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'X-Bank-Code': bankCode,
           'Content-Type': 'application/json'
         }
       });
+
+      if (!response.ok) {
+        throw new Error(`PSD2 API Error: ${response.status} ${response.statusText}`);
+      }
 
       const data = await response.json();
       return data.accounts || [];

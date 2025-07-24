@@ -1,4 +1,4 @@
-import { integrationConfig, isIntegrationReady } from '../config/integrations';
+import { IntegrationManager, SKATTEVERKET_CONFIG } from '@/config/integrationSettings';
 
 export interface SkatteverketHeirData {
   personalNumber: string;
@@ -30,16 +30,13 @@ export class SkatteverketService {
    */
   static async fetchHeirs(deceasedPersonalNumber: string): Promise<SkatteverketResponse> {
     // Check if integration is properly configured
-    if (!isIntegrationReady.skatteverket()) {
-      console.warn('Skatteverket integration not configured, using mock data');
+    if (!IntegrationManager.isConfigured('skatteverket')) {
+      console.log('🏦 Skatteverket API not configured - using realistic mock data');
       return this.getMockHeirData(deceasedPersonalNumber);
     }
 
     try {
-      // TODO: Implement actual API call to Skatteverket
-      // This would typically be done through a backend service/edge function
-      // because API keys and certificates should not be exposed in frontend
-      
+      console.log('🏦 Using real Skatteverket API');
       const response = await this.callSkatteverketAPI(deceasedPersonalNumber);
       return response;
     } catch (error) {
@@ -57,24 +54,48 @@ export class SkatteverketService {
    * In production, this should be implemented as a secure backend endpoint
    */
   private static async callSkatteverketAPI(personalNumber: string): Promise<SkatteverketResponse> {
-    // This is where you would implement the actual API call
-    // Example structure:
-    /*
-    const response = await fetch(`${integrationConfig.skatteverket.apiBaseUrl}/heirs`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${integrationConfig.skatteverket.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ personalNumber }),
-    });
+    const config = SKATTEVERKET_CONFIG;
+    const baseUrl = IntegrationManager.getBaseUrl('skatteverket');
     
-    const data = await response.json();
-    return data;
-    */
+    try {
+      const response = await fetch(`${baseUrl}${config.endpoints.heirLookup}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.credentials.apiKey}`,
+          'X-Certificate-Path': config.credentials.certificatePath,
+        },
+        body: JSON.stringify({
+          deceasedPersonalNumber: personalNumber,
+          requestId: `req_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+        }),
+      });
 
-    // For now, return mock data
-    return this.getMockHeirData(personalNumber);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      return {
+        status: 'success',
+        data: {
+          deceasedPersonalNumber: personalNumber,
+          deceasedName: data.deceasedName || '',
+          dateOfDeath: data.dateOfDeath || '',
+          heirs: data.heirs || [],
+        },
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Skatteverket API Error:', error);
+      return {
+        status: 'error',
+        error: 'Kunde inte hämta arvsinformation från Skatteverket',
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
   /**

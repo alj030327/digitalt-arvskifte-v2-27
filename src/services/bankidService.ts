@@ -1,4 +1,4 @@
-import { integrationConfig, isIntegrationReady } from '../config/integrations';
+import { IntegrationManager, BANKID_CONFIG } from '@/config/integrationSettings';
 
 export interface BankIdSession {
   orderRef: string;
@@ -46,15 +46,14 @@ export class BankIdService {
    * Initiate BankID authentication
    */
   static async authenticate(request: BankIdAuthRequest): Promise<BankIdSession | null> {
-    if (!isIntegrationReady.bankid()) {
-      console.warn('BankID integration not configured, using mock data');
-      return this.getMockSession();
-    }
-
     try {
-      // TODO: Implement actual BankID API call
-      // This should be done through backend/edge function for security
-      const response = await this.callBankIdAPI('/auth', request);
+      if (!IntegrationManager.isConfigured('bankid')) {
+        console.log('🔐 BankID not configured - using mock authentication');
+        return this.getMockSession();
+      }
+
+      console.log('🔐 Using real BankID API');
+      const response = await this.callBankIdAPI('auth', request);
       return response;
     } catch (error) {
       console.error('BankID authentication failed:', error);
@@ -66,14 +65,14 @@ export class BankIdService {
    * Initiate BankID signing
    */
   static async sign(request: BankIdSignRequest): Promise<BankIdSession | null> {
-    if (!isIntegrationReady.bankid()) {
-      console.warn('BankID integration not configured, using mock data');
-      return this.getMockSession();
-    }
-
     try {
-      // TODO: Implement actual BankID API call
-      const response = await this.callBankIdAPI('/sign', request);
+      if (!IntegrationManager.isConfigured('bankid')) {
+        console.log('🔐 BankID not configured - using mock signing');
+        return this.getMockSession();
+      }
+
+      console.log('🔐 Using real BankID signing API');
+      const response = await this.callBankIdAPI('sign', request);
       return response;
     } catch (error) {
       console.error('BankID signing failed:', error);
@@ -85,13 +84,12 @@ export class BankIdService {
    * Check status of BankID operation
    */
   static async checkStatus(orderRef: string): Promise<BankIdStatus | null> {
-    if (!isIntegrationReady.bankid()) {
-      // Simulate progression through different states
-      return this.getMockStatus(orderRef);
-    }
-
     try {
-      const response = await this.callBankIdAPI('/collect', { orderRef });
+      if (!IntegrationManager.isConfigured('bankid')) {
+        return this.getMockStatus(orderRef);
+      }
+
+      const response = await this.callBankIdAPI('collect', { orderRef });
       return response;
     } catch (error) {
       console.error('BankID status check failed:', error);
@@ -103,12 +101,12 @@ export class BankIdService {
    * Cancel BankID operation
    */
   static async cancel(orderRef: string): Promise<boolean> {
-    if (!isIntegrationReady.bankid()) {
-      return true; // Mock success
-    }
-
     try {
-      await this.callBankIdAPI('/cancel', { orderRef });
+      if (!IntegrationManager.isConfigured('bankid')) {
+        return true; // Mock success
+      }
+
+      await this.callBankIdAPI('cancel', { orderRef });
       return true;
     } catch (error) {
       console.error('BankID cancellation failed:', error);
@@ -121,35 +119,48 @@ export class BankIdService {
    * In production, implement as secure backend endpoints
    */
   private static async callBankIdAPI(endpoint: string, data: any): Promise<any> {
-    // This is where you would implement the actual API call
-    // Example structure:
-    /*
-    const response = await fetch(`${integrationConfig.bankid.apiBaseUrl}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Note: In real implementation, client certificates would be handled by the backend
-      body: JSON.stringify(data),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`BankID API error: ${response.statusText}`);
-    }
-    
-    return await response.json();
-    */
-
-    // Mock implementation for development
-    if (endpoint === '/auth' || endpoint === '/sign') {
-      return this.getMockSession();
-    }
-    
-    if (endpoint === '/collect') {
-      return this.getMockStatus(data.orderRef);
+    if (!IntegrationManager.isConfigured('bankid')) {
+      // Mock implementation for development
+      if (endpoint === 'auth' || endpoint === 'sign') {
+        return this.getMockSession();
+      }
+      
+      if (endpoint === 'collect') {
+        return this.getMockStatus(data.orderRef);
+      }
+      
+      if (endpoint === 'cancel') {
+        return true;
+      }
+      
+      throw new Error(`Unknown endpoint: ${endpoint}`);
     }
 
-    return { success: true };
+    // Real BankID API implementation
+    const config = BANKID_CONFIG;
+    const baseUrl = IntegrationManager.getBaseUrl('bankid');
+    
+    try {
+      const response = await fetch(`${baseUrl}${config.endpoints[endpoint as keyof typeof config.endpoints]}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // In a real implementation, you would add certificate authentication here
+          'X-Client-Cert': config.credentials.clientCert,
+        },
+        // In a real implementation, you would configure TLS client certificates
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`BankID API Error: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`BankID ${endpoint} API Error:`, error);
+      throw error;
+    }
   }
 
   /**
