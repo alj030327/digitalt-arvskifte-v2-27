@@ -14,16 +14,258 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      case_activities: {
+        Row: {
+          activity_type: string
+          case_id: string
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          case_id: string
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          case_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_activities_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cases: {
+        Row: {
+          assigned_handler_id: string | null
+          assigned_lawyer_id: string | null
+          case_number: string
+          completed_at: string | null
+          created_at: string
+          current_step: number | null
+          customer_id: string
+          deceased_name: string
+          deceased_personal_number: string
+          description: string | null
+          estate_value: number | null
+          heir_count: number | null
+          id: string
+          status: Database["public"]["Enums"]["case_status"]
+          title: string
+          total_steps: number | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_handler_id?: string | null
+          assigned_lawyer_id?: string | null
+          case_number: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          customer_id: string
+          deceased_name: string
+          deceased_personal_number: string
+          description?: string | null
+          estate_value?: number | null
+          heir_count?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["case_status"]
+          title: string
+          total_steps?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_handler_id?: string | null
+          assigned_lawyer_id?: string | null
+          case_number?: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          customer_id?: string
+          deceased_name?: string
+          deceased_personal_number?: string
+          description?: string | null
+          estate_value?: number | null
+          heir_count?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["case_status"]
+          title?: string
+          total_steps?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          case_id: string
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          uploaded_by: string
+          verified: boolean | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by: string
+          verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by?: string
+          verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          personal_number: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          personal_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          personal_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_case_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "customer" | "case_handler" | "lawyer" | "admin"
+      case_status:
+        | "pending"
+        | "in_progress"
+        | "review"
+        | "completed"
+        | "archived"
+      document_type:
+        | "testament"
+        | "death_certificate"
+        | "identity"
+        | "bank_statement"
+        | "valuation"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +392,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["customer", "case_handler", "lawyer", "admin"],
+      case_status: [
+        "pending",
+        "in_progress",
+        "review",
+        "completed",
+        "archived",
+      ],
+      document_type: [
+        "testament",
+        "death_certificate",
+        "identity",
+        "bank_statement",
+        "valuation",
+        "other",
+      ],
+    },
   },
 } as const
