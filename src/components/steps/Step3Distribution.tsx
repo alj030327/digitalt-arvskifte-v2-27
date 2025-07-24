@@ -268,9 +268,9 @@ export const Step3Distribution = ({
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Users className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Fördelning mellan dödsbodelägare</CardTitle>
+          <CardTitle className="text-2xl">{t('step3.title')}</CardTitle>
           <CardDescription>
-            Ange hur tillgångarna ska fördelas mellan de olika dödsbodelägarna
+            {t('step3.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -552,7 +552,7 @@ export const Step3Distribution = ({
 
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <Button variant="outline" onClick={onBack} className="sm:w-auto">
-              Tillbaka
+              {t('button.back')}
             </Button>
             
             <div className="flex flex-col sm:flex-row gap-3">

@@ -164,9 +164,9 @@ export const Step4ContactInfo = ({
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Mail className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Kontaktuppgifter för e-signering</CardTitle>
+          <CardTitle className="text-2xl">{t('step4.title')}</CardTitle>
           <CardDescription>
-            Ange e-post och telefonnummer för att skicka arvsskiftet för digitala signaturer
+            {t('step4.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -291,7 +291,7 @@ export const Step4ContactInfo = ({
 
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <Button variant="outline" onClick={onBack} className="sm:w-auto">
-              Tillbaka
+              {t('button.back')}
             </Button>
             
             <div className="flex gap-3">
@@ -320,7 +320,7 @@ export const Step4ContactInfo = ({
                   size="lg"
                   className="flex-1 sm:flex-none"
                 >
-                  Fortsätt till signering
+                  {t('step4.continue_signing')}
                 </Button>
               )}
             </div>

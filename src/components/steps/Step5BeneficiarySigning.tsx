@@ -148,9 +148,9 @@ export const Step5BeneficiarySigning = ({
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <RefreshCw className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">BankID-signeringsstatus</CardTitle>
+          <CardTitle className="text-2xl">{t('step5.title')}</CardTitle>
           <CardDescription>
-            Alla dödsbodelägare från Skatteverket måste signera med BankID innan arvsskiftet kan skickas till bankerna.
+            {t('step5.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -225,7 +225,7 @@ export const Step5BeneficiarySigning = ({
 
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <Button variant="outline" onClick={onBack} className="sm:w-auto">
-              Tillbaka
+              {t('button.back')}
             </Button>
             
             <Button 

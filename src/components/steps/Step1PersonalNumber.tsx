@@ -948,7 +948,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
               className="w-full"
               size="lg"
             >
-              Fortsätt till tillgångar
+              {t('step1.continue_assets')}
             </Button>
           )}
         </CardContent>

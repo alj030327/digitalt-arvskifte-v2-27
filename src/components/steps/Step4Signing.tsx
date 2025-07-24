@@ -228,9 +228,9 @@ export const Step4Signing = ({
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <FileText className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Sammanfattning av arvsskifte</CardTitle>
+          <CardTitle className="text-2xl">{t('step6.title')}</CardTitle>
           <CardDescription>
-            Granska all information innan arvsskiftet skickas till bankerna
+            {t('step6.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
@@ -600,7 +600,7 @@ export const Step4Signing = ({
 
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <Button variant="outline" onClick={onBack} className="sm:w-auto">
-              Tillbaka
+              {t('button.back')}
             </Button>
             
             <div className="flex gap-3">
