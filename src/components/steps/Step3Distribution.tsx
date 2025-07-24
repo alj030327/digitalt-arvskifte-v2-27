@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TestamentUpload } from "@/components/TestamentUpload";
 import { PhysicalAssets, PhysicalAsset } from "@/components/PhysicalAssets";
 import { AssetPreferences } from "@/components/AssetPreferences";
+import { SpecificAssetAllocation } from "@/components/SpecificAssetAllocation";
 import { PDFService } from "@/services/pdfService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,10 +41,28 @@ interface Testament {
   verified: boolean;
 }
 
+interface Asset {
+  id: string;
+  bank: string;
+  accountType: string;
+  assetType: string;
+  accountNumber: string;
+  amount: number;
+}
+
+interface AssetAllocation {
+  assetId: string;
+  beneficiaryId: string;
+  beneficiaryName: string;
+  amount?: number;
+}
+
 interface Step3Props {
   beneficiaries: Beneficiary[];
   setBeneficiaries: (beneficiaries: Beneficiary[]) => void;
   totalAmount: number;
+  assets?: Asset[];
+  personalNumber?: string;
   testament: Testament | null;
   setTestament: (testament: Testament | null) => void;
   hasTestament: boolean;
@@ -60,7 +79,9 @@ interface Step3Props {
 export const Step3Distribution = ({ 
   beneficiaries, 
   setBeneficiaries, 
-  totalAmount, 
+  totalAmount,
+  assets = [],
+  personalNumber = "",
   testament, 
   setTestament, 
   hasTestament, 
@@ -81,6 +102,8 @@ export const Step3Distribution = ({
     percentage: "",
     accountNumber: ""
   });
+
+  const [assetAllocations, setAssetAllocations] = useState<AssetAllocation[]>([]);
 
   const relationships = [
     "Make/Maka", "Barn", "Barnbarn", "Förälder", "Syskon", "Annan släkting", "Övrig"
@@ -126,29 +149,53 @@ export const Step3Distribution = ({
 
   const handleSaveWithPDF = async () => {
     try {
-      // Generate and download PDF using static method
-      await PDFService.generateDistributionPDF({
-        personalNumber: "",
-        assets: [],
+      // Prepare comprehensive data for PDF generation
+      const pdfData = {
+        personalNumber: personalNumber,
+        assets: assets.map(asset => ({
+          ...asset,
+          allocation: assetAllocations.find(a => a.assetId === asset.id)
+        })),
         beneficiaries: beneficiaries.map(b => ({
           name: b.name,
           personalNumber: b.personalNumber,
           relationship: b.relationship,
           percentage: b.percentage,
           amount: (b.percentage / 100) * totalAmount,
-          accountNumber: b.accountNumber
+          accountNumber: b.accountNumber,
+          assetPreferences: b.assetPreferences,
+          assetNotApplicable: b.assetNotApplicable
         })),
-        totalAmount
+        totalAmount,
+        testament: testament,
+        physicalAssets: physicalAssets,
+        assetAllocations: assetAllocations
+      };
+
+      const pdfBlob = await PDFService.generateDistributionPDF(pdfData, {
+        includeSummary: true,
+        includeAssets: true,
+        includeBeneficiaries: true,
+        includeTestament: !!testament,
+        format: 'detailed'
       });
 
-      toast({
-        title: "PDF genererad",
-        description: "Arvsskiftet har laddats ner som PDF.",
-      });
+      if (pdfBlob) {
+        const filename = PDFService.generateFilename(personalNumber || 'unknown');
+        PDFService.downloadPDF(pdfBlob, filename);
+
+        toast({
+          title: "PDF genererad",
+          description: "Komplett arvsskifte har laddats ner som PDF.",
+        });
+      } else {
+        throw new Error("PDF generation failed");
+      }
 
       // Call the original save function
       onSave();
     } catch (error) {
+      console.error('PDF generation error:', error);
       toast({
         title: "Fel",
         description: "Kunde inte generera PDF. Försök igen.",
@@ -336,6 +383,14 @@ export const Step3Distribution = ({
               )}
             </div>
           )}
+
+          {/* Specific Asset Allocation Section */}
+          <SpecificAssetAllocation
+            assets={assets}
+            beneficiaries={beneficiaries.map(b => ({ id: b.id, name: b.name }))}
+            allocations={assetAllocations}
+            setAllocations={setAssetAllocations}
+          />
 
           {/* Physical Assets Section */}
           <PhysicalAssets

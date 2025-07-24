@@ -19,6 +19,8 @@ export class PDFService {
     beneficiaries: any[];
     testament?: any;
     totalAmount: number;
+    physicalAssets?: any[];
+    assetAllocations?: any[];
   }, options: PDFExportOptions = {
     includeSummary: true,
     includeAssets: true,
@@ -160,6 +162,90 @@ export class PDFService {
           yPosition += 10;
         });
       }
+
+      // Specific asset allocations section
+      if (data.assetAllocations && data.assetAllocations.length > 0) {
+        if (yPosition > 200) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SPECIFIKA TILLGÅNGSTILLDELNINGAR', 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        data.assetAllocations.forEach((allocation: any, index: number) => {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          const asset = data.assets.find((a: any) => a.id === allocation.assetId);
+          if (asset) {
+            doc.text(`${index + 1}. ${asset.bank} - ${asset.accountType}`, 20, yPosition);
+            yPosition += lineHeight;
+            doc.text(`   Kontonummer: ${asset.accountNumber}`, 20, yPosition);
+            yPosition += lineHeight;
+            doc.text(`   Belopp: ${asset.amount.toLocaleString('sv-SE')} SEK`, 20, yPosition);
+            yPosition += lineHeight;
+            doc.text(`   Tilldelad till: ${allocation.beneficiaryName}`, 20, yPosition);
+            yPosition += 10;
+          }
+        });
+      }
+
+      // Physical assets section
+      if (data.physicalAssets && data.physicalAssets.length > 0) {
+        if (yPosition > 200) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('FYSISKA TILLGÅNGAR', 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        data.physicalAssets.forEach((asset: any, index: number) => {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.text(`${index + 1}. ${asset.name}`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Kategori: ${asset.category}`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Uppskattat värde: ${asset.estimatedValue?.toLocaleString('sv-SE') || 'Ej angivet'} SEK`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Fördelningsmetod: ${PDFService.getDistributionLabel(asset.distributionMethod)}`, 20, yPosition);
+          yPosition += lineHeight;
+          if (asset.assignedTo) {
+            doc.text(`   Tilldelad till: ${asset.assignedTo}`, 20, yPosition);
+            yPosition += lineHeight;
+          }
+          if (asset.description) {
+            const descLines = doc.splitTextToSize(`   Beskrivning: ${asset.description}`, pageWidth - 40);
+            doc.text(descLines, 20, yPosition);
+            yPosition += descLines.length * lineHeight;
+          }
+          yPosition += 5;
+        });
+        
+        const totalPhysicalValue = data.physicalAssets.reduce((sum: number, asset: any) => 
+          sum + (asset.estimatedValue || 0), 0);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Totalt uppskattat värde fysiska tillgångar: ${totalPhysicalValue.toLocaleString('sv-SE')} SEK`, 20, yPosition);
+        yPosition += 15;
+      }
       
       // Legal information
       if (yPosition > 200) {
@@ -292,6 +378,22 @@ Tid: ${new Date().toISOString()}
     link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Get distribution label for physical assets
+   */
+  static getDistributionLabel(method: string): string {
+    switch (method) {
+      case 'sell':
+        return 'Sälj och fördela';
+      case 'divide':
+        return 'Dela mellan arvingar';
+      case 'assign':
+        return 'Tilldela specifik arvinge';
+      default:
+        return method || 'Ej specificerat';
+    }
   }
 
   /**
