@@ -6,8 +6,10 @@ import { Step3Distribution } from "@/components/steps/Step3Distribution";
 import { Step4ContactInfo } from "@/components/steps/Step4ContactInfo";
 import { Step5BeneficiarySigning } from "@/components/steps/Step5BeneficiarySigning";
 import { Step4Signing } from "@/components/steps/Step4Signing";
-import { Scale } from "lucide-react";
+import { Scale, Globe } from "lucide-react";
 import { PhysicalAsset } from "@/components/PhysicalAssets";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Button } from "@/components/ui/button";
 
 interface Asset {
   id: string;
@@ -60,6 +62,7 @@ interface Heir {
 }
 
 const Index = () => {
+  const { t, language, changeLanguage, getStepLabels } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [personalNumber, setPersonalNumber] = useState("");
   const [heirs, setHeirs] = useState<Heir[]>([]);
@@ -70,14 +73,7 @@ const Index = () => {
   const [physicalAssets, setPhysicalAssets] = useState<PhysicalAsset[]>([]);
   const [savedProgress, setSavedProgress] = useState(false);
 
-  const stepLabels = [
-    "Identifiering",
-    "Tillgångar", 
-    "Fördelning",
-    "Kontaktuppgifter",
-    "E-signering",
-    "Sammanfattning"
-  ];
+  const stepLabels = getStepLabels();
 
   const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
   const totalDistributableAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
@@ -112,13 +108,26 @@ const Index = () => {
       {/* Header */}
       <div className="bg-card border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Scale className="w-6 h-6 text-primary" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Scale className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">{t('app.title')}</h1>
+                <p className="text-muted-foreground">{t('app.subtitle')}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Digitalt Arvsskifte</h1>
-              <p className="text-muted-foreground">Säker och effektiv hantering av arvsskiften</p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeLanguage(language === 'sv' ? 'en' : 'sv')}
+                className="flex items-center gap-2"
+              >
+                <Globe className="w-4 h-4" />
+                {language === 'sv' ? 'English' : 'Svenska'}
+              </Button>
             </div>
           </div>
         </div>
@@ -210,11 +219,11 @@ const Index = () => {
       <div className="bg-card border-t border-border mt-16">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div>© 2024 Digitalt Arvsskifte - Säker hantering av arvsskiften</div>
+            <div>{t('footer.copyright')}</div>
             <div className="flex gap-4">
-              <a href="#" className="hover:text-foreground transition-colors">Integritet</a>
-              <a href="#" className="hover:text-foreground transition-colors">Villkor</a>
-              <a href="#" className="hover:text-foreground transition-colors">Support</a>
+              <a href="#" className="hover:text-foreground transition-colors">{t('footer.privacy')}</a>
+              <a href="#" className="hover:text-foreground transition-colors">{t('footer.terms')}</a>
+              <a href="#" className="hover:text-foreground transition-colors">{t('footer.support')}</a>
             </div>
           </div>
         </div>
