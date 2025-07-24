@@ -54,6 +54,8 @@ export type Database = {
       }
       cases: {
         Row: {
+          archived: boolean | null
+          assigned_at: string | null
           assigned_handler_id: string | null
           assigned_lawyer_id: string | null
           case_number: string
@@ -64,15 +66,21 @@ export type Database = {
           deceased_name: string
           deceased_personal_number: string
           description: string | null
+          due_date: string | null
           estate_value: number | null
           heir_count: number | null
           id: string
           status: Database["public"]["Enums"]["case_status"]
+          submitted_at: string | null
+          tags: string[] | null
           title: string
           total_steps: number | null
           updated_at: string
+          verified_at: string | null
         }
         Insert: {
+          archived?: boolean | null
+          assigned_at?: string | null
           assigned_handler_id?: string | null
           assigned_lawyer_id?: string | null
           case_number: string
@@ -83,15 +91,21 @@ export type Database = {
           deceased_name: string
           deceased_personal_number: string
           description?: string | null
+          due_date?: string | null
           estate_value?: number | null
           heir_count?: number | null
           id?: string
           status?: Database["public"]["Enums"]["case_status"]
+          submitted_at?: string | null
+          tags?: string[] | null
           title: string
           total_steps?: number | null
           updated_at?: string
+          verified_at?: string | null
         }
         Update: {
+          archived?: boolean | null
+          assigned_at?: string | null
           assigned_handler_id?: string | null
           assigned_lawyer_id?: string | null
           case_number?: string
@@ -102,18 +116,23 @@ export type Database = {
           deceased_name?: string
           deceased_personal_number?: string
           description?: string | null
+          due_date?: string | null
           estate_value?: number | null
           heir_count?: number | null
           id?: string
           status?: Database["public"]["Enums"]["case_status"]
+          submitted_at?: string | null
+          tags?: string[] | null
           title?: string
           total_steps?: number | null
           updated_at?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
       documents: {
         Row: {
+          archived: boolean | null
           case_id: string
           created_at: string
           document_type: Database["public"]["Enums"]["document_type"]
@@ -127,8 +146,10 @@ export type Database = {
           verified: boolean | null
           verified_at: string | null
           verified_by: string | null
+          version: number | null
         }
         Insert: {
+          archived?: boolean | null
           case_id: string
           created_at?: string
           document_type: Database["public"]["Enums"]["document_type"]
@@ -142,8 +163,10 @@ export type Database = {
           verified?: boolean | null
           verified_at?: string | null
           verified_by?: string | null
+          version?: number | null
         }
         Update: {
+          archived?: boolean | null
           case_id?: string
           created_at?: string
           document_type?: Database["public"]["Enums"]["document_type"]
@@ -157,6 +180,7 @@ export type Database = {
           verified?: boolean | null
           verified_at?: string | null
           verified_by?: string | null
+          version?: number | null
         }
         Relationships: [
           {
@@ -167,6 +191,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_events: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          logged_in_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          logged_in_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          logged_in_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -225,6 +303,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          payload: Json | null
+          processed_at: string | null
+          retries: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          retries?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          retries?: number | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
