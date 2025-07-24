@@ -103,8 +103,28 @@ export const Step4Signing = ({
     poa.approvals.every(approval => approval.approved)
   );
 
-  const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
-  const distributedAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
+  // Calculate correct amounts considering debts and remaining assets
+  const totalAssets = assets.reduce((sum, asset) => {
+    const isDebt = ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(asset.assetType);
+    const value = isDebt ? -Math.abs(asset.amount) : asset.amount;
+    return sum + value;
+  }, 0);
+
+  const distributedAmount = assets.reduce((sum, asset) => {
+    const isDebt = ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(asset.assetType);
+    const value = isDebt ? -Math.abs(asset.amount) : asset.amount;
+    
+    if (asset.toRemain && asset.amountToRemain !== undefined) {
+      const distributableAmount = isDebt 
+        ? (asset.amountToRemain >= Math.abs(asset.amount) ? 0 : value + asset.amountToRemain)
+        : value - asset.amountToRemain;
+      return sum + Math.max(0, distributableAmount);
+    }
+    return sum + (asset.toRemain ? 0 : value);
+  }, 0);
+
+  // Ensure distributed amount never goes negative
+  const safeDistributedAmount = Math.max(0, distributedAmount);
   const remainingAssets = assets.filter(asset => asset.toRemain);
 
   // Mock bank contact information (in production this would come from PSD2/Open Banking)
@@ -133,10 +153,10 @@ export const Step4Signing = ({
           personalNumber: b.personalNumber,
           relationship: b.relationship,
           percentage: b.percentage,
-          amount: (b.percentage / 100) * distributedAmount,
+          amount: (b.percentage / 100) * safeDistributedAmount,
           accountNumber: b.accountNumber
         })),
-        totalAmount: distributedAmount
+        totalAmount: safeDistributedAmount
       });
 
       if (pdfBlob) {
@@ -317,7 +337,7 @@ export const Step4Signing = ({
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Totalt värde:</span>
                   <span className="text-xl font-bold text-primary">
-                    {totalAmount.toLocaleString('sv-SE')} SEK
+                    {totalAssets.toLocaleString('sv-SE')} SEK
                   </span>
                 </div>
               </div>
@@ -481,7 +501,7 @@ export const Step4Signing = ({
                 <div className="flex justify-between items-center mb-3">
                   <span className="font-medium">Total summa att fördela:</span>
                   <span className="text-xl font-bold text-primary">
-                    {distributedAmount.toLocaleString('sv-SE')} SEK
+                    {safeDistributedAmount.toLocaleString('sv-SE')} SEK
                   </span>
                 </div>
                 <div className="space-y-2">
@@ -499,7 +519,7 @@ export const Step4Signing = ({
                       <div className="text-right">
                         <div className="font-medium">{beneficiary.percentage}%</div>
                         <div className="text-sm text-muted-foreground">
-                          {((beneficiary.percentage / 100) * distributedAmount).toLocaleString('sv-SE')} SEK
+                          {((beneficiary.percentage / 100) * safeDistributedAmount).toLocaleString('sv-SE')} SEK
                         </div>
                       </div>
                     </div>

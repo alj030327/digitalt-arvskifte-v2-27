@@ -220,15 +220,32 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
     ));
   };
 
-  const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
+  // Separate assets and debts
+  const totalAssets = assets.reduce((sum, asset) => {
+    // Skulder (negativa värden) läggs till som negativa
+    const isDebt = ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(asset.assetType);
+    const value = isDebt ? -Math.abs(asset.amount) : asset.amount;
+    return sum + value;
+  }, 0);
+
   const totalDistributableAmount = assets.reduce((sum, asset) => {
+    const isDebt = ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(asset.assetType);
+    const value = isDebt ? -Math.abs(asset.amount) : asset.amount;
+    
     if (asset.toRemain && asset.amountToRemain !== undefined) {
-      // Only the excess amount over what should remain is distributable
-      const distributableAmount = asset.amount - asset.amountToRemain;
+      // För skulder: Om hela skulden ska vara kvar, inget att fördela
+      // För tillgångar: Bara överskottet över vad som ska vara kvar
+      const distributableAmount = isDebt 
+        ? (asset.amountToRemain >= Math.abs(asset.amount) ? 0 : value + asset.amountToRemain)
+        : value - asset.amountToRemain;
       return sum + Math.max(0, distributableAmount);
     }
-    return sum + (asset.toRemain ? 0 : asset.amount);
+    // Om inget ska vara kvar, lägg till hela värdet (skulder som negativa)
+    return sum + (asset.toRemain ? 0 : value);
   }, 0);
+
+  // Säkerställ att distributable amount aldrig blir negativt
+  const safeDistributableAmount = Math.max(0, totalDistributableAmount);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -588,7 +605,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                   <span className="font-medium">Nettotillgångar att fördela:</span>
                   <span className="text-xl font-bold text-success">
-                    {totalDistributableAmount.toLocaleString('sv-SE')} SEK
+                    {safeDistributableAmount.toLocaleString('sv-SE')} SEK
                   </span>
                 </div>
               </div>
