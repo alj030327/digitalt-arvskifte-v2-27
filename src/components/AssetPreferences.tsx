@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Coins, Building, Bitcoin, AlertTriangle } from "lucide-react";
 
 interface Beneficiary {
@@ -120,8 +121,17 @@ export const AssetPreferences = ({ beneficiaries, setBeneficiaries }: AssetPrefe
                 <p><strong>Försäljning:</strong> Tillgångarna säljs och kontantvärdet delas enligt fördelningen. Detta kan vara enklare administrativt men kan påverka marknadsexponering.</p>
                 <p><strong>Skatteaspekter:</strong> Konsultera en skatterådgivare för att förstå konsekvenserna av olika val.</p>
                 <p><strong>Försäkringar:</strong> Vissa försäkringar kan ha särskilda regler för överlåtelse eller uttag.</p>
-              </div>
-            </div>
+          </div>
+          
+          <Alert className="mt-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Viktigt att veta:</strong> Fonder och värdepapper kan inte alltid överföras direkt mellan konton. 
+              I vissa fall måste de säljas och överföras som kontanter. Konsultera med respektive bank före 
+              beslut om du är osäker på vad som gäller för specifika innehav.
+            </AlertDescription>
+          </Alert>
+        </div>
           </div>
         </div>
 
