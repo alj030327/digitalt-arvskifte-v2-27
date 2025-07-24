@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, Trash2, AlertTriangle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users, Plus, Trash2, AlertTriangle, Target } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TestamentUpload } from "@/components/TestamentUpload";
 import { PhysicalAssets, PhysicalAsset } from "@/components/PhysicalAssets";
@@ -100,7 +102,8 @@ export const Step3Distribution = ({
     personalNumber: "",
     relationship: "",
     percentage: "",
-    accountNumber: ""
+    accountNumber: "",
+    useSpecificAssets: false
   });
 
   const [assetAllocations, setAssetAllocations] = useState<AssetAllocation[]>([]);
@@ -130,7 +133,8 @@ export const Step3Distribution = ({
       personalNumber: "",
       relationship: "",
       percentage: "",
-      accountNumber: ""
+      accountNumber: "",
+      useSpecificAssets: false
     });
   };
 
@@ -305,6 +309,62 @@ export const Step3Distribution = ({
                   onChange={(e) => setNewBeneficiary({ ...newBeneficiary, accountNumber: e.target.value })}
                   placeholder="XXXX XX XXXXX X"
                 />
+              </div>
+              
+              <div className="space-y-3 md:col-span-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="useSpecificAssets"
+                    checked={newBeneficiary.useSpecificAssets}
+                    onCheckedChange={(checked) => 
+                      setNewBeneficiary({ ...newBeneficiary, useSpecificAssets: !!checked })
+                    }
+                  />
+                  <Label htmlFor="useSpecificAssets" className="text-sm font-medium">
+                    Tilldela specifika konton/tillgångar till denna arvinge
+                  </Label>
+                </div>
+                
+                {newBeneficiary.useSpecificAssets && assets.length > 0 && (
+                  <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-primary" />
+                      <Label className="text-sm font-medium">Välj konton/tillgångar</Label>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                      {assets.map((asset) => (
+                        <div key={asset.id} className="flex items-center justify-between p-3 bg-background rounded-md border">
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">
+                              {asset.bank} - {asset.accountType}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {asset.accountNumber} • {asset.assetType}
+                            </div>
+                            <div className="text-sm font-medium text-primary">
+                              {asset.amount.toLocaleString('sv-SE')} SEK
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // This would integrate with the specific asset allocation functionality
+                              // For now, showing the interface
+                              console.log('Asset selected:', asset.id);
+                            }}
+                          >
+                            Välj
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Denna funktion kommer att integreras med den specifika tillgångsfördelningen nedan.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             

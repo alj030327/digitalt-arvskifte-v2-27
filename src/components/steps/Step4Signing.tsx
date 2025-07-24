@@ -335,7 +335,7 @@ export const Step4Signing = ({
               ))}
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Totalt värde:</span>
+                  <span className="font-medium">Nettovärde:</span>
                   <span className="text-xl font-bold text-primary">
                     {totalAssets.toLocaleString('sv-SE')} SEK
                   </span>
@@ -396,7 +396,7 @@ export const Step4Signing = ({
                 <div key={heir.personalNumber} className="p-4 bg-muted/30 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">{heir.name}</div>
+                      <div className="font-medium">{heir.name.replace(/\s*&\s*/g, ' ')}</div>
                       <div className="text-sm text-muted-foreground">
                         {heir.personalNumber} • {heir.relationship}
                       </div>
@@ -454,7 +454,7 @@ export const Step4Signing = ({
                 <div key={`signature-${heir.personalNumber}`} className="p-4 bg-muted/30 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">{heir.name}</div>
+                      <div className="font-medium">{heir.name.replace(/\s*&\s*/g, ' ')}</div>
                       <div className="text-sm text-muted-foreground">
                         {heir.personalNumber}
                       </div>
