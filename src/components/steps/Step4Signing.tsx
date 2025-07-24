@@ -417,7 +417,6 @@ export const Step4Signing = ({
                       )}
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">{heir.inheritanceShare || 0}%</div>
                       <div className="flex items-center gap-2 mt-1">
                         {heir.documentSent ? (
                           <Badge variant="default" className="bg-success/10 text-success border-success/20">
