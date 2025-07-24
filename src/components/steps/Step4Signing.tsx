@@ -242,7 +242,7 @@ export const Step4Signing = ({
               {t('step6.deceased_person')}
             </h3>
             <div className="p-4 bg-muted/30 rounded-lg">
-              <div className="font-medium">Personnummer: {personalNumber}</div>
+              <div className="font-medium">{t('step6.personal_number')}: {personalNumber}</div>
             </div>
           </div>
 
@@ -594,7 +594,7 @@ export const Step4Signing = ({
           <Alert>
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              Komplett sammanfattning av alla steg. När du slutför kommer en PDF att skickas till alla angivna e-postadresser och arvsskiftet skickas till bankerna via PSD2/Open Banking.
+              {t('step6.summary_complete')}
             </AlertDescription>
           </Alert>
 
@@ -614,12 +614,12 @@ export const Step4Signing = ({
                 {isSendingPDF ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Skickar PDF...
+                    {t('step6.sending_pdf')}
                   </>
                 ) : (
                   <>
                     <Mail className="w-4 h-4 mr-2" />
-                    Skicka sammanfattning
+                    {t('step6.send_pdf_summary')}
                   </>
                 )}
               </Button>
@@ -633,12 +633,12 @@ export const Step4Signing = ({
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Slutför arvsskifte...
+                    {t('step6.completing')}
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    Slutför arvsskifte
+                    {t('step6.complete_settlement')}
                   </>
                 )}
               </Button>

@@ -96,7 +96,7 @@ export const Step5BeneficiarySigning = ({
       
       toast({
         title: "Skickat till banker",
-        description: "Alla arvingar har signerat med BankID. Arvsskiftet skickas nu till bankerna via PSD2/Open Banking.",
+        description: t('step5.all_signed'),
       });
       
       // Proceed to final summary
@@ -156,9 +156,9 @@ export const Step5BeneficiarySigning = ({
         <CardContent className="space-y-6">
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-medium">Signeringsframsteg:</span>
+              <span className="font-medium">{t('step5.signing_status')}:</span>
               <span className="text-lg font-bold text-primary">
-                {signedCount} av {heirs.length}
+                {signedCount} {t('step5.signed_count')} {heirs.length}
               </span>
             </div>
             <div className="w-full bg-background rounded-full h-2">
@@ -217,8 +217,7 @@ export const Step5BeneficiarySigning = ({
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                Alla dödsbodelägare har signerat med BankID! Nu kan arvsskiftet skickas till bankerna 
-                för genomförande via PSD2 och Open Banking.
+                {t('step5.all_signed')}
               </AlertDescription>
             </Alert>
           )}

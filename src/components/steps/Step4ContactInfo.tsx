@@ -173,13 +173,12 @@ export const Step4ContactInfo = ({
           <Alert>
             <Mail className="h-4 w-4" />
             <AlertDescription>
-              Arvsskiftet kommer att skickas som en PDF till alla dödsbodelägare för e-signering via e-post och/eller SMS enligt deras valda preferenser. 
-              När alla har signerat kan dokumentet skickas vidare till bankerna.
+              {t('step4.contact_info_desc')}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Arvingarnas kontaktuppgifter</h3>
+            <h3 className="text-lg font-semibold">{t('step4.heir_contact')}</h3>
             
             {heirs.map((heir) => (
               <div key={heir.personalNumber} className="p-4 border border-border rounded-lg">
@@ -198,7 +197,7 @@ export const Step4ContactInfo = ({
                   <div className="space-y-4">
                     {/* Notification Preference */}
                     <div className="space-y-3">
-                      <Label>Meddelanden via</Label>
+                      <Label>{t('step4.notification_preference')}</Label>
                       <RadioGroup
                         value={heir.notificationPreference || 'both'}
                         onValueChange={(value) => handleContactInfoChange(heir.personalNumber, 'notificationPreference', value)}
@@ -209,14 +208,14 @@ export const Step4ContactInfo = ({
                           <RadioGroupItem value="email" id={`email-only-${heir.personalNumber}`} />
                           <Label htmlFor={`email-only-${heir.personalNumber}`} className="flex items-center gap-1">
                             <Mail className="w-4 h-4" />
-                            Endast e-post
+                            {t('step4.email_only')}
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="sms" id={`sms-only-${heir.personalNumber}`} />
                           <Label htmlFor={`sms-only-${heir.personalNumber}`} className="flex items-center gap-1">
                             <MessageSquare className="w-4 h-4" />
-                            Endast SMS
+                            {t('step4.sms_only')}
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -224,7 +223,7 @@ export const Step4ContactInfo = ({
                           <Label htmlFor={`both-${heir.personalNumber}`} className="flex items-center gap-1">
                             <Mail className="w-4 h-4" />
                             <MessageSquare className="w-4 h-4" />
-                            Båda
+                            {t('step4.both')}
                           </Label>
                         </div>
                       </RadioGroup>
@@ -234,7 +233,7 @@ export const Step4ContactInfo = ({
                       {/* Email field - only required if preference includes email */}
                       {(heir.notificationPreference === 'email' || heir.notificationPreference === 'both' || !heir.notificationPreference) && (
                         <div className="space-y-2">
-                          <Label htmlFor={`email-${heir.personalNumber}`}>E-postadress</Label>
+                          <Label htmlFor={`email-${heir.personalNumber}`}>{t('step4.email')}</Label>
                           <Input
                             id={`email-${heir.personalNumber}`}
                             type="email"
@@ -244,7 +243,7 @@ export const Step4ContactInfo = ({
                             disabled={heir.documentSent}
                           />
                           {heir.email && !validateEmail(heir.email) && (
-                            <p className="text-sm text-destructive">Ange en giltig e-postadress</p>
+                            <p className="text-sm text-destructive">{t('step4.valid_email')}</p>
                           )}
                         </div>
                       )}
@@ -262,7 +261,7 @@ export const Step4ContactInfo = ({
                             disabled={heir.documentSent}
                           />
                           {heir.phone && !validatePhone(heir.phone) && (
-                            <p className="text-sm text-destructive">Ange ett giltigt telefonnummer (minst 10 siffror)</p>
+                            <p className="text-sm text-destructive">{t('step4.valid_phone')}</p>
                           )}
                         </div>
                       )}
@@ -271,7 +270,7 @@ export const Step4ContactInfo = ({
                   
                   {heir.documentSent && heir.sentAt && (
                     <div className="text-sm text-muted-foreground">
-                      Skickat: {new Date(heir.sentAt).toLocaleString('sv-SE')}
+                      {t('step4.sent_at')}: {new Date(heir.sentAt).toLocaleString('sv-SE')}
                     </div>
                   )}
                 </div>
@@ -283,8 +282,7 @@ export const Step4ContactInfo = ({
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                Dokument har skickats till arvingarna. De kommer att få ett e-postmeddelande 
-                med instruktioner för digital signering.
+                {t('step4.documents_sent_desc')}
               </AlertDescription>
             </Alert>
           )}
@@ -305,12 +303,12 @@ export const Step4ContactInfo = ({
                   {isSendingDocuments ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Skickar dokument...
+                      {t('step4.sending_documents')}
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4 mr-2" />
-                      Skicka för e-signering
+                      {t('step4.send_documents')}
                     </>
                   )}
                 </Button>

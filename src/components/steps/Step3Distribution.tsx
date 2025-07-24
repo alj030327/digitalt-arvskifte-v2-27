@@ -301,7 +301,7 @@ export const Step3Distribution = ({
                   id="name"
                   value={newBeneficiary.name}
                   onChange={(e) => setNewBeneficiary({ ...newBeneficiary, name: e.target.value })}
-                  placeholder="För- och efternamn"
+                  placeholder={t('step3.first_last_name')}
                 />
               </div>
               
@@ -455,7 +455,7 @@ export const Step3Distribution = ({
 
           {beneficiaries.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Registrerade dödsbodelägare</h3>
+              <h3 className="text-lg font-semibold">{t('step3.registered_heirs')}</h3>
               
               <div className="space-y-3">
                 {beneficiaries.map((beneficiary) => (
