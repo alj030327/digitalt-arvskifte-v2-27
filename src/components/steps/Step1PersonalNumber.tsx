@@ -61,6 +61,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   const [showPowerOfAttorneyForm, setShowPowerOfAttorneyForm] = useState(false);
   const [representativePersonalNumber, setRepresentativePersonalNumber] = useState("");
   const [representativeName, setRepresentativeName] = useState("");
+  const [representativeType, setRepresentativeType] = useState("");
   const [isGrantingPowerOfAttorney, setIsGrantingPowerOfAttorney] = useState(false);
   const [existingPowerOfAttorneys, setExistingPowerOfAttorneys] = useState<PowerOfAttorney[]>([]);
   const [showContactForm, setShowContactForm] = useState(false);
@@ -72,6 +73,14 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   const [isAuthenticatingRepresentative, setIsAuthenticatingRepresentative] = useState(false);
   const [representativeAccesses, setRepresentativeAccesses] = useState<RepresentativeAccess[]>([]);
   const [isLoggedInAsRepresentative, setIsLoggedInAsRepresentative] = useState(false);
+
+  // Representative types
+  const representativeTypes = [
+    { value: "person", label: "Privatperson" },
+    { value: "lawyer", label: "Jurist" },
+    { value: "estate_administrator", label: "Boutredningsman" },
+    { value: "testament_executor", label: "Testamentexekutor" }
+  ];
 
   const validatePersonalNumber = (number: string) => {
     // Simplified validation for Swedish personal numbers (YYYYMMDD-XXXX)
@@ -257,10 +266,10 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   };
 
   const handleGrantPowerOfAttorney = async () => {
-    if (!representativePersonalNumber || !representativeName) {
+    if (!representativePersonalNumber || !representativeName || !representativeType) {
       toast({
         title: "Fel",
-        description: "Ange personnummer och namn för företrädaren.",
+        description: "Ange personnummer, namn och typ för ombudet.",
         variant: "destructive",
       });
       return;
@@ -269,7 +278,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     if (!validatePersonalNumber(representativePersonalNumber)) {
       toast({
         title: "Fel", 
-        description: "Ange ett giltigt personnummer för företrädaren.",
+        description: "Ange ett giltigt personnummer för ombudet.",
         variant: "destructive",
       });
       return;
@@ -331,6 +340,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
       // Reset form
       setRepresentativePersonalNumber("");
       setRepresentativeName("");
+      setRepresentativeType("");
       setShowPowerOfAttorneyForm(false);
       setShowContactForm(false);
       setHeirsWithContact([]);
@@ -350,7 +360,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     if (!representativeLoginPersonalNumber) {
       toast({
         title: "Fel",
-        description: "Ange ditt personnummer för att logga in som företrädare.",
+        description: "Ange ditt personnummer för att logga in som ombud.",
         variant: "destructive",
       });
       return;
@@ -452,8 +462,8 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
       const mockHeirs: Heir[] = [
         {
           personalNumber: representativeLoginPersonalNumber,
-          name: representativeAccesses[0]?.name || "Företrädare",
-          relationship: "Företrädare",
+          name: representativeAccesses[0]?.name || "Ombud",
+          relationship: "Ombud",
           signed: true,
           signedAt: new Date().toISOString()
         }
@@ -466,7 +476,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
       
       toast({
         title: "Dödsbo valt",
-        description: `Du agerar nu som företrädare för dödsbo ${deceasedPersonalNumber}.`,
+        description: `Du agerar nu som ombud för dödsbo ${deceasedPersonalNumber}.`,
       });
       
     } catch (error) {
@@ -505,7 +515,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
               <Alert>
                 <Briefcase className="h-4 w-4" />
                 <AlertDescription>
-                  Är du företrädare för ett dödsbo? Logga in med BankID för att komma åt dina fullmakter.
+                  Är du ombud för ett dödsbo? Logga in med BankID för att komma åt dina fullmakter.
                 </AlertDescription>
               </Alert>
               
@@ -516,14 +526,14 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                   className="w-full"
                 >
                   <Briefcase className="w-4 h-4 mr-2" />
-                  Logga in som företrädare
+                  Logga in som ombud
                 </Button>
               )}
 
               {showRepresentativeLogin && (
                 <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Inloggning för företrädare</h4>
+                    <h4 className="font-medium">Inloggning för ombud</h4>
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -575,7 +585,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertDescription>
-                  Du är inloggad som företrädare. Välj vilket dödsbo du vill hantera:
+                  Du är inloggad som ombud. Välj vilket dödsbo du vill hantera:
                 </AlertDescription>
               </Alert>
               
@@ -783,14 +793,14 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                       className="w-full"
                     >
                       <Briefcase className="w-4 h-4 mr-2" />
-                      Ge fullmakt för företrädare
+                      Ge fullmakt för ombud
                     </Button>
                   )}
 
                   {showPowerOfAttorneyForm && (
                     <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Ge fullmakt för företrädare</h4>
+                        <h4 className="font-medium">Ge fullmakt för ombud</h4>
                         <Button 
                           variant="ghost" 
                           size="sm"
@@ -803,14 +813,14 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                       <Alert>
                         <Briefcase className="h-4 w-4" />
                         <AlertDescription>
-                          Genom att ge fullmakt kan en företrädare (t.ex. jurist) agera på dödsboets vägnar. 
+                          Genom att ge fullmakt kan ett ombud (t.ex. jurist, boutredningsman) agera på dödsboets vägnar. 
                           Alla dödsbodelägare måste godkänna detta via BankID-signering.
                         </AlertDescription>
                       </Alert>
 
                       <div className="space-y-3">
                         <div className="space-y-2">
-                          <Label htmlFor="representativePersonalNumber">Företrädarens personnummer</Label>
+                          <Label htmlFor="representativePersonalNumber">Ombudets personnummer</Label>
                           <Input
                             id="representativePersonalNumber"
                             type="text"
@@ -822,7 +832,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="representativeName">Företrädarens namn</Label>
+                          <Label htmlFor="representativeName">Ombudets namn</Label>
                           <Input
                             id="representativeName"
                             type="text"
@@ -830,6 +840,23 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                             value={representativeName}
                             onChange={(e) => setRepresentativeName(e.target.value)}
                           />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="representativeType">Typ av ombud</Label>
+                          <select
+                            id="representativeType"
+                            value={representativeType}
+                            onChange={(e) => setRepresentativeType(e.target.value)}
+                            className="w-full p-2 border border-border rounded-md bg-background"
+                          >
+                            <option value="">Välj typ av ombud</option>
+                            {representativeTypes.map((type) => (
+                              <option key={type.value} value={type.value}>
+                                {type.label}
+                              </option>
+                            ))}
+                          </select>
                         </div>
 
                         {/* Contact Information Form */}
@@ -883,7 +910,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                         
                         <Button 
                           onClick={handleGrantPowerOfAttorney}
-                          disabled={!representativePersonalNumber || !representativeName || isGrantingPowerOfAttorney}
+                          disabled={!representativePersonalNumber || !representativeName || !representativeType || isGrantingPowerOfAttorney}
                           className="w-full"
                         >
                           {isGrantingPowerOfAttorney ? (
