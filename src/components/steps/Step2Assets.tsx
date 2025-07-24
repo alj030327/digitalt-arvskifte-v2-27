@@ -44,52 +44,142 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
 
   const banksWithDetails = {
     "Handelsbanken": {
-      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Kapitalförsäkring", "Pensionskonto", "Företagskonto"],
+      accountTypes: {
+        "💳 Privatkonton": ["Privatkonto"],
+        "💰 Sparkonton": ["Sparkonto", "Placeringskonto"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "AF-konto", "Depåkonto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Föreningskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto", "Billånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension", "Livförsäkringar"]
+      },
       assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Försäkring"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Billån"]
     },
     "SEB": {
-      accountTypes: ["Sparkonto", "Lönekonot", "ISK", "Kapitalförsäkring", "Investeringssparkonto", "Pensionskonto"],
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto", "Allkonto"],
+        "💰 Sparkonton": ["Sparkonto", "E-sparkonto", "Enkla sparkontot", "Kapitalkonto"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "AF-konto", "Depåkonto", "IPS"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Föreningskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto", "ISK för barn"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto", "Kontokredit"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto", "Billånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension", "Privat pension"]
+      },
       assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Strukturerade produkter"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Företagslån", "Billån"]
     },
     "Swedbank": {
-      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Robur fonder", "Pensionskonto", "Ungdomskonto"],
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto", "Allkonto"],
+        "💰 Sparkonton": ["Sparkonto", "E-sparkonto", "Enkla sparkontot"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "AF-konto", "Depåkonto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Föreningskonto"],
+        "🧒 Barn- och ungdomskonton": ["Swedbank Ung", "Ungdomskonto", "Barnsparkonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto", "Kreditlina"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto", "Billånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension"]
+      },
       assetTypes: ["Bankinsättning", "Aktier", "Robur fonder", "Obligationer", "Pension", "Försäkring"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Företagslån"]
     },
     "Nordea": {
-      accountTypes: ["Sparkonto", "Pluskonto", "ISK", "Kapitalförsäkring", "Pensionskonto", "Företagskonto"],
+      accountTypes: {
+        "💳 Privatkonton": ["Personkonto"],
+        "💰 Sparkonton": ["Sparkonto", "Högsparränta", "Fasträntekonto", "Fasträntekonto Plus"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "AF-konto", "Värdepapperskonto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Föreningskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto", "Sparfond för barn"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto", "Kontokredit"],
+        "🏠 Lånekonton": ["Bostadskreditkonto", "Privatlånekonto", "Avbetalningskonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension", "Livförsäkringar"]
+      },
       assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Livförsäkring"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Billån"]
     },
     "Danske Bank": {
-      accountTypes: ["Sparkonto", "Lönekonto", "ISK", "Danske Invest", "Pensionskonto"],
+      accountTypes: {
+        "💳 Privatkonton": ["Danske Konto"],
+        "💰 Sparkonton": ["Sparkonto", "Fasträntekonto"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "Danske Invest", "Depåkonto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Föreningskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension"]
+      },
       assetTypes: ["Bankinsättning", "Aktier", "Danske Invest fonder", "Obligationer", "Pension"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Företagslån"]
     },
     "Länsförsäkringar Bank": {
-      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Försäkringssparande", "Pensionskonto"],
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto"],
+        "📈 Investeringskonton": ["ISK", "Försäkringssparande", "Kapitalförsäkring"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Skogskonto", "Jordbrukskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Försäkringssparande"]
+      },
       assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Försäkringssparande", "Pension"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån"]
     },
     "ICA Banken": {
-      accountTypes: ["Sparkonto", "Lönekonto", "ISK", "Buffert", "ICA Konto"],
+      accountTypes: {
+        "💳 Privatkonton": ["ICA Konto", "Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto", "Buffert"],
+        "📈 Investeringskonton": ["ISK"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Privatlånekonto", "Billånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto"]
+      },
       assetTypes: ["Bankinsättning", "Fonder", "ICA-poäng", "Sparkonto"],
       debtTypes: ["Privatlån", "Kreditkort", "Billån"]
     },
     "Sparbanken": {
-      accountTypes: ["Sparkonto", "Transaktionskonto", "ISK", "Pensionskonto", "Ungdomskonto"],
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto"],
+        "📈 Investeringskonton": ["ISK", "AF-konto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto"]
+      },
       assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Pension"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort"]
     },
     "Avanza": {
-      accountTypes: ["ISK", "Kapitalförsäkring", "Pensionskonto", "AF-konto"],
+      accountTypes: {
+        "💳 Privatkonton": [],
+        "💰 Sparkonton": [],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "AF-konto", "Depåkonto"],
+        "🏦 Företags- & föreningskonton": [],
+        "🧒 Barn- och ungdomskonton": ["ISK för barn"],
+        "💸 Betal- & kreditkonton": [],
+        "🏠 Lånekonton": ["Blancolån"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "IPS"]
+      },
       assetTypes: ["Aktier", "Fonder", "ETF:er", "Pension", "Räntefonder"],
       debtTypes: ["Blancolån"]
     },
     "Skandiabanken": {
-      accountTypes: ["Sparkonto", "Lönekonto", "ISK", "Liv & Pension"],
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Liv & Pension", "Pensionskonto"]
+      },
       assetTypes: ["Bankinsättning", "Fonder", "Pension", "Livförsäkring"],
       debtTypes: ["Bolån", "Privatlån"]
     }
@@ -98,7 +188,11 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack }: Step2Props) =
   const commonBanks = Object.keys(banksWithDetails);
 
   const getAccountTypesForBank = (bank: string) => {
-    return banksWithDetails[bank as keyof typeof banksWithDetails]?.accountTypes || [];
+    const bankData = banksWithDetails[bank as keyof typeof banksWithDetails];
+    if (!bankData?.accountTypes) return [];
+    
+    // Flatten all account types from all categories
+    return Object.values(bankData.accountTypes).flat();
   };
 
   const getAssetTypesForBank = (bank: string) => {
