@@ -156,6 +156,8 @@ const Index = () => {
             beneficiaries={beneficiaries}
             setBeneficiaries={setBeneficiaries}
             totalAmount={totalDistributableAmount}
+            assets={assets}
+            personalNumber={personalNumber}
             testament={testament}
             setTestament={setTestament}
             hasTestament={hasTestament}
