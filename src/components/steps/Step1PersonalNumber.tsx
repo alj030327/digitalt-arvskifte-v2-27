@@ -118,9 +118,9 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
       // Use SkatteverketService to fetch heirs
       const response = await SkatteverketService.fetchHeirs(personalNumber);
       
-      if (response.success && response.heirs.length > 0) {
+      if (response.status === 'success' && response.data?.heirs.length > 0) {
         // Convert SkatteverketHeirData to Heir format
-        const convertedHeirs: Heir[] = response.heirs.map(heir => ({
+        const convertedHeirs: Heir[] = response.data.heirs.map(heir => ({
           personalNumber: heir.personalNumber,
           name: heir.name,
           relationship: heir.relationship,

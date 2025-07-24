@@ -1,3 +1,5 @@
+import jsPDF from 'jspdf';
+
 export interface PDFExportOptions {
   includeSummary: boolean;
   includeAssets: boolean;
@@ -8,9 +10,8 @@ export interface PDFExportOptions {
 
 export class PDFService {
   /**
-   * Generate PDF from inheritance distribution data
-   * Note: This is a simplified implementation. In production, you would use
-   * a PDF library like jsPDF, react-pdf, or a backend PDF service
+   * Generate actual PDF from inheritance distribution data
+   * Uses jsPDF for client-side PDF generation
    */
   static async generateDistributionPDF(data: {
     personalNumber: string;
@@ -27,25 +28,169 @@ export class PDFService {
   }): Promise<Blob | null> {
     
     try {
-      // TODO: Implement actual PDF generation
-      // Options:
-      // 1. Use jsPDF for client-side generation
-      // 2. Send data to backend PDF service (recommended for production)
-      // 3. Use react-pdf for React-based PDF generation
+      // Create new PDF document
+      const doc = new jsPDF();
       
-      // Mock PDF generation for now
-      const pdfContent = this.generatePDFContent(data, options);
+      // Set Swedish fonts (fallback to standard fonts if not available)
+      doc.setFont('helvetica');
       
-      // In production, you would:
-      // 1. Use a PDF library to create actual PDF
-      // 2. Or send to backend service that generates PDF
-      // 3. Return the generated PDF as Blob
+      let yPosition = 20;
+      const lineHeight = 8;
+      const pageWidth = doc.internal.pageSize.getWidth();
       
-      // Simulate PDF generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Header
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('ARVSSKIFTE - FÖRDELNING', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
       
-      // Return mock PDF blob
-      return new Blob([pdfContent], { type: 'application/pdf' });
+      // Date and time
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Datum: ${new Date().toLocaleDateString('sv-SE')}`, 20, yPosition);
+      doc.text(`Genererat: ${new Date().toLocaleTimeString('sv-SE')}`, pageWidth - 70, yPosition);
+      yPosition += 15;
+      
+      // Deceased person section
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('AVLIDEN PERSON', 20, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Personnummer: ${data.personalNumber}`, 20, yPosition);
+      yPosition += 15;
+      
+      // Assets section
+      if (options.includeAssets && data.assets.length > 0) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TILLGÅNGAR', 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        data.assets.forEach((asset, index) => {
+          // Check if we need a new page
+          if (yPosition > 260) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.text(`${index + 1}. ${asset.bank} - ${asset.accountType}`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Kontonummer: ${asset.accountNumber}`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Belopp: ${asset.amount.toLocaleString('sv-SE')} SEK`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Typ: ${asset.assetType}`, 20, yPosition);
+          yPosition += lineHeight;
+          
+          if (asset.toRemain) {
+            doc.text(`   Kvar: ${asset.amountToRemain || asset.amount} SEK`, 20, yPosition);
+            yPosition += lineHeight;
+            doc.text(`   Anledning: ${asset.reasonToRemain || 'Ej specificerad'}`, 20, yPosition);
+            yPosition += lineHeight;
+          }
+          yPosition += 5;
+        });
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Totalt värde: ${data.totalAmount.toLocaleString('sv-SE')} SEK`, 20, yPosition);
+        yPosition += 15;
+      }
+      
+      // Testament section
+      if (options.includeTestament && data.testament) {
+        if (yPosition > 240) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TESTAMENTE', 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Fil: ${data.testament.filename}`, 20, yPosition);
+        yPosition += lineHeight;
+        doc.text(`Uppladdad: ${data.testament.uploadDate}`, 20, yPosition);
+        yPosition += lineHeight;
+        doc.text(`Status: ${data.testament.verified ? 'Verifierat' : 'Ej verifierat'}`, 20, yPosition);
+        yPosition += 15;
+      }
+      
+      // Beneficiaries section
+      if (options.includeBeneficiaries && data.beneficiaries.length > 0) {
+        if (yPosition > 200) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('FÖRDELNING', 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        data.beneficiaries.forEach((beneficiary, index) => {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          const amount = (beneficiary.percentage / 100) * data.totalAmount;
+          doc.text(`${index + 1}. ${beneficiary.name}`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Personnummer: ${beneficiary.personalNumber}`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Relation: ${beneficiary.relationship}`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Andel: ${beneficiary.percentage}%`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Belopp: ${amount.toLocaleString('sv-SE')} SEK`, 20, yPosition);
+          yPosition += lineHeight;
+          doc.text(`   Kontonummer: ${beneficiary.accountNumber}`, 20, yPosition);
+          yPosition += 10;
+        });
+      }
+      
+      // Legal information
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('JURIDISK INFORMATION', 20, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      const legalText = `Detta dokument utgör en sammanfattning av den föreslagna fördelningen av dödsboet. Fördelningen baseras på ${data.testament ? 'testamentets bestämmelser' : 'lagstadgad arvordning'}. Alla arvingar har signerat digitalt med BankID och godkänt fördelningen.`;
+      
+      const splitText = doc.splitTextToSize(legalText, pageWidth - 40);
+      doc.text(splitText, 20, yPosition);
+      yPosition += splitText.length * 5 + 10;
+      
+      doc.text('Dokumentet genererat av Digital Arvsskifte System', 20, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Tid: ${new Date().toISOString()}`, 20, yPosition);
+      
+      // Convert to blob
+      const pdfBlob = doc.output('blob');
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      return pdfBlob;
     } catch (error) {
       console.error('PDF generation failed:', error);
       return null;

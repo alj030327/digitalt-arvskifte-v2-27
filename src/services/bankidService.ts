@@ -153,60 +153,95 @@ export class BankIdService {
   }
 
   /**
-   * Mock session for development
+   * Generate realistic mock BankID session for development
    */
   private static getMockSession(): BankIdSession {
-    const orderRef = `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Generate realistic looking tokens similar to real BankID format
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 15);
+    
     return {
-      orderRef,
-      autoStartToken: `mock-auto-${Math.random().toString(36).substr(2, 9)}`,
-      qrStartToken: `mock-qr-${Math.random().toString(36).substr(2, 9)}`,
-      qrStartSecret: `mock-secret-${Math.random().toString(36).substr(2, 9)}`
+      orderRef: `${timestamp}-${randomSuffix}`,
+      autoStartToken: `bankid.${randomSuffix}.${timestamp}.auto`,
+      qrStartToken: `bankid.${randomSuffix}.${timestamp}.qr`,
+      qrStartSecret: `qr.${Math.random().toString(36).substring(2, 20)}.secret`
     };
   }
 
   /**
-   * Mock status progression for development
+   * Mock status progression with randomized user data for development
    */
   private static getMockStatus(orderRef: string): Promise<BankIdStatus> {
     return new Promise((resolve) => {
-      // Simulate different states based on time
-      const elapsed = Date.now() - parseInt(orderRef.split('-')[1] || '0');
+      // Simulate realistic BankID flow progression
+      const elapsed = Date.now() - parseInt(orderRef.split('-')[0] || '0');
+      
+      // Different mock users for variety
+      const mockUsers = [
+        { personalNumber: '198001011234', name: 'Anna Andersson', givenName: 'Anna', surname: 'Andersson' },
+        { personalNumber: '198505152345', name: 'Erik Johansson', givenName: 'Erik', surname: 'Johansson' },
+        { personalNumber: '199203103456', name: 'Maria Karlsson', givenName: 'Maria', surname: 'Karlsson' },
+        { personalNumber: '197712124567', name: 'Lars Nilsson', givenName: 'Lars', surname: 'Nilsson' },
+        { personalNumber: '198909215678', name: 'Karin Eriksson', givenName: 'Karin', surname: 'Eriksson' }
+      ];
+      
+      // Add random delay simulation for more realistic timing
+      const baseDelay = 2000;
+      const randomDelay = Math.random() * 3000;
       
       setTimeout(() => {
-        if (elapsed < 3000) {
+        if (elapsed < baseDelay) {
           resolve({
             orderRef,
             status: 'pending',
             hintCode: 'outstandingTransaction'
           });
-        } else if (elapsed < 6000) {
+        } else if (elapsed < baseDelay + randomDelay) {
           resolve({
             orderRef,
             status: 'pending',
             hintCode: 'userSign'
           });
-        } else {
+        } else if (elapsed < baseDelay + randomDelay + 1000) {
           resolve({
             orderRef,
-            status: 'complete',
-            completionData: {
-              user: {
-                personalNumber: '199001011234',
-                name: 'Anna Andersson',
-                givenName: 'Anna',
-                surname: 'Andersson'
-              },
-              device: {
-                ipAddress: '192.168.1.1',
-                uhi: 'mock-uhi-123'
-              },
-              signature: 'mock-signature-data',
-              ocspResponse: 'mock-ocsp-response'
-            }
+            status: 'pending',
+            hintCode: 'started'
           });
+        } else {
+          // Randomly succeed or fail for testing (95% success rate)
+          const success = Math.random() > 0.05;
+          
+          if (success) {
+            const randomUser = mockUsers[Math.floor(Math.random() * mockUsers.length)];
+            const timestamp = Date.now();
+            
+            resolve({
+              orderRef,
+              status: 'complete',
+              completionData: {
+                user: randomUser,
+                device: {
+                  ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+                  uhi: `uhi-${Math.random().toString(36).substring(2, 15)}`
+                },
+                signature: `signature.${timestamp}.${Math.random().toString(36).substring(2, 15)}`,
+                ocspResponse: `ocsp.${timestamp}.${Math.random().toString(36).substring(2, 25)}`
+              }
+            });
+          } else {
+            // Random failure reasons
+            const failureReasons = ['userCancel', 'cancelled', 'startFailed', 'expiredTransaction'];
+            const hintCode = failureReasons[Math.floor(Math.random() * failureReasons.length)];
+            
+            resolve({
+              orderRef,
+              status: 'failed',
+              hintCode
+            });
+          }
         }
-      }, 500);
+      }, 300 + Math.random() * 500);
     });
   }
 

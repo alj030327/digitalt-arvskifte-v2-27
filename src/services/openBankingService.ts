@@ -2,13 +2,16 @@ import { integrationConfig, isIntegrationReady } from '../config/integrations';
 
 export interface OpenBankingAccount {
   accountId: string;
-  accountName: string;
+  iban: string;
+  accountNumber: string;
+  sortCode: string;
   accountType: string;
-  balance: number;
   currency: string;
-  iban?: string;
-  bankCode: string;
+  balance: number;
+  availableBalance: number;
+  accountName: string;
   bankName: string;
+  lastUpdated: string;
 }
 
 export interface PSD2AuthRequest {
@@ -122,71 +125,81 @@ export class OpenBankingService {
   }
 
   /**
-   * Mock account data for development
+   * Generate randomized mock account data for development/testing
    */
-  private static getMockAccounts(bankCode: string): Promise<OpenBankingAccount[]> {
-    const mockData: Record<string, OpenBankingAccount[]> = {
-      'handelsbanken': [
-        {
-          accountId: 'hb-001',
-          accountName: 'Sparkonto',
-          accountType: 'SAVINGS',
-          balance: 450000,
-          currency: 'SEK',
-          iban: 'SE35 6000 0000 0000 1234 5678',
-          bankCode: 'handelsbanken',
-          bankName: 'Handelsbanken'
-        },
-        {
-          accountId: 'hb-002', 
-          accountName: 'ISK',
-          accountType: 'INVESTMENT',
-          balance: 890000,
-          currency: 'SEK',
-          bankCode: 'handelsbanken',
-          bankName: 'Handelsbanken'
-        }
-      ],
-      'seb': [
-        {
-          accountId: 'seb-001',
-          accountName: 'Lönekonto',
-          accountType: 'CURRENT',
-          balance: 65000,
-          currency: 'SEK',
-          iban: 'SE45 5000 0000 0000 9876 5432',
-          bankCode: 'seb',
-          bankName: 'SEB'
-        },
-        {
-          accountId: 'seb-002',
-          accountName: 'Pensionskonto',
-          accountType: 'PENSION',
-          balance: 1200000,
-          currency: 'SEK',
-          bankCode: 'seb',
-          bankName: 'SEB'
-        }
-      ],
-      'nordea': [
-        {
-          accountId: 'nordea-001',
-          accountName: 'Pluskonto',
-          accountType: 'CURRENT',
-          balance: 120000,
-          currency: 'SEK',
-          iban: 'SE12 3000 0000 0000 5555 4444',
-          bankCode: 'nordea',
-          bankName: 'Nordea'
-        }
-      ]
+  private static async getMockAccounts(bankCode: string): Promise<OpenBankingAccount[]> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
+
+    const bankConfig = {
+      'swedbank': { name: 'Swedbank', sortCode: '8000' },
+      'handelsbanken': { name: 'Handelsbanken', sortCode: '6000' },
+      'seb': { name: 'SEB', sortCode: '5000' },
+      'nordea': { name: 'Nordea', sortCode: '3000' }
     };
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mockData[bankCode] || []);
-      }, 2000); // Simulate API delay
-    });
+    const accountTypes = [
+      'Sparkonto', 'Lönekonto', 'Pensionskonto', 'Investeringskonto', 
+      'Byggnadskreditiv', 'Kapitalförsäkring', 'ISK', 'Aktiekonto'
+    ];
+
+    const accountNames = [
+      'Huvudkonto', 'Sparande', 'Pension', 'Aktier och fonder',
+      'Lön och utgifter', 'Buffert', 'Semester', 'Bil och transport',
+      'Hushållskassa', 'Investeringar', 'Långsiktigt sparande'
+    ];
+
+    const bank = bankConfig[bankCode as keyof typeof bankConfig];
+    if (!bank) return [];
+
+    // Generate 1-4 random accounts per bank
+    const numAccounts = Math.floor(Math.random() * 4) + 1;
+    const accounts: OpenBankingAccount[] = [];
+
+    for (let i = 0; i < numAccounts; i++) {
+      // Generate random account number
+      const accountNumber = String(Math.floor(Math.random() * 900000000) + 100000000);
+      
+      // Generate random IBAN
+      const checkDigits = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      const bankCode2 = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+      const accountCode = accountNumber.padStart(16, '0');
+      const iban = `SE${checkDigits}${bankCode2}${accountCode}`;
+
+      // Random account type and name
+      const accountType = accountTypes[Math.floor(Math.random() * accountTypes.length)];
+      const accountName = accountNames[Math.floor(Math.random() * accountNames.length)];
+
+      // Generate realistic balance based on account type
+      let balance: number;
+      if (accountType === 'Pensionskonto') {
+        balance = Math.floor(Math.random() * 2000000) + 500000; // 500k - 2.5M
+      } else if (accountType === 'Investeringskonto' || accountType === 'ISK' || accountType === 'Aktiekonto') {
+        balance = Math.floor(Math.random() * 1500000) + 100000; // 100k - 1.6M
+      } else if (accountType === 'Sparkonto') {
+        balance = Math.floor(Math.random() * 800000) + 50000; // 50k - 850k
+      } else if (accountType === 'Kapitalförsäkring') {
+        balance = Math.floor(Math.random() * 1000000) + 200000; // 200k - 1.2M
+      } else {
+        balance = Math.floor(Math.random() * 400000) + 10000; // 10k - 410k
+      }
+
+      accounts.push({
+        accountId: `${bankCode.toUpperCase()}-${accountNumber}`,
+        iban,
+        accountNumber,
+        sortCode: bank.sortCode,
+        accountType,
+        currency: 'SEK',
+        balance,
+        availableBalance: balance,
+        accountName,
+        bankName: bank.name,
+        lastUpdated: new Date().toISOString()
+      });
+    }
+
+    return accounts;
   }
 
   /**
@@ -198,22 +211,24 @@ export class OpenBankingService {
       bank: account.bankName,
       accountType: account.accountName,
       assetType: this.mapAccountTypeToAssetType(account.accountType),
-      accountNumber: account.iban || account.accountId,
+      accountNumber: account.iban,
       amount: account.balance
     };
   }
 
   /**
-   * Map PSD2 account types to internal asset types
+   * Map account types to internal asset types
    */
   private static mapAccountTypeToAssetType(accountType: string): string {
     const mapping: Record<string, string> = {
-      'CURRENT': 'Bankinsättning',
-      'SAVINGS': 'Bankinsättning', 
-      'INVESTMENT': 'Aktier/Fonder',
-      'PENSION': 'Pension',
-      'LOAN': 'Bolån',
-      'CREDIT_CARD': 'Kreditkort'
+      'Sparkonto': 'Bankinsättning',
+      'Lönekonto': 'Bankinsättning',
+      'Pensionskonto': 'Pension',
+      'Investeringskonto': 'Aktier/Fonder',
+      'ISK': 'Aktier/Fonder',
+      'Aktiekonto': 'Aktier/Fonder',
+      'Kapitalförsäkring': 'Kapitalförsäkring',
+      'Byggnadskreditiv': 'Fastighet'
     };
 
     return mapping[accountType] || 'Bankinsättning';
