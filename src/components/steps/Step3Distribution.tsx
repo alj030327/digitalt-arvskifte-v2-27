@@ -50,12 +50,16 @@ interface Asset {
   assetType: string;
   accountNumber: string;
   amount: number;
+  toRemain?: boolean;
+  amountToRemain?: number;
+  reasonToRemain?: string;
 }
 
 interface AssetAllocation {
   assetId: string;
   beneficiaryId: string;
   beneficiaryName: string;
+  percentage?: number; // Percentage of the asset
   amount?: number;
 }
 
@@ -106,11 +110,33 @@ export const Step3Distribution = ({
     useSpecificAssets: false
   });
 
+  const [selectedAssets, setSelectedAssets] = useState<{[assetId: string]: {selected: boolean, percentage: number}}>({});
   const [assetAllocations, setAssetAllocations] = useState<AssetAllocation[]>([]);
 
   const relationships = [
     "Make/Maka", "Barn", "Barnbarn", "Förälder", "Syskon", "Annan släkting", "Övrig"
   ];
+
+  // Filter out debts and locked accounts
+  const getAvailableAssets = () => {
+    return assets.filter(asset => {
+      // Exclude debt accounts
+      const isDebt = ['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(asset.assetType);
+      if (isDebt) return false;
+      
+      // Exclude locked accounts
+      if (asset.toRemain) return false;
+      
+      return true;
+    });
+  };
+
+  const handleAssetSelection = (assetId: string, selected: boolean, percentage: number = 100) => {
+    setSelectedAssets(prev => ({
+      ...prev,
+      [assetId]: { selected, percentage }
+    }));
+  };
 
   const handleAddBeneficiary = () => {
     if (!newBeneficiary.name || !newBeneficiary.personalNumber || !newBeneficiary.relationship || 
@@ -128,6 +154,22 @@ export const Step3Distribution = ({
     };
 
     setBeneficiaries([...beneficiaries, beneficiary]);
+
+    // If specific assets were selected, add them to allocations
+    if (newBeneficiary.useSpecificAssets) {
+      const newAllocations = Object.entries(selectedAssets)
+        .filter(([_, selection]) => selection.selected)
+        .map(([assetId, selection]) => ({
+          assetId,
+          beneficiaryId: beneficiary.id,
+          beneficiaryName: beneficiary.name,
+          percentage: selection.percentage
+        }));
+      
+      setAssetAllocations(prev => [...prev, ...newAllocations]);
+    }
+
+    // Reset form
     setNewBeneficiary({
       name: "",
       personalNumber: "",
@@ -136,6 +178,7 @@ export const Step3Distribution = ({
       accountNumber: "",
       useSpecificAssets: false
     });
+    setSelectedAssets({});
   };
 
   const handleRemoveBeneficiary = (id: string) => {
@@ -325,44 +368,78 @@ export const Step3Distribution = ({
                   </Label>
                 </div>
                 
-                {newBeneficiary.useSpecificAssets && assets.length > 0 && (
+                {newBeneficiary.useSpecificAssets && getAvailableAssets().length > 0 && (
                   <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/30">
                     <div className="flex items-center gap-2">
                       <Target className="w-4 h-4 text-primary" />
                       <Label className="text-sm font-medium">Välj konton/tillgångar</Label>
                     </div>
-                    <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
-                      {assets.map((asset) => (
-                        <div key={asset.id} className="flex items-center justify-between p-3 bg-background rounded-md border">
-                          <div className="flex-1">
-                            <div className="text-sm font-medium">
-                              {asset.bank} - {asset.accountType}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {asset.accountNumber} • {asset.assetType}
-                            </div>
-                            <div className="text-sm font-medium text-primary">
-                              {asset.amount.toLocaleString('sv-SE')} SEK
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              // This would integrate with the specific asset allocation functionality
-                              // For now, showing the interface
-                              console.log('Asset selected:', asset.id);
-                            }}
-                          >
-                            Välj
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
                     <p className="text-xs text-muted-foreground">
-                      Denna funktion kommer att integreras med den specifika tillgångsfördelningen nedan.
+                      Välj specifika konton som denna arvinge ska få. Du kan ange procent för partiell tilldelning.
                     </p>
+                    <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                      {getAvailableAssets().map((asset) => {
+                        const selection = selectedAssets[asset.id] || { selected: false, percentage: 100 };
+                        return (
+                          <div key={asset.id} className="p-3 bg-background rounded-md border space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Checkbox
+                                    checked={selection.selected}
+                                    onCheckedChange={(checked) => 
+                                      handleAssetSelection(asset.id, !!checked, selection.percentage)
+                                    }
+                                  />
+                                  <div>
+                                    <div className="text-sm font-medium">
+                                      {asset.bank} - {asset.accountType}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {asset.accountNumber} • {asset.assetType}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-sm font-medium text-primary ml-6">
+                                  {asset.amount.toLocaleString('sv-SE')} SEK
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {selection.selected && (
+                              <div className="ml-6 flex items-center gap-2">
+                                <Label className="text-xs">Andel:</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="100"
+                                  value={selection.percentage}
+                                  onChange={(e) => 
+                                    handleAssetSelection(asset.id, true, parseInt(e.target.value) || 100)
+                                  }
+                                  className="w-16 h-7 text-xs"
+                                />
+                                <span className="text-xs">%</span>
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ≈ {((selection.percentage / 100) * asset.amount).toLocaleString('sv-SE')} SEK
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {Object.values(selectedAssets).some(s => s.selected) && (
+                      <div className="p-3 bg-primary/5 rounded-md border border-primary/20">
+                        <div className="text-sm font-medium text-primary">
+                          Valda tillgångar: {Object.values(selectedAssets).filter(s => s.selected).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Dessa kommer att tilldelas specifikt till denna arvinge utöver den procentuella fördelningen.
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
