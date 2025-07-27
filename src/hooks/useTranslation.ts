@@ -121,6 +121,7 @@ const translations: Translations = {
     'step3.relationship': 'Relation till den avlidne',
     'step3.percentage': 'Andel (%)',
     'step3.account_number': 'Kontonummer',
+    'step3.first_last_name': 'Anna Andersson',
     
     // Step 4 - Contact Info
     'step4.title': 'Kontaktuppgifter',
