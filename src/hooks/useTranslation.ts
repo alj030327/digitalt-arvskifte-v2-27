@@ -131,6 +131,7 @@ const translations: Translations = {
     'step4.email': 'E-postadress',
     'step4.address': 'Adress',
     'step4.continue_signing': 'Fortsätt till e-signering',
+    'step4.contact_info_desc': 'Skriv kontaktuppgifter till dödsbodelägare',
     
     // Step 5 - Beneficiary Signing
     'step5.title': 'Arvingar signerar',
@@ -286,7 +287,7 @@ const translations: Translations = {
     'step4.email': 'Email address',
     'step4.address': 'Address',
     'step4.continue_signing': 'Continue to e-signing',
-    'step4.contact_info_desc': 'We need contact information to send documents for digital signing.',
+    'step4.contact_info_desc': 'Skriv kontaktuppgifter till dödsbodelägare',
     'step4.send_documents': 'Send documents for signing',
     'step4.sending_documents': 'Sending documents...',
     'step4.documents_sent': 'Documents sent!',
