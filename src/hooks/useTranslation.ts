@@ -137,6 +137,12 @@ const translations: Translations = {
     'step4.email_only': 'Email',
     'step4.sms_only': 'Sms',
     'step4.both': 'Email och Sms',
+    'step4.sending_documents': 'Skickar dokument...',
+    'step4.documents_sent': 'Dokument skickade!',
+    'step4.documents_sent_desc': 'Dokument har skickats till arvingarna. De kommer att få ett e-postmeddelande med instruktioner för digital signering.',
+    'step4.valid_email': 'Ange en giltig e-postadress',
+    'step4.valid_phone': 'Ange ett giltigt telefonnummer (minst 10 siffror)',
+    'step4.sent_at': 'Skickat',
     
     // Step 5 - Beneficiary Signing
     'step5.title': 'Arvingar signerar',
@@ -292,7 +298,7 @@ const translations: Translations = {
     'step4.email': 'Email address',
     'step4.address': 'Address',
     'step4.continue_signing': 'Continue to e-signing',
-    'step4.contact_info_desc': 'Skriv kontaktuppgifter till dödsbodelägare',
+    'step4.contact_info_desc': 'We need contact information to send documents for digital signing.',
     'step4.send_documents': 'Send documents for signing',
     'step4.sending_documents': 'Sending documents...',
     'step4.documents_sent': 'Documents sent!',
