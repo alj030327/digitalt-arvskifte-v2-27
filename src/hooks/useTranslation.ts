@@ -133,6 +133,10 @@ const translations: Translations = {
     'step4.continue_signing': 'Fortsätt till e-signering',
     'step4.contact_info_desc': 'Skriv kontaktuppgifter till dödsbodelägare',
     'step4.send_documents': 'Skicka för påskrift',
+    'step4.notification_preference': 'Notifieringsinställning',
+    'step4.email_only': 'Email',
+    'step4.sms_only': 'Sms',
+    'step4.both': 'Email och Sms',
     
     // Step 5 - Beneficiary Signing
     'step5.title': 'Arvingar signerar',
