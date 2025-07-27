@@ -152,6 +152,11 @@ const translations: Translations = {
     'step5.pending': 'Väntar på signering',
     'step5.sign_with_bankid': 'Signera med BankID',
     'step5.complete_signing': 'Slutför signering',
+    'step5.signed_count': 'arvingar har signerat av',
+    'step5.all_signed': 'Alla dödsbodelägare har signerat med BankID! Arvsskiftet kan nu skickas till banker för genomförande via PSD2 och Open Banking.',
+    'step5.send_to_banks': 'Skicka till banker',
+    'step5.sending_to_banks': 'Skickar till banker...',
+    'step5.simulate_signing': 'Simulera signering',
     
     // Step 6 - Summary/Signing
     'step6.title': 'Sammanfattning och slutsignering',
@@ -161,6 +166,17 @@ const translations: Translations = {
     'step6.distribution_summary': 'Fördelning',
     'step6.final_signature': 'Slutsignering',
     'step6.complete_estate': 'Slutför arvsskifte',
+    'step6.deceased_person': 'Avliden person',
+    'step6.heirs': 'Dödsbodelägare',
+    'step6.total_assets': 'Totala tillgångar',
+    'step6.total_debts': 'Totala skulder',
+    'step6.net_amount': 'Nettobelopp',
+    'step6.summary_complete': 'Komplett sammanfattning av alla steg. När du slutför kommer en PDF att skickas till alla angivna e-postadresser och arvsskiftet kommer att skickas till banker via PSD2/Open Banking.',
+    'step6.send_pdf_summary': 'Skicka PDF-sammanfattning',
+    'step6.sending_pdf': 'Skickar PDF...',
+    'step6.complete_settlement': 'Slutför arvsskifte',
+    'step6.completing': 'Slutför...',
+    'step6.personal_number': 'Personnummer',
     
     // Footer
     'footer.copyright': '© 2024 Digitalt Arvsskifte - Säker hantering av arvsskiften',
