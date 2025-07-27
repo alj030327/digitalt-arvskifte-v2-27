@@ -116,6 +116,11 @@ const translations: Translations = {
     'step3.total_percentage': 'Total procent',
     'step3.continue_contact': 'Fortsätt till kontaktuppgifter',
     'step3.save_progress': 'Spara framsteg',
+    'step3.name': 'För- och efternamn',
+    'step3.personal_number': 'Personnummer',
+    'step3.relationship': 'Relation till den avlidne',
+    'step3.percentage': 'Andel (%)',
+    'step3.account_number': 'Kontonummer',
     
     // Step 4 - Contact Info
     'step4.title': 'Kontaktuppgifter',
