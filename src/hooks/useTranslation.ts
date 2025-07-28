@@ -137,6 +137,12 @@ const translations: Translations = {
     'step4.email_only': 'Email',
     'step4.sms_only': 'Sms',
     'step4.both': 'Email och Sms',
+    
+    // Representative document sending options
+    'representative.send_options': 'Välj hur dokumenten ska skickas',
+    'representative.send_email_sms': 'E-post och SMS',
+    'representative.send_sms_only': 'Endast SMS',
+    'representative.send_email_only': 'Endast e-post',
     'step4.sending_documents': 'Skickar dokument...',
     'step4.documents_sent': 'Dokument skickade!',
     'step4.documents_sent_desc': 'Dokument har skickats till arvingarna. De kommer att få ett e-postmeddelande med instruktioner för digital signering.',
@@ -323,6 +329,12 @@ const translations: Translations = {
     'step4.email_only': 'Email only',
     'step4.sms_only': 'SMS only',
     'step4.both': 'Both email and SMS',
+    
+    // Representative document sending options
+    'representative.send_options': 'Choose how documents should be sent',
+    'representative.send_email_sms': 'Email and SMS',
+    'representative.send_sms_only': 'SMS only',
+    'representative.send_email_only': 'Email only',
     'step4.valid_email': 'Enter a valid email address',
     'step4.valid_phone': 'Enter a valid phone number (at least 10 digits)',
     'step4.sent_at': 'Sent',
