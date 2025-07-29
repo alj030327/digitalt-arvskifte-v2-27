@@ -49,11 +49,16 @@ export class BankIdService {
     try {
       if (!IntegrationManager.isConfigured('bankid')) {
         console.log('🔐 BankID not configured - using mock authentication');
-        return this.getMockSession();
+        const session = this.getMockSession();
+        this.openBankIDApp(session.autoStartToken);
+        return session;
       }
 
       console.log('🔐 Using real BankID API');
       const response = await this.callBankIdAPI('auth', request);
+      if (response) {
+        this.openBankIDApp(response.autoStartToken);
+      }
       return response;
     } catch (error) {
       console.error('BankID authentication failed:', error);
@@ -68,11 +73,16 @@ export class BankIdService {
     try {
       if (!IntegrationManager.isConfigured('bankid')) {
         console.log('🔐 BankID not configured - using mock signing');
-        return this.getMockSession();
+        const session = this.getMockSession();
+        this.openBankIDApp(session.autoStartToken);
+        return session;
       }
 
       console.log('🔐 Using real BankID signing API');
       const response = await this.callBankIdAPI('sign', request);
+      if (response) {
+        this.openBankIDApp(response.autoStartToken);
+      }
       return response;
     } catch (error) {
       console.error('BankID signing failed:', error);
@@ -270,5 +280,44 @@ export class BankIdService {
     // Simplified QR generation - in real implementation use proper crypto
     const qrAuthData = `bankid.${qrStartToken}.${timestamp}.${qrStartSecret}`;
     return btoa(qrAuthData);
+  }
+
+  /**
+   * Attempt to open the BankID app on the current device
+   */
+  static openBankIDApp(autoStartToken?: string): void {
+    if (!autoStartToken) {
+      console.log('No autoStartToken available for app launch');
+      return;
+    }
+
+    // For mobile devices, try to open the BankID app using the custom URL scheme
+    const bankIdUrl = `bankid:///?autostarttoken=${autoStartToken}&redirect=null`;
+    
+    // Detect if we're on mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      console.log('Attempting to open BankID app on mobile device');
+      
+      // Create a hidden iframe to trigger the app launch
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = bankIdUrl;
+      document.body.appendChild(iframe);
+      
+      // Clean up after a short delay
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+      
+      // Also try direct window location for better compatibility
+      setTimeout(() => {
+        window.location.href = bankIdUrl;
+      }, 100);
+    } else {
+      // On desktop, show instructions to open mobile app
+      console.log('Desktop detected - user should open BankID app manually');
+    }
   }
 }

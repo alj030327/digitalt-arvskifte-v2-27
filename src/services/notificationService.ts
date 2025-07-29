@@ -1,6 +1,11 @@
 // Abstract interfaces for notification services
+export interface EmailAttachment {
+  filename: string;
+  content: string; // base64 encoded
+}
+
 export interface EmailProvider {
-  sendEmail(to: string, subject: string, content: string, attachments?: File[]): Promise<boolean>;
+  sendEmail(to: string, subject: string, content: string, attachments?: EmailAttachment[]): Promise<boolean>;
 }
 
 export interface SMSProvider {
@@ -30,13 +35,46 @@ export interface ESignatureProvider {
 }
 
 // Mock implementations (can be easily replaced with real services)
+// Real email implementation using Supabase edge function
+export class RealEmailProvider implements EmailProvider {
+  async sendEmail(to: string, subject: string, content: string, attachments?: EmailAttachment[]): Promise<boolean> {
+    try {
+      const response = await fetch('/functions/v1/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to,
+          subject,
+          html: content,
+          attachments: attachments?.map(att => ({
+            filename: att.filename,
+            content: att.content
+          }))
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Email sending failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log(`📧 Email sent to: ${to} - ID: ${result.id}`);
+      return true;
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      return false;
+    }
+  }
+}
+
+// Mock implementation - fallback when API is not configured
 export class MockEmailProvider implements EmailProvider {
-  async sendEmail(to: string, subject: string, content: string, attachments?: File[]): Promise<boolean> {
-    console.log(`📧 Sending email to ${to}:`);
+  async sendEmail(to: string, subject: string, content: string, attachments?: EmailAttachment[]): Promise<boolean> {
+    console.log(`📧 Mock Email sent to ${to}:`);
     console.log(`Subject: ${subject}`);
     console.log(`Content: ${content}`);
     if (attachments) {
-      console.log(`Attachments: ${attachments.map(f => f.name).join(', ')}`);
+      console.log(`Attachments: ${attachments.map(f => f.filename).join(', ')}`);
     }
     
     // Simulate API call
@@ -45,9 +83,34 @@ export class MockEmailProvider implements EmailProvider {
   }
 }
 
+// Real SMS implementation using Twilio via Supabase edge function
+export class RealSMSProvider implements SMSProvider {
+  async sendSMS(phoneNumber: string, message: string): Promise<boolean> {
+    try {
+      const response = await fetch('/functions/v1/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: phoneNumber, message })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`SMS sending failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log(`📱 SMS sent to: ${phoneNumber} - SID: ${result.sid}`);
+      return true;
+    } catch (error) {
+      console.error('SMS sending failed:', error);
+      return false;
+    }
+  }
+}
+
+// Mock implementation - fallback when API is not configured
 export class MockSMSProvider implements SMSProvider {
   async sendSMS(phoneNumber: string, message: string): Promise<boolean> {
-    console.log(`📱 Sending SMS to ${phoneNumber}:`);
+    console.log(`📱 Mock SMS sent to ${phoneNumber}:`);
     console.log(`Message: ${message}`);
     
     // Simulate API call
@@ -109,8 +172,8 @@ export class MockESignatureProvider implements ESignatureProvider {
 // Notification service that combines email and SMS
 export class NotificationService {
   constructor(
-    private emailProvider: EmailProvider = new MockEmailProvider(),
-    private smsProvider: SMSProvider = new MockSMSProvider(),
+    private emailProvider: EmailProvider = new RealEmailProvider(),
+    private smsProvider: SMSProvider = new RealSMSProvider(),
     private eSignatureProvider: ESignatureProvider = new MockESignatureProvider()
   ) {}
 
