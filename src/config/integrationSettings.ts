@@ -92,12 +92,12 @@ export const INTEGRATION_CONFIG = {
 
   // BANKID - För digital signering
   bankid: {
-    enabled: false, // Sätt till true när BankID är konfigurerat
+    enabled: true, // Aktiverad för test-miljö
     environment: 'test' as const,
     credentials: {
-      certificatePath: '', // Sökväg till BankID-certifikat
-      certificatePassword: '', // Certifikatslösenord
-      clientCert: '', // Base64-kodat certifikat
+      certificatePath: '', // Hanteras via Supabase secrets
+      certificatePassword: '', // Hanteras via Supabase secrets
+      clientCert: '', // Base64-kodat certifikat från secrets
     },
     endpoints: {
       auth: '/auth',
