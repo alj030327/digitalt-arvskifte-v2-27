@@ -6,18 +6,42 @@ interface BankIdRequest {
   data: any;
 }
 
-interface BankIdAuthRequest {
-  personalNumber?: string;
+interface BankIdPhoneAuthRequest {
   endUserIp: string;
   requirement?: {
-    autoStartTokenRequired?: boolean;
     allowFingerprint?: boolean;
+    autoStartTokenRequired?: boolean;
   };
+  userVisibleData?: string; // Base64 encoded text
+  userNonVisibleData?: string; // Base64 encoded data
+  personalNumber?: string; // Optional for phone auth
 }
 
-interface BankIdSignRequest extends BankIdAuthRequest {
-  userVisibleData: string; // Base64 encoded text
-  userNonVisibleData?: string; // Base64 encoded data
+interface BankIdCollectRequest {
+  orderRef: string;
+}
+
+interface BankIdResponse {
+  orderRef?: string;
+  autoStartToken?: string;
+  qrStartToken?: string;
+  qrStartSecret?: string;
+  status?: 'pending' | 'complete' | 'failed';
+  hintCode?: string;
+  completionData?: {
+    user: {
+      personalNumber: string;
+      name: string;
+      givenName: string;
+      surname: string;
+    };
+    device: {
+      ipAddress: string;
+      uhi: string;
+    };
+    signature: string;
+    ocspResponse: string;
+  };
 }
 
 serve(async (req) => {
@@ -46,10 +70,10 @@ serve(async (req) => {
       )
     }
 
-    // BankID Test API URL
-    const baseUrl = 'https://appapi2.bankid.com/rp/v6.0'
+    // BankID Test API URL - Phone Auth API använder v5.1
+    const baseUrl = 'https://appapi2.bankid.com/rp/v5.1'
     
-    // Endpoint mappings
+    // Endpoint mappings för Phone Auth API
     const endpoints = {
       auth: '/auth',
       sign: '/sign',
@@ -63,20 +87,33 @@ serve(async (req) => {
 
     const url = `${baseUrl}${endpoints[endpoint]}`
     
-    console.log(`🔐 Making BankID ${endpoint} request to ${url}`)
+    console.log(`🔐 Making BankID Phone Auth ${endpoint} request to ${url}`)
     console.log(`📄 Request data:`, JSON.stringify(data, null, 2))
 
-    // Förbered certifikatdata för TLS-autentisering
-    // I production skulle detta vara en riktig implementering med client certificates
+    // Förbered headers för BankID Phone Auth API
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': 'Digitalt-Arvsskifte/1.0',
+      'User-Agent': 'Digitalt-Arvsskifte-PhoneAuth/1.0',
     }
 
-    // För test-miljön, simulera certifikatbaserad autentisering
-    // I riktig implementation skulle detta använda client certificates
-    if (certificate && certificatePassword) {
-      headers['X-Client-Cert'] = 'test-cert-header'
+    // För Phone Auth, lägg till IP-adress från request om den saknas
+    if (endpoint === 'auth' || endpoint === 'sign') {
+      if (!data.endUserIp) {
+        // Extrahera användarens IP från request headers
+        const clientIP = req.headers.get('x-forwarded-for') || 
+                        req.headers.get('x-real-ip') || 
+                        '127.0.0.1';
+        data.endUserIp = clientIP.split(',')[0].trim();
+        console.log(`📡 Auto-detected user IP: ${data.endUserIp}`);
+      }
+
+      // Sätt default requirements för Phone Auth
+      if (!data.requirement) {
+        data.requirement = {
+          allowFingerprint: true,
+          autoStartTokenRequired: true
+        };
+      }
     }
 
     const response = await fetch(url, {
@@ -87,7 +124,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error(`BankID API Error (${response.status}):`, errorText)
+      console.error(`BankID Phone Auth API Error (${response.status}):`, errorText)
       
       // Parse BankID error responses
       let errorData
@@ -99,7 +136,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ 
-          error: 'BankID API Error',
+          error: 'BankID Phone Auth API Error',
           details: errorData,
           status: response.status
         }),
@@ -110,8 +147,16 @@ serve(async (req) => {
       )
     }
 
-    const result = await response.json()
-    console.log(`✅ BankID ${endpoint} success:`, JSON.stringify(result, null, 2))
+    const result: BankIdResponse = await response.json()
+    console.log(`✅ BankID Phone Auth ${endpoint} success:`, JSON.stringify(result, null, 2))
+
+    // För Phone Auth, generera QR-kod data om det behövs
+    if (endpoint === 'auth' && result.qrStartToken && result.qrStartSecret) {
+      const timestamp = Date.now();
+      const qrCodeData = `bankid.${result.qrStartToken}.${timestamp}.${result.qrStartSecret}`;
+      result.qrCodeData = btoa(qrCodeData);
+      console.log(`📱 Generated QR code data for Phone Auth`);
+    }
 
     return new Response(
       JSON.stringify(result),
@@ -121,7 +166,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('BankID API Error:', error)
+    console.error('BankID Phone Auth API Error:', error)
     return new Response(
       JSON.stringify({ 
         error: 'Internal Server Error',
