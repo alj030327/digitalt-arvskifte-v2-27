@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Plus, Trash2, Upload, DollarSign, Lock, Unlock } from "lucide-react";
+import { Building2, Plus, Trash2, Lock, Unlock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -41,7 +40,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack, t }: Step2Props
     amountToRemain: "",
     reasonToRemain: ""
   });
-  const [isAutoImporting, setIsAutoImporting] = useState(false);
+  
 
   const banksWithDetails = {
     "Handelsbanken": {
@@ -201,65 +200,6 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack, t }: Step2Props
     return bankData ? [...bankData.assetTypes, ...bankData.debtTypes] : [];
   };
 
-  const handleAutoImport = async () => {
-    setIsAutoImporting(true);
-    // Simulate auto import from banks
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const mockAssets: Asset[] = [
-      {
-        id: "1",
-        bank: "Handelsbanken",
-        accountType: "Sparkonto",
-        assetType: "Bankinsättning",
-        accountNumber: "6000 123 456 789",
-        amount: 450000
-      },
-      {
-        id: "2",
-        bank: "SEB",
-        accountType: "ISK",
-        assetType: "Fonder",
-        accountNumber: "5000 987 654 321",
-        amount: 275000
-      },
-      {
-        id: "3",
-        bank: "Nordea",
-        accountType: "Pluskonto",
-        assetType: "Bankinsättning",
-        accountNumber: "3000 111 222 333",
-        amount: 89000
-      },
-      {
-        id: "4",
-        bank: "Swedbank",
-        accountType: "Kapitalförsäkring",
-        assetType: "Försäkring",
-        accountNumber: "7000 444 555 666",
-        amount: 340000
-      },
-      {
-        id: "5",
-        bank: "Danske Bank",
-        accountType: "Pensionskonto",
-        assetType: "Pension",
-        accountNumber: "1200 777 888 999",
-        amount: 1200000
-      },
-      {
-        id: "6",
-        bank: "Länsförsäkringar Bank",
-        accountType: "Billån",
-        assetType: "Billån",
-        accountNumber: "3400 555 666 777",
-        amount: 180000
-      }
-    ];
-    
-    setAssets([...assets, ...mockAssets]);
-    setIsAutoImporting(false);
-  };
 
   const handleAddAsset = () => {
     if (!newAsset.bank || !newAsset.accountType || !newAsset.assetType || !newAsset.accountNumber || !newAsset.amount) {
@@ -355,45 +295,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack, t }: Step2Props
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="auto" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="auto">{t('assets.auto_import')}</TabsTrigger>
-              <TabsTrigger value="manual">{t('assets.manual_input')}</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="auto" className="space-y-6">
-              <Alert>
-                <Upload className="h-4 w-4" />
-                <AlertDescription>
-                  {t('assets.auto_import_description')}
-                </AlertDescription>
-              </Alert>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {commonBanks.map((bank) => (
-                  <Button
-                    key={bank}
-                    variant="outline"
-                    className="p-6 h-auto flex flex-col items-center"
-                    disabled={isAutoImporting}
-                  >
-                    <Building2 className="w-8 h-8 mb-2 text-muted-foreground" />
-                    <span className="text-sm font-medium">{bank}</span>
-                  </Button>
-                ))}
-              </div>
-              
-              <Button 
-                onClick={handleAutoImport} 
-                disabled={isAutoImporting}
-                className="w-full"
-                size="lg"
-              >
-                {isAutoImporting ? t('assets.importing') : t('assets.start_auto_import')}
-              </Button>
-            </TabsContent>
-            
-            <TabsContent value="manual" className="space-y-6">
+          <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="bank">{t('assets.bank')}</Label>
@@ -547,8 +449,7 @@ export const Step2Assets = ({ assets, setAssets, onNext, onBack, t }: Step2Props
                 <Plus className="w-4 h-4 mr-2" />
                 {t('assets.add_asset')}
               </Button>
-            </TabsContent>
-          </Tabs>
+          </div>
 
           {assets.length > 0 && (
             <div className="mt-8 space-y-4">

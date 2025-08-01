@@ -35,7 +35,7 @@ const translations: Translations = {
     
     // Assets page
     'assets.title': 'Tillgångar och bankkonton',
-    'assets.subtitle': 'Samla in information om den avlidnes tillgångar från olika banker',
+    'assets.subtitle': 'Registrera den avlidnes tillgångar och skulder manuellt',
     'assets.auto_import': 'Automatisk hämtning',
     'assets.manual_input': 'Manuell inmatning',
     'assets.continue_distribution': 'Fortsätt till fördelning',
@@ -58,7 +58,7 @@ const translations: Translations = {
     'assets.amount_remain': 'Belopp som ska vara kvar (SEK)',
     'assets.reason_remain': 'Anledning till varför kontot ska vara kvar',
     'assets.reason_debt_remain': 'Anledning till varför skulden ska vara kvar',
-    'assets.auto_import_description': 'Via PSD2/Open Banking kan vi automatiskt hämta kontoinformation från era banker. Detta kräver din godkännande och BankID-autentisering hos respektive bank.',
+    
     'assets.start_auto_import': 'Starta automatisk hämtning',
     'assets.importing': 'Hämtar kontoinformation...',
     'assets.accounts_holdings': 'Konton och innehav:',
@@ -217,7 +217,7 @@ const translations: Translations = {
     
     // Assets page
     'assets.title': 'Assets and bank accounts',
-    'assets.subtitle': 'Collect information about the deceased\'s assets from various banks',
+    'assets.subtitle': 'Manually register the deceased\'s assets and debts',
     'assets.auto_import': 'Automatic import',
     'assets.manual_input': 'Manual input',
     'assets.continue_distribution': 'Continue to distribution',
@@ -240,7 +240,7 @@ const translations: Translations = {
     'assets.amount_remain': 'Amount that should remain (SEK)',
     'assets.reason_remain': 'Reason why the account should remain',
     'assets.reason_debt_remain': 'Reason why the debt should remain',
-    'assets.auto_import_description': 'Via PSD2/Open Banking we can automatically retrieve account information from your banks. This requires your consent and BankID authentication with each bank.',
+    
     'assets.start_auto_import': 'Start automatic import',
     'assets.importing': 'Importing account information...',
     'assets.accounts_holdings': 'Accounts and holdings:',

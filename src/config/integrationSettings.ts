@@ -223,7 +223,7 @@ export class IntegrationManager {
         production: 'https://api.skatteverket.se/prod',
       },
       bankid: {
-        test: 'https://appapi2.test.bankid.com/rp/v6.0',
+        test: 'https://appapi2.bankid.com/rp/v6.0',
         production: 'https://appapi2.bankid.com/rp/v6.0',
       },
       openBanking: {
