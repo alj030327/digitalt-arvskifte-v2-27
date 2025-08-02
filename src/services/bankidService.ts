@@ -125,11 +125,12 @@ export class BankIdService {
   }
 
   /**
-   * Call BankID API via Supabase Edge Function
+   * Placeholder for actual API calls
+   * In production, implement as secure backend endpoints
    */
   private static async callBankIdAPI(endpoint: string, data: any): Promise<any> {
     if (!IntegrationManager.isConfigured('bankid')) {
-      // Fallback till mock implementation
+      // Mock implementation for development
       if (endpoint === 'auth' || endpoint === 'sign') {
         return this.getMockSession();
       }
@@ -145,22 +146,24 @@ export class BankIdService {
       throw new Error(`Unknown endpoint: ${endpoint}`);
     }
 
-    // Anropa BankID via Supabase Edge Function
-    console.log(`🔐 Calling BankID ${endpoint} via Edge Function`);
+    // Real BankID API implementation
+    const config = BANKID_CONFIG;
+    const baseUrl = IntegrationManager.getBaseUrl('bankid');
     
     try {
-      const response = await fetch(`https://tjnqelwplalrsepzqotb.supabase.co/functions/v1/bankid-api`, {
+      const response = await fetch(`${baseUrl}${config.endpoints[endpoint as keyof typeof config.endpoints]}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqbnFlbHdwbGFscnNlcHpxb3RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNjg2NTIsImV4cCI6MjA2ODk0NDY1Mn0.tSqdJ-zT9AIDhotT_0zWoKfetC1DYUxMw1TciT_9iPs'}`,
+          // In a real implementation, you would add certificate authentication here
+          'X-Client-Cert': config.credentials.clientCert,
         },
-        body: JSON.stringify({ endpoint, data }),
+        // In a real implementation, you would configure TLS client certificates
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(`BankID API Error: ${response.status} - ${JSON.stringify(errorData)}`);
+        throw new Error(`BankID API Error: ${response.status} ${response.statusText}`);
       }
 
       return await response.json();

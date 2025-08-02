@@ -10,7 +10,6 @@ import { Scale, Globe } from "lucide-react";
 import { PhysicalAsset } from "@/components/PhysicalAssets";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 
 interface Asset {
   id: string;
@@ -120,11 +119,6 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Link to="/bankid-demo">
-                <Button variant="outline" size="sm">
-                  BankID Demo
-                </Button>
-              </Link>
               <Button
                 variant="outline"
                 size="sm"
