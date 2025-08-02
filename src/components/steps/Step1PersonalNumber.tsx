@@ -8,10 +8,11 @@ import { UserCheck, AlertCircle, Shield, Users, CheckCircle2, Briefcase, Send, F
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SkatteverketService, SkatteverketHeirData } from "@/services/skatteverketService";
 import { BankIdService } from "@/services/bankidService";
-import { useToast } from "@/hooks/use-toast";
+import { BankIDSigning } from "@/components/BankIDSigning";
 import { RepresentativeService, RepresentativeAccess } from "@/services/representativeService";
 import { PDFUploadScanner } from "@/components/PDFUploadScanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 
 interface Heir {
   personalNumber: string;
@@ -56,7 +57,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   const [localHeirs, setLocalHeirs] = useState<Heir[]>(heirs);
   const [currentUserPersonalNumber, setCurrentUserPersonalNumber] = useState("");
   const [hasFetchedHeirs, setHasFetchedHeirs] = useState(false);
-  const [isSigningWithBankID, setIsSigningWithBankID] = useState(false);
+  const [showBankIDSigning, setShowBankIDSigning] = useState(false);
   const [hasSignedWithBankID, setHasSignedWithBankID] = useState(false);
   const [bankIDError, setBankIDError] = useState("");
   
@@ -153,7 +154,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     }
   };
 
-  const handleBankIDSigning = async () => {
+  const handleStartBankIDSigning = () => {
     if (!currentUserPersonalNumber) {
       setBankIDError("Vänligen ange ditt personnummer för BankID-signering");
       return;
@@ -164,66 +165,40 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
       return;
     }
 
-    setIsSigningWithBankID(true);
     setBankIDError("");
+    setShowBankIDSigning(true);
+  };
+
+  const handleBankIDSuccess = (completionData: any) => {
+    console.log('BankID signing completed:', completionData);
     
-    try {
-      // Use BankIdService for authentication
-      const authRequest = {
-        personalNumber: currentUserPersonalNumber,
-        endUserIp: '127.0.0.1' // In production, get real IP
-      };
-      
-      const session = await BankIdService.authenticate(authRequest);
-      
-      if (!session) {
-        setBankIDError("Kunde inte starta BankID-session. Försök igen.");
-        setIsSigningWithBankID(false);
-        return;
-      }
-      
-      // Poll for completion
-      let attempts = 0;
-      const maxAttempts = 60; // 30 seconds with 500ms intervals
-      
-      while (attempts < maxAttempts) {
-        const status = await BankIdService.checkStatus(session.orderRef);
-        
-        if (status?.status === 'complete') {
-          // Check if current user is one of the heirs
-          const isAuthorizedHeir = localHeirs.some(heir => 
-            heir.personalNumber.replace('-', '') === currentUserPersonalNumber.replace('-', '')
-          );
-          
-          if (!isAuthorizedHeir) {
-            setBankIDError("Du är inte registrerad som arvinge för denna bouppteckning och kan därför inte fortsätta.");
-            setIsSigningWithBankID(false);
-            return;
-          }
-          
-          setHasSignedWithBankID(true);
-          break;
-        } else if (status?.status === 'failed') {
-          setBankIDError("BankID-signering misslyckades. Försök igen.");
-          setIsSigningWithBankID(false);
-          return;
-        }
-        
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      if (attempts >= maxAttempts) {
-        setBankIDError("BankID-signering tog för lång tid. Försök igen.");
-        await BankIdService.cancel(session.orderRef);
-        setIsSigningWithBankID(false);
-        return;
-      }
-    } catch (error) {
-      setBankIDError("BankID-signering misslyckades. Försök igen.");
-    } finally {
-      setIsSigningWithBankID(false);
+    // Check if current user is one of the heirs
+    const isAuthorizedHeir = localHeirs.some(heir => 
+      heir.personalNumber.replace('-', '') === currentUserPersonalNumber.replace('-', '')
+    );
+    
+    if (!isAuthorizedHeir) {
+      setBankIDError("Du är inte registrerad som arvinge för denna bouppteckning och kan därför inte fortsätta.");
+      setShowBankIDSigning(false);
+      return;
     }
+    
+    setHasSignedWithBankID(true);
+    setShowBankIDSigning(false);
+    
+    toast({
+      title: "Signering slutförd",
+      description: "Du har framgångsrikt verifierats med BankID.",
+    });
+  };
+
+  const handleBankIDError = (error: string) => {
+    setBankIDError(error);
+    setShowBankIDSigning(false);
+  };
+
+  const handleBankIDCancel = () => {
+    setShowBankIDSigning(false);
   };
 
   const validateEmail = (email: string) => {
@@ -794,17 +769,29 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                     </Alert>
                   )}
                   
-                  <Button 
-                    onClick={handleBankIDSigning}
-                    disabled={!currentUserPersonalNumber || isSigningWithBankID}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {isSigningWithBankID ? "Signerar med BankID..." : "Signera med BankID"}
-                  </Button>
+                   <Button 
+                     type="button" 
+                     onClick={handleStartBankIDSigning}
+                     disabled={!currentUserPersonalNumber}
+                     className="w-full"
+                     size="lg"
+                   >
+                     Signera med BankID
+                   </Button>
                 </div>
               )}
-              
+                  
+                  {showBankIDSigning && (
+                    <div className="mt-6">
+                      <BankIDSigning
+                        personalNumber={currentUserPersonalNumber}
+                        userVisibleData="Signering för verifiering av dödsbodelägare i digitalt arvsskifte"
+                        onSuccess={handleBankIDSuccess}
+                        onError={handleBankIDError}
+                        onCancel={handleBankIDCancel}
+                      />
+                    </div>
+                  )}
               {hasSignedWithBankID && !isLoggedInAsRepresentative && (
                 <div className="space-y-4 border-t pt-4">
                   <Alert>
