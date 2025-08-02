@@ -125,8 +125,7 @@ export class BankIdService {
   }
 
   /**
-   * Placeholder for actual API calls
-   * In production, implement as secure backend endpoints
+   * Call BankID API via secure edge function
    */
   private static async callBankIdAPI(endpoint: string, data: any): Promise<any> {
     if (!IntegrationManager.isConfigured('bankid')) {
@@ -146,27 +145,28 @@ export class BankIdService {
       throw new Error(`Unknown endpoint: ${endpoint}`);
     }
 
-    // Real BankID API implementation
-    const config = BANKID_CONFIG;
-    const baseUrl = IntegrationManager.getBaseUrl('bankid');
-    
+    // Real BankID API implementation via edge function
     try {
-      const response = await fetch(`${baseUrl}${config.endpoints[endpoint as keyof typeof config.endpoints]}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // In a real implementation, you would add certificate authentication here
-          'X-Client-Cert': config.credentials.clientCert,
-        },
-        // In a real implementation, you would configure TLS client certificates
-        body: JSON.stringify(data),
+      // Import supabase client dynamically to avoid build issues
+      const clientModule = await import('@/integrations/supabase/client');
+      const supabase = clientModule.supabase;
+      
+      console.log(`🔐 Calling BankID ${endpoint} via edge function`);
+      
+      const { data: response, error } = await supabase.functions.invoke('bankid-api', {
+        body: {
+          endpoint,
+          data
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`BankID API Error: ${response.status} ${response.statusText}`);
+      if (error) {
+        console.error(`BankID ${endpoint} edge function error:`, error);
+        throw new Error(`BankID API Error: ${error.message}`);
       }
 
-      return await response.json();
+      console.log(`✅ BankID ${endpoint} response:`, response);
+      return response;
     } catch (error) {
       console.error(`BankID ${endpoint} API Error:`, error);
       throw error;
