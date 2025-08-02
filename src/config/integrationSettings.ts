@@ -92,7 +92,7 @@ export const INTEGRATION_CONFIG = {
 
   // BANKID - För digital signering
   bankid: {
-    enabled: false, // Sätt till true när BankID är konfigurerat
+    enabled: true, // Nu aktiverat för test-certifikat
     environment: 'test' as const,
     credentials: {
       certificatePath: '', // Sökväg till BankID-certifikat

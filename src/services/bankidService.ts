@@ -282,6 +282,8 @@ export class BankIdService {
       return;
     }
 
+    console.log('🔐 Attempting to open BankID app with token:', autoStartToken);
+
     // For mobile devices, try to open the BankID app using the custom URL scheme
     const bankIdUrl = `bankid:///?autostarttoken=${autoStartToken}&redirect=null`;
     
@@ -289,26 +291,57 @@ export class BankIdService {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      console.log('Attempting to open BankID app on mobile device');
+      console.log('📱 Mobile device detected - opening BankID app');
       
-      // Create a hidden iframe to trigger the app launch
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = bankIdUrl;
-      document.body.appendChild(iframe);
+      // Try multiple approaches for better compatibility
       
-      // Clean up after a short delay
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
-      
-      // Also try direct window location for better compatibility
-      setTimeout(() => {
+      // Method 1: Direct window location (most reliable)
+      try {
         window.location.href = bankIdUrl;
+        console.log('✅ Tried window.location.href method');
+      } catch (error) {
+        console.log('❌ Window location method failed:', error);
+      }
+      
+      // Method 2: Create a temporary link and click it
+      setTimeout(() => {
+        try {
+          const link = document.createElement('a');
+          link.href = bankIdUrl;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          console.log('✅ Tried link click method');
+        } catch (error) {
+          console.log('❌ Link click method failed:', error);
+        }
       }, 100);
+      
+      // Method 3: Hidden iframe as fallback
+      setTimeout(() => {
+        try {
+          const iframe = document.createElement('iframe');
+          iframe.style.display = 'none';
+          iframe.src = bankIdUrl;
+          document.body.appendChild(iframe);
+          
+          // Clean up after a short delay
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 2000);
+          console.log('✅ Tried iframe method');
+        } catch (error) {
+          console.log('❌ Iframe method failed:', error);
+        }
+      }, 200);
+      
     } else {
       // On desktop, show instructions to open mobile app
-      console.log('Desktop detected - user should open BankID app manually');
+      console.log('🖥️ Desktop detected - user should open BankID app manually');
+      console.log('🔗 BankID URL:', bankIdUrl);
     }
   }
 }
