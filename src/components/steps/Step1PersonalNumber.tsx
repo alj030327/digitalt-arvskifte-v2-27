@@ -11,6 +11,7 @@ import { BankIdService } from "@/services/bankidService";
 import { useToast } from "@/hooks/use-toast";
 import { RepresentativeService, RepresentativeAccess } from "@/services/representativeService";
 import { PDFUploadScanner } from "@/components/PDFUploadScanner";
+import { BankIDPhoneAuth } from "@/components/BankIDPhoneAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Heir {
@@ -153,77 +154,32 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
     }
   };
 
-  const handleBankIDSigning = async () => {
-    if (!currentUserPersonalNumber) {
-      setBankIDError("Vänligen ange ditt personnummer för BankID-signering");
+  const handleBankIDSuccess = (result: any) => {
+    // Kontrollera att användaren är en registrerad arvinge
+    const isAuthorizedHeir = localHeirs.some(heir => 
+      heir.personalNumber.replace('-', '') === result.completionData.user.personalNumber.replace('-', '')
+    );
+    
+    if (!isAuthorizedHeir) {
+      setBankIDError("Du är inte registrerad som arvinge för denna bouppteckning och kan därför inte fortsätta.");
+      setIsSigningWithBankID(false);
       return;
     }
     
-    if (!validatePersonalNumber(currentUserPersonalNumber)) {
-      setBankIDError("Vänligen ange ett giltigt personnummer");
-      return;
-    }
-
-    setIsSigningWithBankID(true);
+    setCurrentUserPersonalNumber(result.completionData.user.personalNumber);
+    setHasSignedWithBankID(true);
+    setIsSigningWithBankID(false);
     setBankIDError("");
     
-    try {
-      // Use BankIdService for authentication
-      const authRequest = {
-        personalNumber: currentUserPersonalNumber,
-        endUserIp: '127.0.0.1' // In production, get real IP
-      };
-      
-      const session = await BankIdService.authenticate(authRequest);
-      
-      if (!session) {
-        setBankIDError("Kunde inte starta BankID-session. Försök igen.");
-        setIsSigningWithBankID(false);
-        return;
-      }
-      
-      // Poll for completion
-      let attempts = 0;
-      const maxAttempts = 60; // 30 seconds with 500ms intervals
-      
-      while (attempts < maxAttempts) {
-        const status = await BankIdService.checkStatus(session.orderRef);
-        
-        if (status?.status === 'complete') {
-          // Check if current user is one of the heirs
-          const isAuthorizedHeir = localHeirs.some(heir => 
-            heir.personalNumber.replace('-', '') === currentUserPersonalNumber.replace('-', '')
-          );
-          
-          if (!isAuthorizedHeir) {
-            setBankIDError("Du är inte registrerad som arvinge för denna bouppteckning och kan därför inte fortsätta.");
-            setIsSigningWithBankID(false);
-            return;
-          }
-          
-          setHasSignedWithBankID(true);
-          break;
-        } else if (status?.status === 'failed') {
-          setBankIDError("BankID-signering misslyckades. Försök igen.");
-          setIsSigningWithBankID(false);
-          return;
-        }
-        
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      if (attempts >= maxAttempts) {
-        setBankIDError("BankID-signering tog för lång tid. Försök igen.");
-        await BankIdService.cancel(session.orderRef);
-        setIsSigningWithBankID(false);
-        return;
-      }
-    } catch (error) {
-      setBankIDError("BankID-signering misslyckades. Försök igen.");
-    } finally {
-      setIsSigningWithBankID(false);
-    }
+    toast({
+      title: "BankID-signering lyckades",
+      description: `Välkommen ${result.completionData.user.name}!`,
+    });
+  };
+
+  const handleBankIDError = (error: string) => {
+    setBankIDError(error);
+    setIsSigningWithBankID(false);
   };
 
   const validateEmail = (email: string) => {
@@ -771,22 +727,6 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                     </AlertDescription>
                   </Alert>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="currentUserPersonalNumber">Ditt personnummer för BankID-signering</Label>
-                    <Input
-                      id="currentUserPersonalNumber"
-                      type="text"
-                      placeholder="ÅÅÅÅMMDD-XXXX"
-                      value={currentUserPersonalNumber}
-                      onChange={(e) => {
-                        const formatted = formatPersonalNumber(e.target.value);
-                        setCurrentUserPersonalNumber(formatted);
-                        setBankIDError("");
-                      }}
-                      maxLength={13}
-                    />
-                  </div>
-                  
                   {bankIDError && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
@@ -794,14 +734,33 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                     </Alert>
                   )}
                   
-                  <Button 
-                    onClick={handleBankIDSigning}
-                    disabled={!currentUserPersonalNumber || isSigningWithBankID}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {isSigningWithBankID ? "Signerar med BankID..." : "Signera med BankID"}
-                  </Button>
+                  <BankIDPhoneAuth
+                    onSuccess={handleBankIDSuccess}
+                    onError={handleBankIDError}
+                    userVisibleData="Signering för dödsbodelägare - Digital Arvsskifte"
+                    personalNumber={currentUserPersonalNumber || undefined}
+                  />
+                  
+                  {!currentUserPersonalNumber && (
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="currentUserPersonalNumber">Eller ange ditt personnummer först (valfritt)</Label>
+                      <Input
+                        id="currentUserPersonalNumber"
+                        type="text"
+                        placeholder="ÅÅÅÅMMDD-XXXX (lämna tomt för att signera utan förspecificerat personnummer)"
+                        value={currentUserPersonalNumber}
+                        onChange={(e) => {
+                          const formatted = formatPersonalNumber(e.target.value);
+                          setCurrentUserPersonalNumber(formatted);
+                          setBankIDError("");
+                        }}
+                        maxLength={13}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Du kan antingen ange ditt personnummer här eller så identifieras du automatiskt via BankID när du signerar.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
               
