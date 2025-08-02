@@ -104,7 +104,9 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('handleInputChange called with value:', e.target.value);
     const formatted = formatPersonalNumber(e.target.value);
+    console.log('Setting personalNumber to:', formatted);
     setPersonalNumber(formatted);
     setValidationError("");
   };
@@ -486,7 +488,9 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                   placeholder="ÅÅÅÅMMDD-XXXX"
                   value={currentUserPersonalNumber}
                   onChange={(e) => {
+                    console.log('currentUserPersonalNumber input changed:', e.target.value);
                     const formatted = formatPersonalNumber(e.target.value);
+                    console.log('Setting currentUserPersonalNumber to:', formatted);
                     setCurrentUserPersonalNumber(formatted);
                   }}
                   maxLength={13}
