@@ -7,7 +7,7 @@ export const integrationConfig = {
     certificatePath: '', // Path to your certificate file
   },
   bankid: {
-    enabled: false, // Set to true when BankID is configured
+    enabled: true, // Now using real test certificates
     environment: 'test', // 'test' or 'production'
     apiBaseUrl: 'https://appapi2.test.bankid.com/rp/v6.0', // Test URL
     // Production URL: 'https://appapi2.bankid.com/rp/v6.0'
