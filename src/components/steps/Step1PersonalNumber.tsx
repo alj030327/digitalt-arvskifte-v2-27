@@ -495,6 +495,7 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
                       value={personalNumber}
                       onChange={handleInputChange}
                       maxLength={13}
+                      disabled={isValidating}
                     />
                     {validationError && (
                       <Alert variant="destructive">
