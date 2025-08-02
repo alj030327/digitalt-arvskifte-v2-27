@@ -70,8 +70,12 @@ serve(async (req) => {
       )
     }
 
-    // BankID Test API URL - Phone Auth API använder v5.1
-    const baseUrl = 'https://appapi2.bankid.com/rp/v5.1'
+    // BankID Relying Party API v6.0
+    const baseUrl = 'https://appapi2.bankid.com/rp/v6.0'
+    const testBaseUrl = 'https://appapi2.test.bankid.com/rp/v6.0'
+    
+    // Use test environment for development
+    const apiUrl = Deno.env.get('BANKID_ENVIRONMENT') === 'production' ? baseUrl : testBaseUrl
     
     // Endpoint mappings för Phone Auth API
     const endpoints = {
@@ -85,7 +89,7 @@ serve(async (req) => {
       throw new Error(`Invalid endpoint: ${endpoint}`)
     }
 
-    const url = `${baseUrl}${endpoints[endpoint]}`
+    const url = `${apiUrl}${endpoints[endpoint]}`
     
     console.log(`🔐 Making BankID Phone Auth ${endpoint} request to ${url}`)
     console.log(`📄 Request data:`, JSON.stringify(data, null, 2))
