@@ -78,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Create signing token and link
     const signingToken = crypto.randomUUID();
-    const signingLink = `${Deno.env.get('SITE_URL')}/sign/${signingToken}`;
+    const signingLink = `https://c410ed21-f8e3-4f9c-89e1-ddb889afdccd.lovableproject.com/sign/${signingToken}`;
 
     // Save to database first
     const { error: dbError } = await supabase
