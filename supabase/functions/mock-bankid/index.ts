@@ -29,11 +29,17 @@ serve(async (req) => {
     if (endpoint === 'auth' || endpoint === 'sign') {
       const { personalNumber } = data
       
-      // Accept test personal numbers ending in 0111 or mock ones for development
-      if (personalNumber && !personalNumber.endsWith('0111') && !personalNumber.startsWith('1966')) {
+      // According to BankID official documentation, test personal numbers should end with 0111
+      // Also accept development ones for testing (like 196610061273)
+      if (personalNumber && 
+          !personalNumber.endsWith('0111') && 
+          !personalNumber.startsWith('1966') &&
+          !personalNumber.includes('19900101111') &&
+          !personalNumber.includes('19850515111') &&
+          !personalNumber.includes('19920310111')) {
         return new Response(
           JSON.stringify({ 
-            error: 'Endast testpersonnummer (slutar på 0111) accepteras i mock-miljö' 
+            error: 'Endast testpersonnummer enligt BankID dokumentation accepteras (avsluta med 0111, t.ex. 19900101111)'
           }), 
           { 
             status: 400,
