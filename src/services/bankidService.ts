@@ -125,11 +125,31 @@ export class BankIdService {
   }
 
   /**
-   * Call BankID API through secure edge function
+   * Call BankID API through mock edge function for development
    */
   private static async callBankIdAPI(endpoint: string, data: any): Promise<any> {
-    if (!IntegrationManager.isConfigured('bankid')) {
-      // Mock implementation for development
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      console.log(`🔐 Calling mock BankID ${endpoint} with:`, data);
+      
+      const { data: response, error } = await supabase.functions.invoke('mock-bankid', {
+        body: { endpoint, data }
+      });
+
+      if (error) {
+        console.error(`Mock BankID API Error:`, error);
+        throw new Error(`Mock BankID API Error: ${error.message}`);
+      }
+
+      console.log(`✅ Mock BankID ${endpoint} response:`, response);
+      return response;
+    } catch (error) {
+      console.error(`Mock BankID ${endpoint} API Error:`, error);
+      
+      // Fallback to old mock implementation if edge function fails
+      console.log('📱 Falling back to local mock implementation');
+      
       if (endpoint === 'auth' || endpoint === 'sign') {
         return this.getMockSession();
       }
@@ -142,24 +162,6 @@ export class BankIdService {
         return true;
       }
       
-      throw new Error(`Unknown endpoint: ${endpoint}`);
-    }
-
-    // Call through Supabase edge function for secure certificate handling
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      
-      const { data: response, error } = await supabase.functions.invoke('bankid-api', {
-        body: { endpoint, data }
-      });
-
-      if (error) {
-        throw new Error(`BankID API Error: ${error.message}`);
-      }
-
-      return response;
-    } catch (error) {
-      console.error(`BankID ${endpoint} API Error:`, error);
       throw error;
     }
   }
