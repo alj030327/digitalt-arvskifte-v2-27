@@ -282,6 +282,45 @@ export type Database = {
         }
         Relationships: []
       }
+      signing_requests: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          inheritance_data: Json
+          signature_data: Json | null
+          signed_at: string | null
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          inheritance_data: Json
+          signature_data?: Json | null
+          signed_at?: string | null
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          inheritance_data?: Json
+          signature_data?: Json | null
+          signed_at?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_by: string | null

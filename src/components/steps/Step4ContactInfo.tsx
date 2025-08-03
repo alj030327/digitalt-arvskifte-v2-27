@@ -8,8 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Mail, Phone, Send, CheckCircle2, MessageSquare } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { notificationService } from "@/services/notificationService";
-import { PDFService } from "@/services/pdfService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Heir {
   personalNumber: string;
@@ -78,59 +77,80 @@ export const Step4ContactInfo = ({
     setIsSendingDocuments(true);
     
     try {
-      // Generate PDF for inheritance settlement
-      const settlementPdf = await PDFService.generateDistributionPDF({
-        personalNumber,
-        assets: [], // Would be passed from parent component in production
-        beneficiaries: heirs.map(h => ({
-          name: h.name,
-          personalNumber: h.personalNumber,
-          relationship: h.relationship,
-          percentage: h.inheritanceShare || 0,
-          amount: ((h.inheritanceShare || 0) / 100) * totalAmount,
-          accountNumber: "" // Would need to be collected if not available
-        })),
-        totalAmount
-      });
-
-      if (!settlementPdf) {
-        throw new Error("Kunde inte generera PDF");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Användaren är inte inloggad");
       }
 
-      // Convert Blob to File for notification service
-      const pdfFile = new File([settlementPdf], "arvsskifte.pdf", { type: "application/pdf" });
+      // Send documents for each heir
+      const results = [];
+      let successCount = 0;
 
-      // Send e-signature requests via email and SMS
-      const results = await notificationService.sendInheritanceSettlementForSigning(
-        heirs.map(h => ({
-          name: h.name,
-          email: h.email || "",
-          phone: h.phone || "",
-          personalNumber: h.personalNumber
-        })),
-        pdfFile,
-        personalNumber
-      );
+      for (const heir of heirs) {
+        const pref = heir.notificationPreference || 'both';
+        const useEmail = (pref === 'email' || pref === 'both') && heir.email;
+        const useSms = (pref === 'sms' || pref === 'both') && heir.phone;
+
+        if (!useEmail && !useSms) continue;
+
+        try {
+          const { data, error } = await supabase.functions.invoke('send-summary', {
+            body: {
+              inheritanceData: {
+                deceased: { name: "Deceased Name", personalNumber },
+                assets: [], // Would be passed from parent component
+                heirs: heirs.map(h => ({
+                  name: h.name,
+                  personalNumber: h.personalNumber,
+                  relationship: h.relationship,
+                  inheritance: ((h.inheritanceShare || 0) / 100) * totalAmount
+                }))
+              },
+              email: heir.email,
+              phone: heir.phone,
+              userId: user.id,
+              useEmail,
+              useSms
+            }
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          results.push({
+            heir: heir.name,
+            success: true,
+            signingToken: data.signingToken
+          });
+          
+          successCount++;
+        } catch (error: any) {
+          console.error(`Failed to send to ${heir.name}:`, error);
+          results.push({
+            heir: heir.name,
+            success: false,
+            error: error.message
+          });
+        }
+      }
 
       // Update heirs with signature tracking info
       const updatedHeirs = heirs.map(h => {
-        const result = results.find(r => r.beneficiary === h.name);
+        const result = results.find(r => r.heir === h.name && r.success);
         return {
           ...h,
-          documentSent: true,
-          sentAt: new Date().toISOString(),
-          signatureId: result?.signatureId || "",
-          trackingUrl: result?.trackingUrl || ""
+          documentSent: !!result,
+          sentAt: result ? new Date().toISOString() : h.sentAt,
+          signingToken: result?.signingToken || ""
         };
       });
       
       setHeirs(updatedHeirs);
       
-      const successCount = results.filter(r => r.emailSent && r.smsSent).length;
-      
       toast({
         title: "Dokument skickade",
-        description: `Arvsskiftet har skickats till ${successCount} av ${heirs.length} arvingar för e-signering.`,
+        description: `Arvsskiftet har skickats till ${successCount} av ${heirs.length} arvingar för signering.`,
       });
       
       // Proceed to signing step after a short delay
@@ -138,7 +158,8 @@ export const Step4ContactInfo = ({
         onNext();
       }, 1500);
       
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error sending documents:', error);
       toast({
         title: "Fel",
         description: "Kunde inte skicka dokumenten. Försök igen.",
