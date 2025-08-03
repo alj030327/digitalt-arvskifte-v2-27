@@ -42,7 +42,7 @@ export const SignDocument = () => {
         .from('signing_requests')
         .select('*')
         .eq('token', token)
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw error;
