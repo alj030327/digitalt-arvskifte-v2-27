@@ -99,29 +99,10 @@ export const Step4ContactInfo = ({
         if (!useEmail && !useSms) continue;
 
         try {
-          const { data, error } = await supabase.functions.invoke('send-summary', {
-            body: {
-              inheritanceData: {
-                deceased: { name: "Deceased Name", personalNumber },
-                assets: [], // Would be passed from parent component
-                heirs: heirs.map(h => ({
-                  name: h.name,
-                  personalNumber: h.personalNumber,
-                  relationship: h.relationship,
-                  inheritance: ((h.inheritanceShare || 0) / 100) * totalAmount
-                }))
-              },
-              email: heir.email,
-              phone: heir.phone,
-              userId: mockUserId,
-              useEmail,
-              useSms
-            }
-          });
-
-          if (error) {
-            throw error;
-          }
+          // Demo mode: Skip email sending for now
+          console.log(`Demo: Skulle skicka till ${heir.name}`, { useEmail, useSms });
+          
+          const data = { signingToken: `demo-token-${Date.now()}` };
 
           results.push({
             heir: heir.name,
