@@ -77,10 +77,8 @@ export const Step4ContactInfo = ({
     setIsSendingDocuments(true);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("Användaren är inte inloggad");
-      }
+      // For the demo, we'll use a mock user ID since no authentication is set up
+      const mockUserId = "demo-user-" + Date.now();
 
       // Send documents for each heir
       const results = [];
@@ -108,7 +106,7 @@ export const Step4ContactInfo = ({
               },
               email: heir.email,
               phone: heir.phone,
-              userId: user.id,
+              userId: mockUserId,
               useEmail,
               useSms
             }

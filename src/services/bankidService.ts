@@ -313,6 +313,9 @@ export class BankIdService {
 
     console.log('🔐 Attempting to open BankID app with token:', autoStartToken);
 
+    // Show mock BankID interface for demo
+    this.showMockBankIDInterface();
+
     // For mobile devices, try to open the BankID app using the custom URL scheme
     const bankIdUrl = `bankid:///?autostarttoken=${autoStartToken}&redirect=null`;
     
@@ -372,5 +375,71 @@ export class BankIdService {
       console.log('🖥️ Desktop detected - user should open BankID app manually');
       console.log('🔗 BankID URL:', bankIdUrl);
     }
+  }
+
+  /**
+   * Show a mock BankID interface for demo purposes
+   */
+  private static showMockBankIDInterface(): void {
+    // Create a mock modal to simulate BankID opening
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      color: white;
+      font-family: Arial, sans-serif;
+    `;
+    
+    modal.innerHTML = `
+      <div style="
+        background: #003366;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 300px;
+        width: 90%;
+      ">
+        <div style="font-size: 24px; margin-bottom: 20px;">🏦</div>
+        <h2 style="margin: 0 0 15px 0; color: white;">BankID</h2>
+        <p style="margin: 0 0 20px 0; color: white;">Simulerar öppning av BankID-appen...</p>
+        <div style="
+          width: 40px;
+          height: 40px;
+          border: 3px solid #fff;
+          border-top: 3px solid transparent;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto;
+        "></div>
+        <p style="margin: 15px 0 0 0; font-size: 12px; opacity: 0.8; color: white;">
+          Detta är en demo. I verkligheten skulle BankID-appen öppnas här.
+        </p>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Remove the modal after 3 seconds
+    setTimeout(() => {
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
+    }, 3000);
+    
+    console.log('📱 Mock BankID app interface shown');
   }
 }
