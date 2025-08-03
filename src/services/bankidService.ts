@@ -325,29 +325,8 @@ export class BankIdService {
     if (isMobile) {
       console.log('📱 Mobile device detected - opening BankID app');
       
-      // Create a user gesture to open the BankID app
-      const openBankID = () => {
-        try {
-          // Try to open the BankID app directly
-          window.location.assign(bankIdUrl);
-          console.log('✅ Attempted to open BankID app with window.location.assign');
-        } catch (error) {
-          console.log('❌ Failed to open BankID app:', error);
-          
-          // Fallback: Create a link and trigger click
-          const link = document.createElement('a');
-          link.href = bankIdUrl;
-          link.target = '_blank';
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          console.log('✅ Fallback link click attempted');
-        }
-      };
-      
-      // Open immediately on user action
-      openBankID();
+      // Direct method that was working before
+      window.location.href = bankIdUrl;
       
     } else {
       // On desktop, show instructions to open mobile app
