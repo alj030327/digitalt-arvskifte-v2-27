@@ -28,6 +28,7 @@ export const BankIDSigning = ({
   const [isMobile, setIsMobile] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string>('');
   const [autoStartAttempted, setAutoStartAttempted] = useState(false);
+  const [orderTime, setOrderTime] = useState<number>(0);
 
   useEffect(() => {
     // Detect mobile device
@@ -36,24 +37,22 @@ export const BankIDSigning = ({
   }, []);
 
   useEffect(() => {
-    if (session?.qrStartToken && session?.qrStartSecret) {
-      // Generate QR code data with current timestamp
-      const timestamp = Math.floor(Date.now() / 1000);
-      const qrData = BankIdService.generateQRCodeData(session.qrStartToken, session.qrStartSecret, timestamp);
+    if (session?.qrStartToken && session?.qrStartSecret && orderTime > 0) {
+      // Generate initial QR code data
+      const qrData = BankIdService.generateQRCodeData(session.qrStartToken, session.qrStartSecret, orderTime);
       setQrCodeData(qrData);
-      console.log('📱 QR Code generated:', { qrData, timestamp, session });
+      console.log('📱 QR Code generated:', { qrData, orderTime, session });
       
       // Update QR code every 1 second as per BankID specification
       const interval = setInterval(() => {
-        const newTimestamp = Math.floor(Date.now() / 1000);
-        const newQrData = BankIdService.generateQRCodeData(session.qrStartToken, session.qrStartSecret, newTimestamp);
+        const newQrData = BankIdService.generateQRCodeData(session.qrStartToken, session.qrStartSecret, orderTime);
         setQrCodeData(newQrData);
         console.log('🔄 QR Code updated:', newQrData);
       }, 1000);
 
       return () => clearInterval(interval);
     }
-  }, [session]);
+  }, [session, orderTime]);
 
   const initiateSigning = async () => {
     setIsInitiating(true);
@@ -80,6 +79,7 @@ export const BankIDSigning = ({
       }
 
       setSession(newSession);
+      setOrderTime(Math.floor(Date.now() / 1000)); // Set order time when session is created
       setStatus('pending');
       
       // Auto-start on mobile
