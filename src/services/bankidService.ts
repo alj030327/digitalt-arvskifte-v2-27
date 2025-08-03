@@ -324,31 +324,12 @@ export class BankIdService {
     if (isMobile) {
       console.log('📱 Mobile device detected - opening BankID app');
       
+      // Direct approach that should work on all mobile devices
       try {
-        // Add timestamp to force cache bypass
-        const urlWithTimestamp = `${bankIdUrl}&_t=${Date.now()}`;
-        
-        // Try different approaches for iOS
-        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          // For iOS, create a temporary link and click it
-          const link = document.createElement('a');
-          link.href = urlWithTimestamp;
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          setTimeout(() => {
-            document.body.removeChild(link);
-          }, 100);
-          console.log('✅ BankID URL opened via iOS method');
-        } else {
-          // For other devices, use direct location change
-          window.location.href = urlWithTimestamp;
-          console.log('✅ BankID URL opened via direct method');
-        }
+        window.location.href = bankIdUrl;
+        console.log('✅ BankID URL opened:', bankIdUrl);
       } catch (error) {
         console.error('❌ Failed to open BankID app:', error);
-        // Fallback to simple method
-        window.location.href = bankIdUrl;
       }
       
     } else {
