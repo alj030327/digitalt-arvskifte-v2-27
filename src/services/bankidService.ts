@@ -312,6 +312,8 @@ export class BankIdService {
     }
 
     console.log('🔐 Attempting to open BankID app with token:', autoStartToken);
+    console.log('🔍 User agent:', navigator.userAgent);
+    console.log('🔍 Is mobile detection:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
     // For mobile devices, try to open the BankID app using the custom URL scheme
     const bankIdUrl = `bankid:///?autostarttoken=${autoStartToken}&redirect=null`;

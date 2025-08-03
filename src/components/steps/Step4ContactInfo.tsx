@@ -99,6 +99,7 @@ export const Step4ContactInfo = ({
         if (!useEmail && !useSms) continue;
 
         try {
+          console.log('📧 Trying to send email to:', heir.email, 'SMS to:', heir.phone);
           const { data, error } = await supabase.functions.invoke('send-summary', {
             body: {
               inheritanceData: {
