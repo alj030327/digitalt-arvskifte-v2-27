@@ -486,30 +486,6 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Test BankID Information */}
-          <Alert className="bg-blue-50 border-blue-200">
-            <Shield className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              <div className="space-y-2">
-                <p className="font-semibold">🧪 Test BankID miljö</p>
-                <p>För utveckling och testning använder vi BankID:s officiella testmiljö:</p>
-                <ul className="text-sm space-y-1 ml-4">
-                  <li>• <strong>Test-URL:</strong> https://appapi2.test.bankid.com/</li>
-                  <li>• <strong>Test-personnummer:</strong> Avsluta med 0111 (t.ex. 19900101111)</li>
-                  <li>• <strong>Certifikat:</strong> Test BankID SSL Root CA v1 Test</li>
-                  <li>• <strong>Begränsning:</strong> Max 5 aktiva orders samtidigt</li>
-                </ul>
-                <p className="text-xs mt-2">
-                  📚 <a href="https://developers.bankid.com/getting-started/environments" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-blue-600 hover:underline">
-                    BankID Utvecklarguide - Miljöer
-                  </a>
-                </p>
-              </div>
-            </AlertDescription>
-          </Alert>
           {/* Main input method - manual entry only */}
           {!isLoggedInAsRepresentative && !hasFetchedHeirs && (
             <div className="space-y-4">

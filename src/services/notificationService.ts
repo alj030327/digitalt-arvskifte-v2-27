@@ -172,8 +172,8 @@ export class MockESignatureProvider implements ESignatureProvider {
 // Notification service that combines email and SMS
 export class NotificationService {
   constructor(
-    private emailProvider: EmailProvider = new RealEmailProvider(),
-    private smsProvider: SMSProvider = new RealSMSProvider(),
+    private emailProvider: EmailProvider = new MockEmailProvider(), // Always use mock
+    private smsProvider: SMSProvider = new MockSMSProvider(), // Always use mock  
     private eSignatureProvider: ESignatureProvider = new MockESignatureProvider()
   ) {}
 
