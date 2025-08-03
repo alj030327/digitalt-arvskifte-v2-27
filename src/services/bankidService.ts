@@ -313,9 +313,6 @@ export class BankIdService {
 
     console.log('🔐 Attempting to open BankID app with token:', autoStartToken);
 
-    // Show mock BankID interface for demo
-    this.showMockBankIDInterface();
-
     // For mobile devices, try to open the BankID app using the custom URL scheme
     const bankIdUrl = `bankid:///?autostarttoken=${autoStartToken}&redirect=null`;
     
@@ -324,8 +321,6 @@ export class BankIdService {
     
     if (isMobile) {
       console.log('📱 Mobile device detected - opening BankID app');
-      
-      // Direct method that was working before
       window.location.href = bankIdUrl;
       
     } else {
