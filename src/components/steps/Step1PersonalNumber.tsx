@@ -4,14 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { UserCheck, AlertCircle, Shield, Users, CheckCircle2, Briefcase, Send, FileText } from "lucide-react";
+import { UserCheck, AlertCircle, Shield, Users, CheckCircle2, Briefcase, Send } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SkatteverketService, SkatteverketHeirData } from "@/services/skatteverketService";
 import { BankIdService } from "@/services/bankidService";
 import { BankIDSigning } from "@/components/BankIDSigning";
 import { RepresentativeService, RepresentativeAccess } from "@/services/representativeService";
-import { PDFUploadScanner } from "@/components/PDFUploadScanner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { useToast } from "@/hooks/use-toast";
 
 interface Heir {
@@ -511,146 +510,123 @@ export const Step1PersonalNumber = ({ personalNumber, setPersonalNumber, heirs, 
               </div>
             </AlertDescription>
           </Alert>
-          {/* Main input method selection */}
+          {/* Main input method - manual entry only */}
           {!isLoggedInAsRepresentative && !hasFetchedHeirs && (
-            <Tabs defaultValue="manual" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="manual">Manuell inmatning</TabsTrigger>
-                <TabsTrigger value="pdf">Scanna dokument</TabsTrigger>
-              </TabsList>
+            <div className="space-y-4">
+              {/* Manual input method */}
+              <Alert>
+                <UserCheck className="h-4 w-4" />
+                <AlertDescription>
+                  Ange personnummer för den avlidne för att hämta arvsinformation från Skatteverket.
+                </AlertDescription>
+              </Alert>
               
-              <TabsContent value="manual" className="space-y-4">
-                {/* Manual input method */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="personalNumber">Personnummer för avliden</Label>
+                  <Input
+                    id="personalNumber"
+                    type="text"
+                    placeholder="ÅÅÅÅMMDD-XXXX"
+                    value={personalNumber}
+                    onChange={handleInputChange}
+                    maxLength={13}
+                  />
+                  {validationError && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{validationError}</AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                <Button
+                  onClick={fetchHeirsFromSkatteverket}
+                  disabled={!personalNumber || isValidating}
+                  className="w-full"
+                >
+                  {isValidating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Hämtar arvsinformation...
+                    </>
+                  ) : (
+                    <>
+                      <UserCheck className="w-4 h-4 mr-2" />
+                      Hämta arvsinformation
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {/* Representative Login Section */}
+              <div className="mt-6 pt-6 border-t">
                 <Alert>
-                  <UserCheck className="h-4 w-4" />
+                  <Briefcase className="h-4 w-4" />
                   <AlertDescription>
-                    Ange personnummer för den avlidne för att hämta arvsinformation från Skatteverket.
+                    Är du ombud för ett dödsbo? Logga in med BankID för att komma åt dina fullmakter.
                   </AlertDescription>
                 </Alert>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="personalNumber">Personnummer för avliden</Label>
-                    <Input
-                      id="personalNumber"
-                      type="text"
-                      placeholder="ÅÅÅÅMMDD-XXXX"
-                      value={personalNumber}
-                      onChange={handleInputChange}
-                      maxLength={13}
-                    />
-                    {validationError && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{validationError}</AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-
-                  <Button
-                    onClick={fetchHeirsFromSkatteverket}
-                    disabled={!personalNumber || isValidating}
-                    className="w-full"
+            
+                {!showRepresentativeLogin && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowRepresentativeLogin(true)}
+                    className="w-full mt-2"
                   >
-                    {isValidating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Hämtar arvsinformation...
-                      </>
-                    ) : (
-                      <>
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Hämta arvsinformation
-                      </>
-                    )}
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Logga in som ombud
                   </Button>
-                </div>
-                
-                {/* Representative Login Section */}
-                <div className="mt-6 pt-6 border-t">
-                  <Alert>
-                    <Briefcase className="h-4 w-4" />
-                    <AlertDescription>
-                      Är du ombud för ett dödsbo? Logga in med BankID för att komma åt dina fullmakter.
-                    </AlertDescription>
-                  </Alert>
-              
-                  {!showRepresentativeLogin && (
-                    <Button 
-                      variant="outline"
-                      onClick={() => setShowRepresentativeLogin(true)}
-                      className="w-full mt-2"
-                    >
-                      <Briefcase className="w-4 h-4 mr-2" />
-                      Logga in som ombud
-                    </Button>
-                  )}
+                )}
 
-                  {showRepresentativeLogin && (
-                    <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30 mt-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Inloggning för ombud</h4>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => setShowRepresentativeLogin(false)}
-                        >
-                          ✕
-                        </Button>
+                {showRepresentativeLogin && (
+                  <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30 mt-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Inloggning för ombud</h4>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowRepresentativeLogin(false)}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="representativeLoginPersonalNumber">Ditt personnummer</Label>
+                        <Input
+                          id="representativeLoginPersonalNumber"
+                          type="text"
+                          placeholder="ÅÅÅÅMMDD-XXXX"
+                          value={representativeLoginPersonalNumber}
+                          onChange={(e) => setRepresentativeLoginPersonalNumber(formatPersonalNumber(e.target.value))}
+                          maxLength={13}
+                        />
                       </div>
                       
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="representativeLoginPersonalNumber">Ditt personnummer</Label>
-                          <Input
-                            id="representativeLoginPersonalNumber"
-                            type="text"
-                            placeholder="ÅÅÅÅMMDD-XXXX"
-                            value={representativeLoginPersonalNumber}
-                            onChange={(e) => setRepresentativeLoginPersonalNumber(formatPersonalNumber(e.target.value))}
-                            maxLength={13}
-                          />
-                        </div>
-                        
-                        <Button 
-                          onClick={handleRepresentativeLogin}
-                          disabled={!representativeLoginPersonalNumber || isAuthenticatingRepresentative}
-                          className="w-full"
-                        >
-                          {isAuthenticatingRepresentative ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Autentiserar med BankID...
-                            </>
-                          ) : (
-                            <>
-                              <Shield className="w-4 h-4 mr-2" />
-                              Logga in med BankID
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      <Button 
+                        onClick={handleRepresentativeLogin}
+                        disabled={!representativeLoginPersonalNumber || isAuthenticatingRepresentative}
+                        className="w-full"
+                      >
+                        {isAuthenticatingRepresentative ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Autentiserar med BankID...
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="w-4 h-4 mr-2" />
+                            Logga in med BankID
+                          </>
+                        )}
+                      </Button>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="pdf" className="space-y-4">
-                <PDFUploadScanner 
-                  onScanComplete={(scannedPersonalNumber, scannedHeirs) => {
-                    setPersonalNumber(scannedPersonalNumber);
-                    setLocalHeirs(scannedHeirs);
-                    setHeirs(scannedHeirs);
-                    setHasFetchedHeirs(true);
-                    toast({
-                      title: "Scanning lyckades",
-                      description: `Information från ${scannedHeirs.length} dödsbodelägare har importerats.`,
-                    });
-                  }}
-                  t={t}
-                />
-              </TabsContent>
-            </Tabs>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {/* Representative Estate Selection */}
