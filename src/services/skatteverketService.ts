@@ -148,12 +148,12 @@ export class SkatteverketService {
       const city = cities[Math.floor(Math.random() * cities.length)];
       const relationship = relationships[Math.floor(Math.random() * relationships.length)];
       
-      // Generate realistic personal number (19XX or 20XX)
+      // Generate BankID test-compatible personal numbers (ending with 0111)
       const birthYear = Math.floor(Math.random() * 70) + 1950;
       const birthMonth = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
       const birthDay = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
-      const lastFour = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-      const heirPersonalNumber = `${birthYear}${birthMonth}${birthDay}${lastFour}`;
+      // Always end with 0111 for BankID test environment compatibility
+      const heirPersonalNumber = `${birthYear}${birthMonth}${birthDay}0111`;
       
       heirs.push({
         personalNumber: heirPersonalNumber,
