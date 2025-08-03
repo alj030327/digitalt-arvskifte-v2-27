@@ -37,10 +37,21 @@ export const BankIDSigning = ({
 
   useEffect(() => {
     if (session?.qrStartToken && session?.qrStartSecret) {
-      // Generate QR code data
+      // Generate QR code data with current timestamp
       const timestamp = Math.floor(Date.now() / 1000);
       const qrData = BankIdService.generateQRCodeData(session.qrStartToken, session.qrStartSecret, timestamp);
       setQrCodeData(qrData);
+      console.log('📱 QR Code generated:', { qrData, timestamp, session });
+      
+      // Update QR code every 1 second as per BankID specification
+      const interval = setInterval(() => {
+        const newTimestamp = Math.floor(Date.now() / 1000);
+        const newQrData = BankIdService.generateQRCodeData(session.qrStartToken, session.qrStartSecret, newTimestamp);
+        setQrCodeData(newQrData);
+        console.log('🔄 QR Code updated:', newQrData);
+      }, 1000);
+
+      return () => clearInterval(interval);
     }
   }, [session]);
 
