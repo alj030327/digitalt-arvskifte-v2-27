@@ -313,29 +313,42 @@ export class BankIdService {
 
     console.log('🔐 Attempting to open BankID app with token:', autoStartToken);
     console.log('🔍 User agent:', navigator.userAgent);
-    console.log('🔍 Is mobile detection:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
-    // For mobile devices, try to open the BankID app using the custom URL scheme
+    // BankID URL scheme
     const bankIdUrl = `bankid:///?autostarttoken=${autoStartToken}&redirect=null`;
     
-    // Detect if we're on mobile
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // Check if we're in a Capacitor app
+    const isCapacitor = (window as any).Capacitor !== undefined;
     
-    if (isMobile) {
-      console.log('📱 Mobile device detected - opening BankID app');
-      
-      // Direct approach that should work on all mobile devices
-      try {
-        window.location.href = bankIdUrl;
-        console.log('✅ BankID URL opened:', bankIdUrl);
-      } catch (error) {
-        console.error('❌ Failed to open BankID app:', error);
-      }
-      
+    if (isCapacitor) {
+      console.log('📱 Running in Capacitor app - using native URL opening');
+      // In Capacitor, we can reliably open external apps
+      window.open(bankIdUrl, '_system');
     } else {
-      // On desktop, show instructions to open mobile app
-      console.log('🖥️ Desktop detected - user should open BankID app manually');
-      console.log('🔗 BankID URL:', bankIdUrl);
+      // Fallback for web browsers
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        console.log('📱 Mobile browser detected - attempting to open BankID app');
+        
+        // Create invisible iframe to trigger app opening
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = bankIdUrl;
+        document.body.appendChild(iframe);
+        
+        // Remove iframe after a short delay
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1000);
+        
+        console.log('✅ BankID URL triggered via iframe:', bankIdUrl);
+      } else {
+        console.log('🖥️ Desktop detected - user should open BankID app manually');
+        console.log('🔗 BankID URL:', bankIdUrl);
+      }
     }
   }
 
