@@ -77,8 +77,15 @@ export const Step4ContactInfo = ({
     setIsSendingDocuments(true);
     
     try {
-      // For the demo, we'll use a mock user ID since no authentication is set up
-      const mockUserId = "demo-user-" + Date.now();
+      // Generate a valid UUID for the demo user
+      const generateUUID = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      };
+      const mockUserId = generateUUID();
 
       // Send documents for each heir
       const results = [];

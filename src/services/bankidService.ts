@@ -325,50 +325,29 @@ export class BankIdService {
     if (isMobile) {
       console.log('📱 Mobile device detected - opening BankID app');
       
-      // Try multiple approaches for better compatibility
-      
-      // Method 1: Direct window location (most reliable)
-      try {
-        window.location.href = bankIdUrl;
-        console.log('✅ Tried window.location.href method');
-      } catch (error) {
-        console.log('❌ Window location method failed:', error);
-      }
-      
-      // Method 2: Create a temporary link and click it
-      setTimeout(() => {
+      // Create a user gesture to open the BankID app
+      const openBankID = () => {
         try {
+          // Try to open the BankID app directly
+          window.location.assign(bankIdUrl);
+          console.log('✅ Attempted to open BankID app with window.location.assign');
+        } catch (error) {
+          console.log('❌ Failed to open BankID app:', error);
+          
+          // Fallback: Create a link and trigger click
           const link = document.createElement('a');
           link.href = bankIdUrl;
+          link.target = '_blank';
           link.style.display = 'none';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          console.log('✅ Tried link click method');
-        } catch (error) {
-          console.log('❌ Link click method failed:', error);
+          console.log('✅ Fallback link click attempted');
         }
-      }, 100);
+      };
       
-      // Method 3: Hidden iframe as fallback
-      setTimeout(() => {
-        try {
-          const iframe = document.createElement('iframe');
-          iframe.style.display = 'none';
-          iframe.src = bankIdUrl;
-          document.body.appendChild(iframe);
-          
-          // Clean up after a short delay
-          setTimeout(() => {
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe);
-            }
-          }, 2000);
-          console.log('✅ Tried iframe method');
-        } catch (error) {
-          console.log('❌ Iframe method failed:', error);
-        }
-      }, 200);
+      // Open immediately on user action
+      openBankID();
       
     } else {
       // On desktop, show instructions to open mobile app
