@@ -28,6 +28,14 @@ serve(async (req) => {
     const certificate = Deno.env.get('BANKID_CERT');
     const privateKey = Deno.env.get('BANKID_KEY');
 
+    console.log('🔍 BankID Configuration Check:');
+    console.log('- Certificate available:', !!certificate);
+    console.log('- Private key available:', !!privateKey);
+    console.log('- Certificate length:', certificate?.length || 0);
+    console.log('- Private key length:', privateKey?.length || 0);
+    console.log('- Certificate starts with BEGIN:', certificate?.startsWith('-----BEGIN'));
+    console.log('- Private key starts with BEGIN:', privateKey?.startsWith('-----BEGIN'));
+
     if (!certificate || !privateKey) {
       console.log('⚠️ BankID certificates not configured, using mock response');
       return new Response(
