@@ -125,7 +125,7 @@ export class BankIdService {
   }
 
   /**
-   * Call your custom BankID API server
+   * Call BankID API through secure edge function
    */
   private static async callBankIdAPI(endpoint: string, data: any): Promise<any> {
     if (!IntegrationManager.isConfigured('bankid')) {
@@ -145,14 +145,8 @@ export class BankIdService {
       throw new Error(`Unknown endpoint: ${endpoint}`);
     }
 
-    // Call your custom API server
+    // Call through Supabase edge function for secure certificate handling
     try {
-      if (endpoint === 'auth' || endpoint === 'sign') {
-        return await this.callCustomBankIdAuth(data);
-      }
-      
-      // For other endpoints (collect, cancel), still use the Supabase edge function
-      // since these typically don't need to go through your custom server
       const { supabase } = await import('@/integrations/supabase/client');
       
       const { data: response, error } = await supabase.functions.invoke('bankid-api', {
@@ -166,59 +160,6 @@ export class BankIdService {
       return response;
     } catch (error) {
       console.error(`BankID ${endpoint} API Error:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Call your custom BankID authentication/signing server
-   */
-  private static async callCustomBankIdAuth(data: any): Promise<BankIdSession> {
-    try {
-      console.log('🔐 Calling custom BankID server at https://min-server.com/bankid/auth');
-      
-      // Get user's IP address (you might want to implement this properly)
-      const endUserIp = data.endUserIp || '127.0.0.1';
-      
-      const requestBody = {
-        endUserIp: endUserIp,
-        personalNumber: data.personalNumber
-      };
-
-      console.log('📤 Sending request:', requestBody);
-
-      const response = await fetch('https://min-server.com/bankid/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('📥 Response from custom server:', result);
-
-      // Extract the autoStartToken from your server's response
-      const autoStartToken = result.autoStartToken;
-      
-      if (!autoStartToken) {
-        throw new Error('No autoStartToken received from server');
-      }
-
-      // Return in the expected BankIdSession format
-      return {
-        orderRef: result.orderRef || `custom-${Date.now()}`,
-        autoStartToken: autoStartToken,
-        qrStartToken: result.qrStartToken,
-        qrStartSecret: result.qrStartSecret
-      };
-
-    } catch (error) {
-      console.error('❌ Custom BankID server call failed:', error);
       throw error;
     }
   }

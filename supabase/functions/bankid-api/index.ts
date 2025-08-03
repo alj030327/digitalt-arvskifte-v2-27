@@ -24,17 +24,9 @@ serve(async (req) => {
     // BankID Test Environment Configuration
     const BANKID_BASE_URL = 'https://appapi2.test.bankid.com/rp/v6.0';
     
-    // Get certificate from Supabase secrets
-    const certificate = Deno.env.get('BANKID_CERT');
-    const privateKey = Deno.env.get('BANKID_KEY');
-
-    console.log('🔍 BankID Configuration Check:');
-    console.log('- Certificate available:', !!certificate);
-    console.log('- Private key available:', !!privateKey);
-    console.log('- Certificate length:', certificate?.length || 0);
-    console.log('- Private key length:', privateKey?.length || 0);
-    console.log('- Certificate starts with BEGIN:', certificate?.startsWith('-----BEGIN'));
-    console.log('- Private key starts with BEGIN:', privateKey?.startsWith('-----BEGIN'));
+    // Get certificate from Supabase secrets (when available)
+    const certificate = Deno.env.get('BANKID_TEST_CERTIFICATE');
+    const privateKey = Deno.env.get('BANKID_TEST_PRIVATE_KEY');
 
     if (!certificate || !privateKey) {
       console.log('⚠️ BankID certificates not configured, using mock response');

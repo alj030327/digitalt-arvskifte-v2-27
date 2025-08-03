@@ -191,8 +191,7 @@ export class IntegrationManager {
         
       case 'bankid':
         const biConfig = config as BankIDConfig;
-        // Check if certificates are available in Supabase secrets
-        return biConfig.enabled;
+        return !!biConfig.credentials.certificatePath;
         
       case 'openBanking':
         const obConfig = config as OpenBankingConfig;
