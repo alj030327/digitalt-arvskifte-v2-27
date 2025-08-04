@@ -174,6 +174,16 @@ export const Step5BeneficiarySigning = ({
         <CardContent className="space-y-6">
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex justify-between items-center mb-2">
+              <span className="font-medium">{t('step3.total_amount')}:</span>
+              <span className="text-lg font-bold text-primary">
+                {/* TODO: Add total net assets calculation */}
+                {heirs.reduce((sum, heir) => sum + (heir.inheritanceShare || 0), 0).toLocaleString('sv-SE')} SEK
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-muted p-4 rounded-lg">
+            <div className="flex justify-between items-center mb-2">
               <span className="font-medium">{t('step5.signing_status')}:</span>
               <span className="text-lg font-bold text-primary">
                 {signedCount} {t('step5.signed_count')} {heirs.length}
@@ -196,7 +206,7 @@ export const Step5BeneficiarySigning = ({
           </Alert>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Dödsbodelägares BankID-signering</h3>
+            <h3 className="text-lg font-semibold">{t('step3.registered_heirs')}</h3>
             
             {heirs.map((heir) => (
               <div key={heir.personalNumber} className="p-4 border border-border rounded-lg">
