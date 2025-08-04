@@ -1,4 +1,5 @@
 import { IntegrationManager, OPEN_BANKING_CONFIG } from '@/config/integrationSettings';
+import { isDemoMode, demoConfig, demoLogger } from '@/config/demoConfig';
 
 export interface OpenBankingAccount {
   accountId: string;
@@ -46,6 +47,13 @@ export class OpenBankingService {
    */
   static async initiateAuth(bankCode: string): Promise<string | null> {
     try {
+      // Demo mode - return mock auth code
+      if (isDemoMode()) {
+        demoLogger.info('OpenBanking initiate auth (demo mode)', { bankCode });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return `demo_auth_code_${bankCode}_${Date.now()}`;
+      }
+
       if (!IntegrationManager.isConfigured('openBanking')) {
         console.log('🏦 Open Banking not configured - using mock auth flow');
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -103,6 +111,31 @@ export class OpenBankingService {
    * Fetch accounts from bank using PSD2
    */
   static async fetchAccounts(bankCode: string, accessToken: string): Promise<OpenBankingAccount[]> {
+    // Demo mode - return mock accounts
+    if (isDemoMode()) {
+      demoLogger.info('OpenBanking fetch accounts (demo mode)', { bankCode });
+      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate delay
+      
+      // Convert demo config accounts to OpenBankingAccount format
+      const bankAccounts = demoConfig.mockAccounts.filter(account => 
+        account.bank.toLowerCase().includes(bankCode.toLowerCase())
+      );
+      
+      return bankAccounts.map((account, index) => ({
+        accountId: `${bankCode.toUpperCase()}-${Date.now()}-${index}`,
+        iban: `SE${String(Math.floor(Math.random() * 100)).padStart(2, '0')}${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}${String(Math.floor(Math.random() * 1000000000)).padStart(16, '0')}`,
+        accountNumber: account.accountNumber,
+        sortCode: bankCode === 'swedbank' ? '8000' : bankCode === 'handelsbanken' ? '6000' : '5000',
+        accountType: account.accountType,
+        currency: account.currency,
+        balance: account.balance,
+        availableBalance: account.balance,
+        accountName: account.accountType,
+        bankName: account.bank,
+        lastUpdated: new Date().toISOString()
+      }));
+    }
+
     if (!IntegrationManager.isConfigured('openBanking')) {
       console.log('🏦 Open Banking not configured - using mock account data');
       return this.getMockAccounts(bankCode);

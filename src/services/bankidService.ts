@@ -1,4 +1,5 @@
 import { IntegrationManager, BANKID_CONFIG } from '@/config/integrationSettings';
+import { isDemoMode, mockBankIDResponses, demoLogger } from '@/config/demoConfig';
 
 export interface BankIdSession {
   orderRef: string;
@@ -47,6 +48,18 @@ export class BankIdService {
    */
   static async authenticate(request: BankIdAuthRequest): Promise<BankIdSession | null> {
     try {
+      // Demo mode - return mock response
+      if (isDemoMode()) {
+        demoLogger.info('BankID authenticate (demo mode)', { personalNumber: request.personalNumber });
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+        return {
+          orderRef: mockBankIDResponses.auth.orderRef,
+          autoStartToken: mockBankIDResponses.auth.autoStartToken,
+          qrStartToken: mockBankIDResponses.auth.qrStartToken,
+          qrStartSecret: mockBankIDResponses.auth.qrStartSecret
+        };
+      }
+
       if (!IntegrationManager.isConfigured('bankid')) {
         console.log('🔐 BankID not configured - using mock authentication');
         const session = this.getMockSession();

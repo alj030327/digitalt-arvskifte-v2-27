@@ -2,6 +2,22 @@
 
 En fullständig digital lösning för hantering av arvsskiften med djupgående integrationer till Skatteverkets API, BankID för säker autentisering och signering, samt PSD2/Open Banking för automatisk hantering av tillgångar.
 
+## 🚀 Snabbstart (för SHB-tekniker)
+
+Kom igång på 30 sekunder:
+
+```bash
+# Klona och starta med Docker Compose
+git clone [repository-url]
+cd digital-arvsskifte
+docker-compose up -d
+
+# Öppna http://localhost och testa demo-läget
+# Använd demo-personnummer: 195001011111
+```
+
+**🎯 Demo-läge aktiverat:** Alla banker, BankID och Skatteverket är mockade för enkel demonstration utan riktiga API-nycklar.
+
 ## 📋 Översikt
 
 Digital Arvsskifte är en modern webapplikation byggd för att förenkla och digitalisera hela processen för arvsskiften i Sverige. Systemet integrerar med flera myndigheter och finansiella institutioner för att skapa en smidig, säker och effektiv lösning.

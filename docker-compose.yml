@@ -6,9 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "80:8080"
     environment:
       - NODE_ENV=production
+      - DEMO_MODE=true
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -17,20 +18,20 @@ services:
       retries: 3
       start_period: 40s
 
-  # Load balancer
+  # Load balancer för skalning (valfritt)
   nginx-lb:
     image: nginx:alpine
     ports:
-      - "80:80"
       - "443:443"
     volumes:
-      - ./load-balancer/nginx.conf:/etc/nginx/nginx.conf
-      - ./load-balancer/ssl:/etc/nginx/ssl
+      - ./load-balancer/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./load-balancer/ssl:/etc/nginx/ssl:ro
     depends_on:
       - app
     restart: unless-stopped
+    profiles: ["load-balanced"]
 
-  # Multiple app instances for load balancing demo
+  # Ytterligare instanser för lastbalansering
   app-2:
     build:
       context: .
@@ -39,6 +40,7 @@ services:
       - "8081:8080"
     environment:
       - NODE_ENV=production
+      - DEMO_MODE=true
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -46,6 +48,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    profiles: ["load-balanced"]
 
   app-3:
     build:
@@ -55,6 +58,7 @@ services:
       - "8082:8080"
     environment:
       - NODE_ENV=production
+      - DEMO_MODE=true
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -62,3 +66,4 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    profiles: ["load-balanced"]

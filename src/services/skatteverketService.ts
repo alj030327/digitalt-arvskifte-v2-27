@@ -1,4 +1,5 @@
 import { IntegrationManager, SKATTEVERKET_CONFIG } from '@/config/integrationSettings';
+import { isDemoMode, demoConfig, demoLogger } from '@/config/demoConfig';
 
 export interface SkatteverketHeirData {
   personalNumber: string;
@@ -29,6 +30,39 @@ export class SkatteverketService {
    * Real implementation would require backend integration
    */
   static async fetchHeirs(deceasedPersonalNumber: string): Promise<SkatteverketResponse> {
+    // Demo mode - return mock heirs
+    if (isDemoMode()) {
+      demoLogger.info('Skatteverket fetch heirs (demo mode)', { personalNumber: deceasedPersonalNumber });
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate delay
+      
+      if (deceasedPersonalNumber === '195001011111') {
+        return {
+          status: 'success',
+          data: {
+            deceasedPersonalNumber,
+            deceasedName: 'Demo Avliden',
+            dateOfDeath: '2023-12-15',
+            heirs: demoConfig.mockHeirs.map(heir => ({
+              personalNumber: heir.personalNumber,
+              name: heir.name,
+              relationship: heir.relationship,
+              inheritanceShare: heir.inheritancePercentage / 100,
+              address: 'Testgatan 123, 11111 Stockholm',
+              phoneNumber: heir.phone,
+              email: heir.email
+            }))
+          },
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      return {
+        status: 'error',
+        error: 'Personnummer ej funnet i demo-databasen. Använd 195001011111 för demo.',
+        timestamp: new Date().toISOString()
+      };
+    }
+
     // Check if integration is properly configured
     if (!IntegrationManager.isConfigured('skatteverket')) {
       console.log('🏦 Skatteverket API not configured - using realistic mock data');
