@@ -40,11 +40,29 @@ export const Step5BeneficiarySigning = ({
   const [isSendingToBanks, setIsSendingToBanks] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
+  // Automatically mark documents as sent when component loads
+  useEffect(() => {
+    const heirsNeedDocumentSent = heirs.some(h => !h.documentSent);
+    if (heirsNeedDocumentSent) {
+      const updatedHeirs = heirs.map(h => ({
+        ...h,
+        documentSent: true,
+        sentAt: new Date().toISOString()
+      }));
+      setHeirs(updatedHeirs);
+      
+      toast({
+        title: "Dokument skickade",
+        description: "PDF-dokument för signering har skickats till alla dödsbodelägare.",
+      });
+    }
+  }, [heirs, setHeirs, toast]);
+
   // Simulate automatic status updates
   useEffect(() => {
     const interval = setInterval(() => {
       // Randomly sign some heirs if not all are signed
-      if (!allSigned && Math.random() > 0.7) {
+      if (!allSigned && Math.random() > 0.6) {
         const unsignedHeirs = heirs.filter(h => h.documentSent && !h.signed);
         if (unsignedHeirs.length > 0) {
           const randomHeir = unsignedHeirs[Math.floor(Math.random() * unsignedHeirs.length)];
@@ -64,7 +82,7 @@ export const Step5BeneficiarySigning = ({
           });
         }
       }
-    }, 10000); // Check every 10 seconds
+    }, 8000); // Check every 8 seconds
 
     return () => clearInterval(interval);
   }, [heirs, setHeirs, toast]);
@@ -130,7 +148,7 @@ export const Step5BeneficiarySigning = ({
       return "Signerat med BankID";
     }
     if (heir.documentSent) {
-      return "Väntar på BankID-signering";
+      return "Skickat";
     }
     return "Ej skickat";
   };

@@ -307,8 +307,8 @@ const translations: Translations = {
     'step3.save_pdf': 'Save as PDF',
     'step3.add_heir': 'Add heir',
     'step3.first_last_name': 'First and last name',
-    'step3.registered_heirs': 'Registered heirs',
-    'step3.total_amount': 'Total amount to distribute',
+    'step3.registered_heirs': 'Registrerade arvingar',
+    'step3.total_amount': 'Totala nettotillgångar',
     'step3.relationship_to_deceased': 'Relationship to deceased',
     'step3.account_for_payment': 'Account number for payment',
     
