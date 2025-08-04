@@ -1,6 +1,21 @@
 import { IntegrationManager, BANKID_CONFIG } from '@/config/integrationSettings';
 import { isDemoMode, mockBankIDResponses, demoLogger } from '@/config/demoConfig';
 
+// =============================================================================
+// DEMO BANKID SERVICE
+// =============================================================================
+// This service is configured for DEMONSTRATION PURPOSES ONLY
+// It shows BankID integration functionality using mock responses
+// For production, replace with real BankID API integration
+// 
+// PRODUCTION INTEGRATION NOTES:
+// - Replace mock edge function with real BankID API calls
+// - Implement proper certificate-based authentication
+// - Add production-grade error handling and logging
+// - Implement proper encryption for sensitive data transmission
+// - Add audit trails for all BankID operations
+// =============================================================================
+
 export interface BankIdSession {
   orderRef: string;
   autoStartToken?: string;
