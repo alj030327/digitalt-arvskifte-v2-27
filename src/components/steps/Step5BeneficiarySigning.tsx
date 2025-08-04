@@ -29,13 +29,18 @@ interface Step5Props {
   t: (key: string) => string;
 }
 
+interface Step5ExtendedProps extends Step5Props {
+  totalAmount?: number;
+}
+
 export const Step5BeneficiarySigning = ({ 
   heirs, 
   setHeirs, 
   onNext, 
   onBack,
-  t
-}: Step5Props) => {
+  t,
+  totalAmount = 0
+}: Step5ExtendedProps) => {
   const { toast } = useToast();
   const [isSendingToBanks, setIsSendingToBanks] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -90,47 +95,10 @@ export const Step5BeneficiarySigning = ({
   const signedCount = heirs.filter(h => h.signed).length;
   const allSigned = heirs.length > 0 && heirs.every(h => h.signed);
 
-  const handleSendToBanks = async () => {
+  const handleProceedToStep6 = () => {
     if (!allSigned) return;
-
-    setIsSendingToBanks(true);
-    
-    try {
-      // Simulate sending data to banks via PSD2/Open Banking
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Log the inheritance data that would be sent to banks
-      console.log("Sending inheritance data to banks:", {
-        heirs: heirs.map(h => ({
-          name: h.name,
-          personalNumber: h.personalNumber,
-          relationship: h.relationship,
-          inheritanceShare: h.inheritanceShare,
-          signedAt: h.signedAt
-        })),
-        documentId: `ARV-${Date.now()}`,
-        allSignedAt: new Date().toISOString()
-      });
-      
-      toast({
-        title: "Skickat till banker",
-        description: t('step5.all_signed'),
-      });
-      
-      // Proceed to final summary
-      setTimeout(() => {
-        onNext();
-      }, 2000);
-      
-    } catch (error) {
-      toast({
-        title: "Fel",
-        description: "Kunde inte skicka till bankerna. Försök igen.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSendingToBanks(false);
-    }
+    // Just proceed to Step 6 without sending to banks
+    onNext();
   };
 
   const getStatusIcon = (heir: Heir) => {
@@ -168,16 +136,15 @@ export const Step5BeneficiarySigning = ({
           </div>
           <CardTitle className="text-2xl">{t('step5.title')}</CardTitle>
           <CardDescription>
-            {t('step5.subtitle')}
+            Dödsbodelägarna signerar med BankID
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-medium">{t('step3.total_amount')}:</span>
+              <span className="font-medium">Totala nettotillgångar:</span>
               <span className="text-lg font-bold text-primary">
-                {/* TODO: Add total net assets calculation */}
-                {heirs.reduce((sum, heir) => sum + (heir.inheritanceShare || 0), 0).toLocaleString('sv-SE')} SEK
+                {totalAmount.toLocaleString('sv-SE')} SEK
               </span>
             </div>
           </div>
@@ -206,7 +173,7 @@ export const Step5BeneficiarySigning = ({
           </Alert>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{t('step3.registered_heirs')}</h3>
+            <h3 className="text-lg font-semibold">Registrerade arvingar</h3>
             
             {heirs.map((heir) => (
               <div key={heir.personalNumber} className="p-4 border border-border rounded-lg">
@@ -256,21 +223,12 @@ export const Step5BeneficiarySigning = ({
             </Button>
             
             <Button 
-              onClick={handleSendToBanks}
-              disabled={!allSigned || isSendingToBanks}
+              onClick={handleProceedToStep6}
+              disabled={!allSigned}
               size="lg"
               className="flex-1 sm:flex-none"
             >
-              {isSendingToBanks ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Fortsätter...
-                </>
-              ) : (
-                <>
-                  Nästa
-                </>
-              )}
+              Nästa
             </Button>
           </div>
         </CardContent>

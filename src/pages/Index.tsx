@@ -203,6 +203,7 @@ const Index = () => {
             onNext={handleNext}
             onBack={handleBack}
             t={t}
+            totalAmount={totalDistributableAmount}
           />
         )}
 

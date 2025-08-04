@@ -546,7 +546,7 @@ export const Step3Distribution = ({
 
           {savedProgress && (
             <div className="text-center p-3 bg-success/10 border border-success/20 rounded-lg">
-              <p className="text-sm font-medium text-success">{t('step3.progress_saved')}</p>
+              <p className="text-sm font-medium text-success">Framsteg sparade</p>
             </div>
           )}
 

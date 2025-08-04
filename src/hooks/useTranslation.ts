@@ -182,7 +182,7 @@ const translations: Translations = {
     'step6.summary_complete': 'Komplett sammanfattning av alla steg. När du slutför kommer en PDF att skickas till alla angivna e-postadresser och arvsskiftet kommer att skickas till banker via PSD2/Open Banking.',
     'step6.send_pdf_summary': 'Skicka PDF-sammanfattning',
     'step6.sending_pdf': 'Skickar PDF...',
-    'step6.complete_settlement': 'Slutför arvsskifte',
+    'step6.complete_settlement': 'Skicka Arvskifte',
     'step6.completing': 'Slutför...',
     'step6.personal_number': 'Personnummer',
     

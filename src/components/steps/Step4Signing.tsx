@@ -197,7 +197,7 @@ export const Step4Signing = ({
       // First send the PDF summary
       await handleSendPDFSummary();
       
-      // Then simulate sending inheritance settlement to banks
+      // Then simulate sending inheritance settlement to banks via PSD2/Open Banking
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       toast({
