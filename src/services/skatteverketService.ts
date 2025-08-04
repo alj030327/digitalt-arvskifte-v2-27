@@ -30,35 +30,28 @@ export class SkatteverketService {
    * Real implementation would require backend integration
    */
   static async fetchHeirs(deceasedPersonalNumber: string): Promise<SkatteverketResponse> {
-    // Demo mode - return mock heirs
+    // Demo mode - return mock heirs for any personal number
     if (isDemoMode()) {
       demoLogger.info('Skatteverket fetch heirs (demo mode)', { personalNumber: deceasedPersonalNumber });
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate delay
       
-      if (deceasedPersonalNumber === '195001011111') {
-        return {
-          status: 'success',
-          data: {
-            deceasedPersonalNumber,
-            deceasedName: 'Demo Avliden',
-            dateOfDeath: '2023-12-15',
-            heirs: demoConfig.mockHeirs.map(heir => ({
-              personalNumber: heir.personalNumber,
-              name: heir.name,
-              relationship: heir.relationship,
-              inheritanceShare: heir.inheritancePercentage / 100,
-              address: 'Testgatan 123, 11111 Stockholm',
-              phoneNumber: heir.phone,
-              email: heir.email
-            }))
-          },
-          timestamp: new Date().toISOString()
-        };
-      }
-      
+      // Accept any personal number in demo mode and return mock data
       return {
-        status: 'error',
-        error: 'Personnummer ej funnet i demo-databasen. Använd 195001011111 för demo.',
+        status: 'success',
+        data: {
+          deceasedPersonalNumber,
+          deceasedName: 'Demo Avliden',
+          dateOfDeath: '2023-12-15',
+          heirs: demoConfig.mockHeirs.map(heir => ({
+            personalNumber: heir.personalNumber,
+            name: heir.name,
+            relationship: heir.relationship,
+            inheritanceShare: heir.inheritancePercentage / 100,
+            address: 'Testgatan 123, 11111 Stockholm',
+            phoneNumber: heir.phone,
+            email: heir.email
+          }))
+        },
         timestamp: new Date().toISOString()
       };
     }
