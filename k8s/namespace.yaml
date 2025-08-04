@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: digital-arvsskifte
+  labels:
+    name: digital-arvsskifte
+    environment: production
