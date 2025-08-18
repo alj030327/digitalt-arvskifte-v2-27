@@ -326,37 +326,6 @@ export const Step4FinalSignature = ({
             </div>
           </div>
 
-          {/* Generate PDF */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Generera arvsskiftesdokument</h3>
-            
-            <Alert>
-              <FileText className="h-4 w-4" />
-              <AlertDescription>
-                Generera ett komplett arvsskiftesdokument som kan skrivas ut och signeras fysiskt av alla dödsbodelägare.
-              </AlertDescription>
-            </Alert>
-            
-            <Button 
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF}
-              size="lg"
-              className="w-full"
-            >
-              {isGeneratingPDF ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Genererar PDF...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Generera och ladda ner PDF
-                </>
-              )}
-            </Button>
-          </div>
-
           {/* Signature Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Signaturer</h3>
@@ -403,17 +372,40 @@ export const Step4FinalSignature = ({
             </div>
           </div>
 
+          {/* Generate PDF */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Generera arvsskiftesdokument</h3>
+            
+            <Alert>
+              <FileText className="h-4 w-4" />
+              <AlertDescription>
+                Generera ett komplett arvsskiftesdokument som kan skrivas ut och signeras fysiskt av alla dödsbodelägare.
+              </AlertDescription>
+            </Alert>
+            
+            <Button 
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+              size="lg"
+              className="w-full"
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Genererar PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Generera och ladda ner PDF
+                </>
+              )}
+            </Button>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <Button variant="outline" onClick={onBack} className="sm:w-auto">
               Tillbaka
-            </Button>
-            
-            <Button 
-              onClick={onComplete}
-              size="lg"
-              className="flex-1 sm:flex-none"
-            >
-              Skicka arvsskifte
             </Button>
           </div>
         </CardContent>
