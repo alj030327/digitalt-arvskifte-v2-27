@@ -523,19 +523,13 @@ export const Step3Distribution = ({
             </div>
           )}
 
+          {/* Remove physical assets from Step 3 - they're now in Step 2 */}
           {/* Specific Asset Allocation Section */}
           <SpecificAssetAllocation
             assets={assets}
             beneficiaries={beneficiaries.map(b => ({ id: b.id, name: b.name }))}
             allocations={assetAllocations}
             setAllocations={setAssetAllocations}
-          />
-
-          {/* Physical Assets Section */}
-          <PhysicalAssets
-            physicalAssets={physicalAssets}
-            setPhysicalAssets={setPhysicalAssets}
-            beneficiaries={beneficiaries.map(b => ({ id: b.id, name: b.name }))}
           />
 
           {/* Asset Preferences Section */}

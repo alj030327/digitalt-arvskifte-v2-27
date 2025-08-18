@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { ProgressIndicator } from "@/components/ProgressIndicator";
-import { Step1PersonalNumber } from "@/components/steps/Step1PersonalNumber";
+import { Step1EstateOwners, EstateOwner } from "@/components/steps/Step1EstateOwners";
 import { Step2Assets } from "@/components/steps/Step2Assets";
 import { Step3Distribution } from "@/components/steps/Step3Distribution";
-import { Step4ContactInfo } from "@/components/steps/Step4ContactInfo";
-import { Step5BeneficiarySigning } from "@/components/steps/Step5BeneficiarySigning";
-import { Step4Signing } from "@/components/steps/Step4Signing";
+import { Step4FinalSignature } from "@/components/steps/Step4FinalSignature";
 import { Scale, Globe } from "lucide-react";
-import { PhysicalAsset } from "@/components/PhysicalAssets";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +17,16 @@ interface Asset {
   amount: number;
   toRemain?: boolean;
   reasonToRemain?: string;
+}
+
+interface PhysicalAsset {
+  id: string;
+  name: string;
+  description: string;
+  estimatedValue: number;
+  category: string;
+  distributionMethod: 'sell' | 'divide' | 'assign';
+  assignedTo?: string;
 }
 
 interface Beneficiary {
@@ -52,34 +59,29 @@ interface Testament {
   verified: boolean;
 }
 
-interface Heir {
-  personalNumber: string;
-  name: string;
-  relationship: string;
-  inheritanceShare?: number;
-  signed?: boolean;
-  signedAt?: string;
-}
-
 const Index = () => {
-  const { t, language, changeLanguage, getStepLabels } = useTranslation();
+  const { t, language, changeLanguage } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
-  const [personalNumber, setPersonalNumber] = useState("");
-  const [heirs, setHeirs] = useState<Heir[]>([]);
+  const [deceasedPersonalNumber, setDeceasedPersonalNumber] = useState("");
+  const [estateOwners, setEstateOwners] = useState<EstateOwner[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [physicalAssets, setPhysicalAssets] = useState<PhysicalAsset[]>([]);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [testament, setTestament] = useState<Testament | null>(null);
   const [hasTestament, setHasTestament] = useState(false);
-  const [physicalAssets, setPhysicalAssets] = useState<PhysicalAsset[]>([]);
   const [savedProgress, setSavedProgress] = useState(false);
 
-  const stepLabels = getStepLabels();
+  const stepLabels = ["Dödsbodelägare", "Tillgångar", "Fördelning", "Signering"];
 
-  const totalAmount = assets.reduce((sum, asset) => sum + asset.amount, 0);
-  const totalDistributableAmount = assets.reduce((sum, asset) => sum + (asset.toRemain ? 0 : asset.amount), 0);
+  const totalFinancialAssets = assets
+    .filter(a => !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
+    .reduce((sum, a) => sum + (a.toRemain ? 0 : a.amount), 0);
+    
+  const totalPhysicalAssets = physicalAssets.reduce((sum, a) => sum + a.estimatedValue, 0);
+  const totalDistributableAmount = totalFinancialAssets + totalPhysicalAssets;
 
   const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 6));
+    setCurrentStep(prev => Math.min(prev + 1, 4));
   };
 
   const handleBack = () => {
@@ -88,19 +90,17 @@ const Index = () => {
 
   const handleSave = () => {
     setSavedProgress(true);
-    // Simulate saving progress
     console.log("Framsteg sparat!");
   };
 
   const handleComplete = () => {
-    // Go to contact info step
-    console.log("Går till kontaktuppgifter...");
+    console.log("Går till signering...");
     setCurrentStep(4);
   };
 
   const handleFinalComplete = () => {
-    // Reset or redirect to completion page
     console.log("Arvsskifte genomfört!");
+    // Reset or redirect to completion page
   };
 
   return (
@@ -137,16 +137,16 @@ const Index = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <ProgressIndicator 
           currentStep={currentStep} 
-          totalSteps={6} 
+          totalSteps={4} 
           stepLabels={stepLabels} 
         />
 
         {currentStep === 1 && (
-          <Step1PersonalNumber
-            personalNumber={personalNumber}
-            setPersonalNumber={setPersonalNumber}
-            heirs={heirs}
-            setHeirs={setHeirs}
+          <Step1EstateOwners
+            deceasedPersonalNumber={deceasedPersonalNumber}
+            setDeceasedPersonalNumber={setDeceasedPersonalNumber}
+            estateOwners={estateOwners}
+            setEstateOwners={setEstateOwners}
             onNext={handleNext}
             t={t}
           />
@@ -156,6 +156,8 @@ const Index = () => {
           <Step2Assets
             assets={assets}
             setAssets={setAssets}
+            physicalAssets={physicalAssets}
+            setPhysicalAssets={setPhysicalAssets}
             onNext={handleNext}
             onBack={handleBack}
             t={t}
@@ -168,7 +170,7 @@ const Index = () => {
             setBeneficiaries={setBeneficiaries}
             totalAmount={totalDistributableAmount}
             assets={assets}
-            personalNumber={personalNumber}
+            personalNumber={deceasedPersonalNumber}
             testament={testament}
             setTestament={setTestament}
             hasTestament={hasTestament}
@@ -185,36 +187,12 @@ const Index = () => {
         )}
 
         {currentStep === 4 && (
-          <Step4ContactInfo
-            heirs={heirs}
-            setHeirs={setHeirs}
-            personalNumber={personalNumber}
-            totalAmount={totalDistributableAmount}
-            onNext={handleNext}
-            onBack={handleBack}
-            t={t}
-          />
-        )}
-
-        {currentStep === 5 && (
-          <Step5BeneficiarySigning
-            heirs={heirs}
-            setHeirs={setHeirs}
-            onNext={handleNext}
-            onBack={handleBack}
-            t={t}
-            totalAmount={totalDistributableAmount}
-          />
-        )}
-
-        {currentStep === 6 && (
-          <Step4Signing
-            personalNumber={personalNumber}
-            heirs={heirs}
+          <Step4FinalSignature
+            deceasedPersonalNumber={deceasedPersonalNumber}
+            estateOwners={estateOwners}
             assets={assets}
-            beneficiaries={beneficiaries}
-            testament={testament}
             physicalAssets={physicalAssets}
+            beneficiaries={beneficiaries}
             onBack={handleBack}
             onComplete={handleFinalComplete}
             t={t}
