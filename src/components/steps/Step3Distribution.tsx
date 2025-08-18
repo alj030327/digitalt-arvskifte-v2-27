@@ -8,8 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Plus, Trash2, AlertTriangle, Target } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TestamentUpload } from "@/components/TestamentUpload";
-import { PhysicalAssets, PhysicalAsset } from "@/components/PhysicalAssets";
 import { AssetPreferences } from "@/components/AssetPreferences";
 import { SpecificAssetAllocation } from "@/components/SpecificAssetAllocation";
 import { PDFService } from "@/services/pdfService";
@@ -34,6 +32,14 @@ interface Beneficiary {
     options?: boolean;
     futures?: boolean;
   };
+}
+
+interface PhysicalAsset {
+  id: string;
+  name: string;
+  description: string;
+  estimatedValue: number;
+  category: string;
 }
 
 interface Testament {
@@ -284,12 +290,19 @@ export const Step3Distribution = ({
           </div>
 
           {/* Testament Section */}
-          <TestamentUpload
-            testament={testament}
-            setTestament={setTestament}
-            hasTestament={hasTestament}
-            setHasTestament={setHasTestament}
-          />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Testamente</h3>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="hasTestament"
+                checked={hasTestament}
+                onCheckedChange={(checked) => setHasTestament(!!checked)}
+              />
+              <Label htmlFor="hasTestament" className="text-sm font-medium">
+                Det finns ett testamente
+              </Label>
+            </div>
+          </div>
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t('step3.add_beneficiary')}</h3>

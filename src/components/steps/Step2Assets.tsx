@@ -104,6 +104,93 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
       },
       assetTypes: ["Bankinsättning", "Aktier", "Robur fonder", "Obligationer", "Pension", "Försäkring"],
       debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Företagslån"]
+    },
+    "Nordea": {
+      accountTypes: {
+        "💳 Privatkonton": ["Personkonto", "Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto", "Plussparkonto"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "AF-konto", "Depåkonto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Föreningskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto", "Billånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension"]
+      },
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Försäkring"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Billån"]
+    },
+    "Danske Bank": {
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto", "Personkonto"],
+        "💰 Sparkonton": ["Sparkonto", "Flexsparkonto"],
+        "📈 Investeringskonton": ["ISK", "Kapitalförsäkring", "AF-konto", "Depåkonto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto", "Föreningskonto"],
+        "🧒 Barn- och ungdomskonton": ["Ungdomskonto", "Barnsparkonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto", "Billånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension"]
+      },
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Försäkring"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort", "Blancolån", "Billån"]
+    },
+    "ICA Banken": {
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto"],
+        "📈 Investeringskonton": ["ISK"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto"]
+      },
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort"]
+    },
+    "Skandiabanken": {
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto", "Räntekonto"],
+        "📈 Investeringskonton": ["ISK", "AF-konto", "Depåkonto"],
+        "💸 Betal- & kreditkonto": ["Kreditkortkonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto"]
+      },
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Försäkring"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort"]
+    },
+    "Länsförsäkringar Bank": {
+      accountTypes: {
+        "💳 Privatkonton": ["Lönekonto"],
+        "💰 Sparkonton": ["Sparkonto", "Kapitalkonto"],
+        "📈 Investeringskonton": ["ISK", "AF-konto", "Depåkonto"],
+        "🏦 Företags- & föreningskonton": ["Företagskonto"],
+        "💸 Betal- & kreditkonton": ["Kreditkortkonto", "Betalkortskonto"],
+        "🏠 Lånekonton": ["Bolånekonto", "Privatlånekonto"],
+        "⚖️ Pensionskonton & försäkringar": ["Pensionskonto", "Tjänstepension"]
+      },
+      assetTypes: ["Bankinsättning", "Aktier", "Fonder", "Försäkring"],
+      debtTypes: ["Bolån", "Privatlån", "Kreditkort"]
+    },
+    "SBAB": {
+      accountTypes: {
+        "💰 Sparkonton": ["Sparkonto", "Insättningsgaranti"],
+        "🏠 Lånekonton": ["Bolånekonto"]
+      },
+      assetTypes: ["Bankinsättning"],
+      debtTypes: ["Bolån"]
+    },
+    "Avanza Bank": {
+      accountTypes: {
+        "📈 Investeringskonton": ["ISK", "AF-konto", "Depåkonto", "Kapitalförsäkring"],
+        "⚖️ Pensionskonton": ["IPS"]
+      },
+      assetTypes: ["Aktier", "Fonder", "Obligationer", "Pension"],
+      debtTypes: []
+    },
+    "Nordnet": {
+      accountTypes: {
+        "📈 Investeringskonton": ["ISK", "AF-konto", "Depåkonto", "Kapitalförsäkring"],
+        "⚖️ Pensionskonton": ["IPS"]
+      },
+      assetTypes: ["Aktier", "Fonder", "Obligationer", "Pension"],
+      debtTypes: []
     }
   };
 
@@ -256,6 +343,37 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
                 placeholder="0"
               />
             </div>
+            
+            <div className="space-y-3 md:col-span-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="toRemain"
+                  checked={newAsset.toRemain}
+                  onCheckedChange={(checked) => 
+                    setNewAsset({ ...newAsset, toRemain: !!checked })
+                  }
+                />
+                <Label htmlFor="toRemain" className="text-sm font-medium flex items-center gap-2">
+                  {newAsset.toRemain ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                  Behåll detta konto (ska inte ingå i arvsskiftet)
+                </Label>
+              </div>
+              
+              {newAsset.toRemain && (
+                <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <Label htmlFor="reasonToRemain">Anledning till att behålla kontot</Label>
+                    <Textarea
+                      id="reasonToRemain"
+                      value={newAsset.reasonToRemain}
+                      onChange={(e) => setNewAsset({ ...newAsset, reasonToRemain: e.target.value })}
+                      placeholder="T.ex. gemensamt konto som ska behållas, lån som ska betalas av, etc."
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
           <Button onClick={handleAddAsset} className="w-full">
@@ -275,6 +393,12 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
                           <Building2 className="w-4 h-4" />
                           <span className="font-medium">{asset.bank} - {asset.accountType}</span>
                           <Badge variant="secondary">{asset.assetType}</Badge>
+                          {asset.toRemain && (
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Lock className="w-3 h-3" />
+                              Behålls
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground mb-1">
                           Kontonummer: {asset.accountNumber}
@@ -282,6 +406,11 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
                         <p className="text-lg font-semibold text-primary">
                           {asset.amount.toLocaleString('sv-SE')} SEK
                         </p>
+                        {asset.toRemain && asset.reasonToRemain && (
+                          <p className="text-sm text-muted-foreground mt-2">
+                            <strong>Anledning att behålla:</strong> {asset.reasonToRemain}
+                          </p>
+                        )}
                       </div>
                       <Button
                         variant="ghost"

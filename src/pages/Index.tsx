@@ -25,8 +25,6 @@ interface PhysicalAsset {
   description: string;
   estimatedValue: number;
   category: string;
-  distributionMethod: 'sell' | 'divide' | 'assign';
-  assignedTo?: string;
 }
 
 interface Beneficiary {
@@ -157,7 +155,7 @@ const Index = () => {
             assets={assets}
             setAssets={setAssets}
             physicalAssets={physicalAssets}
-            setPhysicalAssets={setPhysicalAssets}
+          setPhysicalAssets={(assets) => setPhysicalAssets(assets)}
             onNext={handleNext}
             onBack={handleBack}
             t={t}

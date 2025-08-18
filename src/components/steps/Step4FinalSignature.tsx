@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PenTool, FileText, Download, CheckCircle2 } from "lucide-react";
+import { PenTool, FileText, Download, Users, Building2, Package } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EstateOwner } from "./Step1EstateOwners";
 import { useToast } from "@/hooks/use-toast";
@@ -57,7 +57,6 @@ export const Step4FinalSignature = ({
   t 
 }: Step4Props) => {
   const { toast } = useToast();
-  const [signatures, setSignatures] = useState<{[ownerId: string]: boolean}>({});
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const totalFinancialAssets = assets
@@ -66,15 +65,6 @@ export const Step4FinalSignature = ({
     
   const totalPhysicalAssets = physicalAssets.reduce((sum, a) => sum + a.estimatedValue, 0);
   const totalNetAssets = totalFinancialAssets + totalPhysicalAssets;
-
-  const handleSignature = (ownerId: string) => {
-    setSignatures(prev => ({
-      ...prev,
-      [ownerId]: !prev[ownerId]
-    }));
-  };
-
-  const allSigned = estateOwners.every(owner => signatures[owner.id]);
 
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true);
@@ -89,8 +79,66 @@ export const Step4FinalSignature = ({
         description: "Arvsskiftet har genererats som PDF och kan nu skrivas ut för signering.",
       });
       
-      // Create a mock PDF blob and download
-      const pdfContent = `Arvsskifte för ${deceasedPersonalNumber}\n\nDödsbodelägare:\n${estateOwners.map(o => `${o.firstName} ${o.lastName} (${o.personalNumber})`).join('\n')}\n\nTotala nettotillgångar: ${totalNetAssets.toLocaleString('sv-SE')} SEK`;
+      // Create comprehensive PDF content
+      let pdfContent = `ARVSSKIFTE\n`;
+      pdfContent += `==========\n\n`;
+      pdfContent += `Avliden: ${deceasedPersonalNumber}\n\n`;
+      
+      pdfContent += `DÖDSBODELÄGARE:\n`;
+      pdfContent += `---------------\n`;
+      estateOwners.forEach(owner => {
+        pdfContent += `${owner.firstName} ${owner.lastName}\n`;
+        pdfContent += `Personnummer: ${owner.personalNumber}\n`;
+        pdfContent += `Relation: ${owner.relationshipToDeceased}\n`;
+        if (owner.address) pdfContent += `Adress: ${owner.address}\n`;
+        if (owner.phone) pdfContent += `Telefon: ${owner.phone}\n`;
+        if (owner.email) pdfContent += `E-post: ${owner.email}\n`;
+        pdfContent += `\n`;
+      });
+      
+      pdfContent += `FINANSIELLA TILLGÅNGAR:\n`;
+      pdfContent += `------------------------\n`;
+      assets.forEach(asset => {
+        if (!asset.toRemain && !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(asset.assetType)) {
+          pdfContent += `${asset.bank} - ${asset.accountType}\n`;
+          pdfContent += `Konto: ${asset.accountNumber}\n`;
+          pdfContent += `Typ: ${asset.assetType}\n`;
+          pdfContent += `Belopp: ${asset.amount.toLocaleString('sv-SE')} SEK\n\n`;
+        }
+      });
+      
+      if (physicalAssets.length > 0) {
+        pdfContent += `FYSISKA TILLGÅNGAR:\n`;
+        pdfContent += `-------------------\n`;
+        physicalAssets.forEach(asset => {
+          pdfContent += `${asset.name} (${asset.category})\n`;
+          if (asset.description) pdfContent += `Beskrivning: ${asset.description}\n`;
+          pdfContent += `Värde: ${asset.estimatedValue.toLocaleString('sv-SE')} SEK\n\n`;
+        });
+      }
+      
+      pdfContent += `ARVINGAR:\n`;
+      pdfContent += `---------\n`;
+      beneficiaries.forEach(beneficiary => {
+        pdfContent += `${beneficiary.name} (${beneficiary.personalNumber})\n`;
+        pdfContent += `Relation: ${beneficiary.relationship}\n`;
+        pdfContent += `Andel: ${beneficiary.percentage}%\n`;
+        pdfContent += `Belopp: ${((beneficiary.percentage / 100) * totalNetAssets).toLocaleString('sv-SE')} SEK\n`;
+        pdfContent += `Konto: ${beneficiary.accountNumber}\n\n`;
+      });
+      
+      pdfContent += `SAMMANFATTNING:\n`;
+      pdfContent += `---------------\n`;
+      pdfContent += `Totala nettotillgångar: ${totalNetAssets.toLocaleString('sv-SE')} SEK\n\n`;
+      
+      pdfContent += `SIGNATURER:\n`;
+      pdfContent += `-----------\n`;
+      estateOwners.forEach(owner => {
+        pdfContent += `${owner.firstName} ${owner.lastName}\n`;
+        pdfContent += `Personnummer: ${owner.personalNumber}\n`;
+        pdfContent += `Signatur: ________________________  Datum: ____________\n\n\n`;
+      });
+      
       const blob = new Blob([pdfContent], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -110,24 +158,6 @@ export const Step4FinalSignature = ({
     }
   };
 
-  const handleComplete = () => {
-    if (!allSigned) {
-      toast({
-        title: "Ofullständiga signaturer",
-        description: "Alla dödsbodelägare måste markera sina signaturer som slutförda.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Arvsskifte slutfört",
-      description: "Alla signaturer är slutförda. Arvsskiftet är nu komplett.",
-    });
-    
-    onComplete();
-  };
-
   return (
     <div className="max-w-4xl mx-auto">
       <Card>
@@ -135,9 +165,9 @@ export const Step4FinalSignature = ({
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <PenTool className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Slutföra arvsskifte</CardTitle>
+          <CardTitle className="text-2xl">Arvsskifte - Sammanfattning och signering</CardTitle>
           <CardDescription>
-            Generera PDF och samla fysiska signaturer från alla dödsbodelägare
+            Granska sammanfattningen och generera dokument för fysisk signering
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -166,6 +196,133 @@ export const Step4FinalSignature = ({
                 </div>
                 <div className="text-sm text-muted-foreground">Totala nettotillgångar</div>
               </div>
+            </div>
+          </div>
+
+          {/* Estate Owners Details */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Dödsbodelägare
+            </h3>
+            <div className="space-y-3">
+              {estateOwners.map((owner) => (
+                <div key={owner.id} className="p-4 border border-border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-medium">{owner.firstName} {owner.lastName}</span>
+                        <Badge variant="secondary">{owner.relationshipToDeceased}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Personnummer: {owner.personalNumber}
+                      </p>
+                      {owner.address && (
+                        <p className="text-sm text-muted-foreground">
+                          Adress: {owner.address}
+                        </p>
+                      )}
+                      {owner.phone && (
+                        <p className="text-sm text-muted-foreground">
+                          Telefon: {owner.phone}
+                        </p>
+                      )}
+                      {owner.email && (
+                        <p className="text-sm text-muted-foreground">
+                          E-post: {owner.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Assets Summary */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Tillgångar
+            </h3>
+            
+            {assets.filter(a => !a.toRemain && !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType)).length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-medium">Finansiella tillgångar</h4>
+                {assets
+                  .filter(a => !a.toRemain && !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
+                  .map((asset) => (
+                    <div key={asset.id} className="p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{asset.bank} - {asset.accountType}</span>
+                          <p className="text-sm text-muted-foreground">
+                            {asset.accountNumber} • {asset.assetType}
+                          </p>
+                        </div>
+                        <span className="font-semibold text-primary">
+                          {asset.amount.toLocaleString('sv-SE')} SEK
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {physicalAssets.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Fysiska tillgångar
+                </h4>
+                {physicalAssets.map((asset) => (
+                  <div key={asset.id} className="p-3 bg-muted/30 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-medium">{asset.name}</span>
+                        <p className="text-sm text-muted-foreground">
+                          {asset.category}
+                          {asset.description && ` • ${asset.description}`}
+                        </p>
+                      </div>
+                      <span className="font-semibold text-primary">
+                        {asset.estimatedValue.toLocaleString('sv-SE')} SEK
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Beneficiaries Summary */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Arvingar och fördelning</h3>
+            <div className="space-y-3">
+              {beneficiaries.map((beneficiary) => (
+                <div key={beneficiary.id} className="p-4 border border-border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-medium">{beneficiary.name}</span>
+                        <Badge variant="secondary">{beneficiary.relationship}</Badge>
+                        <Badge variant="outline">{beneficiary.percentage}%</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Personnummer: {beneficiary.personalNumber}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Bankkonto: {beneficiary.accountNumber}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-primary">
+                        {((beneficiary.percentage / 100) * totalNetAssets).toLocaleString('sv-SE')} SEK
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -200,70 +357,49 @@ export const Step4FinalSignature = ({
             </Button>
           </div>
 
-          {/* Signature tracking */}
+          {/* Signature Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Signaturer</h3>
             
             <Alert>
               <PenTool className="h-4 w-4" />
               <AlertDescription>
-                När varje dödsbodelägare har signerat det utskrivna dokumentet, markera deras signatur som slutförd nedan.
+                Detta dokument innehåller signeringsrutor för alla dödsbodelägare. Skriv ut PDF:en och låt alla parter signera fysiskt.
               </AlertDescription>
             </Alert>
             
             <div className="space-y-3">
               {estateOwners.map((owner) => (
-                <div key={owner.id} className="p-4 border border-border rounded-lg">
-                  <div className="flex items-center justify-between">
+                <div key={owner.id} className="p-6 border-2 border-dashed border-border rounded-lg bg-muted/20">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium">{owner.firstName} {owner.lastName}</span>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="font-semibold text-lg">{owner.firstName} {owner.lastName}</span>
                         <Badge variant="secondary">{owner.relationshipToDeceased}</Badge>
-                        {signatures[owner.id] && (
-                          <Badge variant="default" className="bg-success/10 text-success border-success/20">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Signerad
-                          </Badge>
-                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground mb-1">
                         Personnummer: {owner.personalNumber}
                       </p>
                       {owner.address && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground mb-1">
                           Adress: {owner.address}
                         </p>
                       )}
                     </div>
-                    <Button
-                      variant={signatures[owner.id] ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleSignature(owner.id)}
-                    >
-                      {signatures[owner.id] ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 mr-2" />
-                          Signerad
-                        </>
-                      ) : (
-                        <>
-                          <PenTool className="w-4 h-4 mr-2" />
-                          Markera som signerad
-                        </>
-                      )}
-                    </Button>
+                    <div className="text-center">
+                      <div className="w-48 h-16 border-2 border-gray-400 border-dashed rounded bg-white/50 flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">Signatur</span>
+                      </div>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        ________________________
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Datum
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
-            </div>
-            
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Signaturstatus:</span>
-                <span className={`font-bold ${allSigned ? 'text-success' : 'text-warning'}`}>
-                  {Object.values(signatures).filter(Boolean).length} av {estateOwners.length} signaturer slutförda
-                </span>
-              </div>
             </div>
           </div>
 
@@ -273,12 +409,11 @@ export const Step4FinalSignature = ({
             </Button>
             
             <Button 
-              onClick={handleComplete}
-              disabled={!allSigned}
+              onClick={onComplete}
               size="lg"
               className="flex-1 sm:flex-none"
             >
-              Slutför arvsskifte
+              Skicka arvsskifte
             </Button>
           </div>
         </CardContent>
