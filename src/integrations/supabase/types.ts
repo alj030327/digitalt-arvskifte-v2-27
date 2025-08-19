@@ -65,6 +65,57 @@ export type Database = {
         }
         Relationships: []
       }
+      estate_processes: {
+        Row: {
+          assets: Json | null
+          beneficiaries: Json | null
+          created_at: string
+          current_step: number | null
+          deceased_first_name: string | null
+          deceased_last_name: string | null
+          deceased_personal_number: string | null
+          estate_owners: Json | null
+          has_testament: boolean | null
+          id: string
+          physical_assets: Json | null
+          testament: Json | null
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          assets?: Json | null
+          beneficiaries?: Json | null
+          created_at?: string
+          current_step?: number | null
+          deceased_first_name?: string | null
+          deceased_last_name?: string | null
+          deceased_personal_number?: string | null
+          estate_owners?: Json | null
+          has_testament?: boolean | null
+          id?: string
+          physical_assets?: Json | null
+          testament?: Json | null
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          assets?: Json | null
+          beneficiaries?: Json | null
+          created_at?: string
+          current_step?: number | null
+          deceased_first_name?: string | null
+          deceased_last_name?: string | null
+          deceased_personal_number?: string | null
+          estate_owners?: Json | null
+          has_testament?: boolean | null
+          id?: string
+          physical_assets?: Json | null
+          testament?: Json | null
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
       signing_requests: {
         Row: {
           case_id: string | null
