@@ -79,12 +79,24 @@ const LandingPage = () => {
             <span className="text-primary block">snabbt och säkert</span>
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Vår digitala plattform guidar dig genom hela arvsskiftesprocessen steg för steg. 
-            Från inventering av tillgångar till färdiga dokument för Skatteverket.
+            Vi gör arvskiften enklare och snabbare
           </p>
+          
+          {/* Pricing Notice */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center gap-2 text-blue-800">
+              <FileText className="w-5 h-5" />
+              <p className="font-medium">
+                Komplett arvsskifteshandling: <span className="font-bold">200 SEK</span>
+              </p>
+            </div>
+            <p className="text-sm text-blue-600 text-center mt-1">
+              Betalning sker först när du är klar och nöjd med ditt arvsskifte
+            </p>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={handleStartProcess} className="text-lg px-8 py-6">
-              Starta arvsskifte
+              Starta nu
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button variant="outline" size="lg" className="text-lg px-8 py-6">
@@ -180,7 +192,7 @@ const LandingPage = () => {
             och du kan avbryta när som helst.
           </p>
           <Button size="lg" onClick={handleStartProcess} className="text-lg px-8 py-6">
-            Starta nu - Det är gratis
+            Starta nu
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
