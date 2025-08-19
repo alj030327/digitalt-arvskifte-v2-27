@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import { SignDocument } from "./pages/SignDocument";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/sign/:token" element={<SignDocument />} />
           <Route path="/villkor" element={<Terms />} />
           <Route path="/integritet" element={<Privacy />} />
+          <Route path="/support" element={<Support />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

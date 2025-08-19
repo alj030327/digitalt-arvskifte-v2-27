@@ -201,7 +201,7 @@ const LandingPage = () => {
             <div className="flex gap-4">
               <a href="/integritet" className="hover:text-foreground transition-colors">Integritetspolicy</a>
               <a href="/villkor" className="hover:text-foreground transition-colors">Villkor</a>
-              <a href="#" className="hover:text-foreground transition-colors">Support</a>
+              <a href="/support" className="hover:text-foreground transition-colors">Support & FAQ</a>
             </div>
           </div>
         </div>
