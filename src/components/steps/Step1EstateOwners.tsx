@@ -18,6 +18,10 @@ export interface EstateOwner {
 }
 
 interface Step1Props {
+  deceasedFirstName: string;
+  setDeceasedFirstName: (value: string) => void;
+  deceasedLastName: string;
+  setDeceasedLastName: (value: string) => void;
   deceasedPersonalNumber: string;
   setDeceasedPersonalNumber: (value: string) => void;
   estateOwners: EstateOwner[];
@@ -27,6 +31,10 @@ interface Step1Props {
 }
 
 export const Step1EstateOwners = ({ 
+  deceasedFirstName,
+  setDeceasedFirstName,
+  deceasedLastName,
+  setDeceasedLastName,
   deceasedPersonalNumber, 
   setDeceasedPersonalNumber, 
   estateOwners, 
@@ -100,7 +108,7 @@ export const Step1EstateOwners = ({
     setEstateOwners(estateOwners.filter(owner => owner.id !== id));
   };
 
-  const canProceed = deceasedPersonalNumber && estateOwners.length > 0;
+  const canProceed = deceasedFirstName && deceasedLastName && deceasedPersonalNumber && estateOwners.length > 0;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -110,23 +118,45 @@ export const Step1EstateOwners = ({
             <Users className="w-6 h-6 text-primary" />
           </div>
           <CardTitle className="text-2xl">Dödsbodelägare</CardTitle>
-          <CardDescription>
-            Ange personnummer för den avlidne och lägg till alla dödsbodelägare
-          </CardDescription>
+           <CardDescription>
+             Ange fullständigt namn och personnummer för den avlidne och lägg till alla dödsbodelägare
+           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Deceased person's personal number */}
+          {/* Deceased person information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Den avlidne</h3>
-            <div className="space-y-2">
-              <Label htmlFor="deceased">Personnummer för den avlidne</Label>
-              <Input
-                id="deceased"
-                value={deceasedPersonalNumber}
-                onChange={handleDeceasedNumberChange}
-                placeholder="ÅÅÅÅMMDD-XXXX"
-                maxLength={13}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="deceasedFirstName">Förnamn *</Label>
+                <Input
+                  id="deceasedFirstName"
+                  value={deceasedFirstName}
+                  onChange={(e) => setDeceasedFirstName(e.target.value)}
+                  placeholder="Förnamn"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="deceasedLastName">Efternamn *</Label>
+                <Input
+                  id="deceasedLastName"
+                  value={deceasedLastName}
+                  onChange={(e) => setDeceasedLastName(e.target.value)}
+                  placeholder="Efternamn"
+                />
+              </div>
+              
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="deceased">Personnummer *</Label>
+                <Input
+                  id="deceased"
+                  value={deceasedPersonalNumber}
+                  onChange={handleDeceasedNumberChange}
+                  placeholder="ÅÅÅÅMMDD-XXXX"
+                  maxLength={13}
+                />
+              </div>
             </div>
           </div>
 

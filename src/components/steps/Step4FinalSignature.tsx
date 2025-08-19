@@ -36,6 +36,8 @@ interface Beneficiary {
 }
 
 interface Step4Props {
+  deceasedFirstName: string;
+  deceasedLastName: string;
   deceasedPersonalNumber: string;
   estateOwners: EstateOwner[];
   assets: Asset[];
@@ -47,6 +49,8 @@ interface Step4Props {
 }
 
 export const Step4FinalSignature = ({ 
+  deceasedFirstName,
+  deceasedLastName,
   deceasedPersonalNumber,
   estateOwners, 
   assets, 
@@ -82,7 +86,7 @@ export const Step4FinalSignature = ({
       // Create comprehensive PDF content
       let pdfContent = `ARVSSKIFTE\n`;
       pdfContent += `==========\n\n`;
-      pdfContent += `Avliden: ${deceasedPersonalNumber}\n\n`;
+      pdfContent += `Avliden: ${deceasedFirstName} ${deceasedLastName} (${deceasedPersonalNumber})\n\n`;
       
       pdfContent += `DÖDSBODELÄGARE:\n`;
       pdfContent += `---------------\n`;
@@ -174,6 +178,13 @@ export const Step4FinalSignature = ({
           {/* Summary */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Sammanfattning</h3>
+            
+            {/* Deceased Person Information */}
+            <div className="p-4 bg-muted rounded-lg">
+              <h4 className="font-semibold mb-2">Den avlidne</h4>
+              <p><strong>Namn:</strong> {deceasedFirstName} {deceasedLastName}</p>
+              <p><strong>Personnummer:</strong> {deceasedPersonalNumber}</p>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-muted rounded-lg text-center">

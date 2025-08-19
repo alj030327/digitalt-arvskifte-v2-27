@@ -60,6 +60,8 @@ interface Testament {
 const Index = () => {
   const { t, language, changeLanguage } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
+  const [deceasedFirstName, setDeceasedFirstName] = useState("");
+  const [deceasedLastName, setDeceasedLastName] = useState("");
   const [deceasedPersonalNumber, setDeceasedPersonalNumber] = useState("");
   const [estateOwners, setEstateOwners] = useState<EstateOwner[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -141,6 +143,10 @@ const Index = () => {
 
         {currentStep === 1 && (
           <Step1EstateOwners
+            deceasedFirstName={deceasedFirstName}
+            setDeceasedFirstName={setDeceasedFirstName}
+            deceasedLastName={deceasedLastName}
+            setDeceasedLastName={setDeceasedLastName}
             deceasedPersonalNumber={deceasedPersonalNumber}
             setDeceasedPersonalNumber={setDeceasedPersonalNumber}
             estateOwners={estateOwners}
@@ -186,6 +192,8 @@ const Index = () => {
 
         {currentStep === 4 && (
           <Step4FinalSignature
+            deceasedFirstName={deceasedFirstName}
+            deceasedLastName={deceasedLastName}
             deceasedPersonalNumber={deceasedPersonalNumber}
             estateOwners={estateOwners}
             assets={assets}
