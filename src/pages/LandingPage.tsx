@@ -200,7 +200,7 @@ const LandingPage = () => {
             <div>© 2024 Digital Arvsskifte. Alla rättigheter förbehållna.</div>
             <div className="flex gap-4">
               <a href="#" className="hover:text-foreground transition-colors">Integritetspolicy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Villkor</a>
+              <a href="/villkor" className="hover:text-foreground transition-colors">Villkor</a>
               <a href="#" className="hover:text-foreground transition-colors">Support</a>
             </div>
           </div>

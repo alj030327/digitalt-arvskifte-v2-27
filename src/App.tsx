@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import EstateProcess from "./pages/EstateProcess";
 import NotFound from "./pages/NotFound";
 import { SignDocument } from "./pages/SignDocument";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<LandingPage />} />
           <Route path="/arvsskifte" element={<EstateProcess />} />
           <Route path="/sign/:token" element={<SignDocument />} />
+          <Route path="/villkor" element={<Terms />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
