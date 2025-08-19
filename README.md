@@ -24,7 +24,12 @@ Digital Arvsskifte är en modern webapplikation byggd för att förenkla och dig
 
 ### 🎯 Huvudfunktioner
 
-
+**🔍 Digital identifiering** av avliden person via Skatteverkets API
+- **👥 Automatisk hämtning** av arvingar från bouppteckning
+- **🛡️ BankID-autentisering** för säker åtkomst och signering
+- **💳 Bankintegration** via PSD2/Open Banking för automatisk tillgångshämtning
+- **📋 Testamenthantering** med verifiering och uppladdning
+- **⚖️ Fullmaktshantering** för ombud och juridiska representanter
 - **📊 Automatisk fördelning** av tillgångar mellan arvingar
 - **📄 PDF-generering** för alla dokument och sammanfattningar
 - **📧 Notifieringssystem** via e-post och SMS
