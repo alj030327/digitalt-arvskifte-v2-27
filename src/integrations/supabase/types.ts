@@ -14,7 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cases: {
+        Row: {
+          access_token: string
+          case_number: string
+          created_at: string
+          currency: string
+          email: string
+          expires_at: string | null
+          id: string
+          inheritance_data: Json
+          payment_status: string
+          phone: string | null
+          status: string
+          stripe_session_id: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string
+          case_number?: string
+          created_at?: string
+          currency?: string
+          email: string
+          expires_at?: string | null
+          id?: string
+          inheritance_data: Json
+          payment_status?: string
+          phone?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          case_number?: string
+          created_at?: string
+          currency?: string
+          email?: string
+          expires_at?: string | null
+          id?: string
+          inheritance_data?: Json
+          payment_status?: string
+          phone?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      signing_requests: {
+        Row: {
+          case_id: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          inheritance_data: Json
+          signature_data: Json | null
+          signed_at: string | null
+          status: string
+          token: string
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          inheritance_data: Json
+          signature_data?: Json | null
+          signed_at?: string | null
+          status?: string
+          token?: string
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          inheritance_data?: Json
+          signature_data?: Json | null
+          signed_at?: string | null
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signing_requests_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
