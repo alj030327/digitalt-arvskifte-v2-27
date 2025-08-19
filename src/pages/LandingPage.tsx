@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scale, Users, FileText, CheckCircle, Clock, Shield, ArrowRight, Play } from "lucide-react";
+import { Scale, Users, FileText, CheckCircle, Clock, Shield, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "@/hooks/useTranslation";
 import InteractiveDemo from "@/components/InteractiveDemo";
@@ -45,12 +45,12 @@ const LandingPage = () => {
     {
       icon: Shield,
       title: "Juridiskt säkert",
-      description: "Alla dokument följer svensk lag och är juridiskt bindande"
+      description: "Det fullständiga arvsskiftet som skapas är juridiskt bindande om det fylls i korrekt och skrivs under"
     },
     {
       icon: FileText,
       title: "Komplett dokumentation",
-      description: "Få alla nödvändiga dokument för Skatteverket och banker"
+      description: "Få alla nödvändiga dokument för banker och myndigheter"
     }
   ];
 
@@ -98,10 +98,6 @@ const LandingPage = () => {
             <Button size="lg" onClick={handleStartProcess} className="text-lg px-8 py-6">
               Starta nu
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-              <Play className="w-5 h-5 mr-2" />
-              Se hur det fungerar
             </Button>
           </div>
         </div>
