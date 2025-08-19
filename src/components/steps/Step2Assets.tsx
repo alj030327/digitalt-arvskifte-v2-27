@@ -51,6 +51,8 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
     reasonToRemain: ""
   });
 
+  const [customBankName, setCustomBankName] = useState("");
+
   const [newPhysicalAsset, setNewPhysicalAsset] = useState({
     name: "",
     description: "",
@@ -197,24 +199,32 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
   const commonBanks = Object.keys(banksWithDetails);
 
   const getAccountTypesForBank = (bank: string) => {
+    if (bank === "Annan") {
+      return ["Sparkonto", "Lönekonto", "ISK", "Depåkonto", "Företagskonto", "Kreditkonto", "Privatlån", "Annat"];
+    }
     const bankData = banksWithDetails[bank as keyof typeof banksWithDetails];
     if (!bankData?.accountTypes) return [];
     return Object.values(bankData.accountTypes).flat();
   };
 
   const getAssetTypesForBank = (bank: string) => {
+    if (bank === "Annan") {
+      return ["Bankinsättning", "Aktier", "Fonder", "Obligationer", "Pension", "Försäkring", "Bolån", "Privatlån", "Kreditkort", "Annat"];
+    }
     const bankData = banksWithDetails[bank as keyof typeof banksWithDetails];
     return bankData ? [...bankData.assetTypes, ...bankData.debtTypes] : [];
   };
 
   const handleAddAsset = () => {
-    if (!newAsset.bank || !newAsset.accountType || !newAsset.assetType || !newAsset.accountNumber || !newAsset.amount) {
+    const bankName = newAsset.bank === "Annan" ? customBankName : newAsset.bank;
+    
+    if (!bankName || !newAsset.accountType || !newAsset.assetType || !newAsset.accountNumber || !newAsset.amount) {
       return;
     }
 
     const asset: Asset = {
       id: Date.now().toString(),
-      bank: newAsset.bank,
+      bank: bankName,
       accountType: newAsset.accountType,
       assetType: newAsset.assetType,
       accountNumber: newAsset.accountNumber,
@@ -226,6 +236,7 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
 
     setAssets([...assets, asset]);
     setNewAsset({ bank: "", accountType: "", assetType: "", accountNumber: "", amount: "", toRemain: false, amountToRemain: "", reasonToRemain: "" });
+    setCustomBankName("");
   };
 
   const handleRemoveAsset = (id: string) => {
@@ -284,14 +295,37 @@ export const Step2Assets = ({ assets, setAssets, physicalAssets, setPhysicalAsse
               <select
                 className="w-full p-2 border border-border rounded-md bg-background"
                 value={newAsset.bank}
-                onChange={(e) => setNewAsset({ ...newAsset, bank: e.target.value })}
+                onChange={(e) => {
+                  setNewAsset({ 
+                    ...newAsset, 
+                    bank: e.target.value,
+                    accountType: "",
+                    assetType: ""
+                  });
+                  if (e.target.value !== "Annan") {
+                    setCustomBankName("");
+                  }
+                }}
               >
                 <option value="">Välj bank</option>
                 {commonBanks.map((bank) => (
                   <option key={bank} value={bank}>{bank}</option>
                 ))}
+                <option value="Annan">Annan</option>
               </select>
             </div>
+
+            {newAsset.bank === "Annan" && (
+              <div className="space-y-2">
+                <Label htmlFor="customBank">Bankens namn</Label>
+                <Input
+                  id="customBank"
+                  value={customBankName}
+                  onChange={(e) => setCustomBankName(e.target.value)}
+                  placeholder="Ange bankens namn"
+                />
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="accountType">Kontotyp</Label>
