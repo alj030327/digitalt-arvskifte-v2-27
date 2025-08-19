@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Scale, Users, FileText, CheckCircle, Clock, Shield, ArrowRight, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "@/hooks/useTranslation";
+import InteractiveDemo from "@/components/InteractiveDemo";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -94,23 +95,16 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Video Section */}
+      {/* Interactive Demo Section */}
       <div className="py-16 bg-card">
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-foreground mb-4">Se hur enkelt det är</h3>
             <p className="text-lg text-muted-foreground">
-              Få en överblick av hela processen på bara 3 minuter
+              Testa vår interaktiva genomgång av hela arvsskiftesprocessen
             </p>
           </div>
-          <div className="relative bg-muted rounded-lg aspect-video flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Play className="w-10 h-10 text-primary" />
-              </div>
-              <p className="text-muted-foreground">Video kommer snart</p>
-            </div>
-          </div>
+          <InteractiveDemo />
         </div>
       </div>
 
