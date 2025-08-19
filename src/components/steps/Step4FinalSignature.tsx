@@ -322,7 +322,7 @@ export const Step4FinalSignature = ({
               <AlertDescription>
                 <div className="font-medium">Nästa steg: Betalning (200 SEK)</div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  Efter betalningen får du tillgång till ditt digitala arvsskifte och kan generera signeringsdokument.
+                  Efter betalningen får du 12 månaders tillgång till ditt digitala arvsskifte och kan generera signeringsdokument.
                 </div>
               </AlertDescription>
             </Alert>
@@ -376,7 +376,7 @@ export const Step4FinalSignature = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">Permanent projektåtkomst</span>
+                    <span className="text-sm">12 månaders projektåtkomst</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />

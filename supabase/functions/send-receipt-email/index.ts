@@ -67,14 +67,17 @@ serve(async (req) => {
 
         <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
           <h3 style="color: #047857; margin-top: 0;">🎉 Ditt arvsskifte är nu aktivt!</h3>
-          <p style="margin: 10px 0;">Du kan nu komma åt och hantera ditt arvsskifte när som helst:</p>
+          <p style="margin: 10px 0;">Du kan nu komma åt och hantera ditt arvsskifte under 12 månader:</p>
           <div style="text-align: center; margin: 20px 0;">
             <a href="${projectUrl}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
               Öppna ditt arvsskifte
             </a>
           </div>
           <p style="font-size: 14px; color: #6b7280;">
-            <strong>Viktig information:</strong> Spara denna länk säkert. Du kommer att behöva den för att komma åt ditt arvsskifte i framtiden.
+            <strong>Åtkomst gäller:</strong> 12 månader från idag. Spara denna länk säkert för framtida åtkomst.
+          </p>
+          <p style="font-size: 12px; color: #9ca3af;">
+            Åtkomsten upphör: ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE')}
           </p>
         </div>
 

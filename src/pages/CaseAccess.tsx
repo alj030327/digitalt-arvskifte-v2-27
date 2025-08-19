@@ -43,6 +43,17 @@ export const CaseAccess = () => {
         return;
       }
 
+      // Check if access has expired
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        toast({
+          title: "Åtkomst har upphört",
+          description: "Din 12-månaders åtkomst till detta ärende har gått ut.",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
       setCaseData(data);
     } catch (error: any) {
       console.error('Error loading case:', error);
@@ -192,6 +203,14 @@ export const CaseAccess = () => {
                     <span>Skapad:</span>
                     <span>{new Date(caseData.created_at).toLocaleDateString('sv-SE')}</span>
                   </div>
+                  {caseData.expires_at && (
+                    <div className="flex justify-between">
+                      <span>Åtkomst upphör:</span>
+                      <span className={new Date(caseData.expires_at) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'text-orange-600 font-medium' : ''}>
+                        {new Date(caseData.expires_at).toLocaleDateString('sv-SE')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
