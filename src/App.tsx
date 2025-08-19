@@ -8,6 +8,7 @@ import EstateProcess from "./pages/EstateProcess";
 import NotFound from "./pages/NotFound";
 import { SignDocument } from "./pages/SignDocument";
 import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/arvsskifte" element={<EstateProcess />} />
           <Route path="/sign/:token" element={<SignDocument />} />
           <Route path="/villkor" element={<Terms />} />
+          <Route path="/integritet" element={<Privacy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
