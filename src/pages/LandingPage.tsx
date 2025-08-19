@@ -189,6 +189,13 @@ const LandingPage = () => {
       {/* Footer */}
       <div className="bg-card border-t border-border">
         <div className="max-w-6xl mx-auto px-4 py-6">
+          {/* Legal Disclaimer */}
+          <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground text-center">
+              <strong>Ansvarsfriskrivning:</strong> Vi på Digitalt Arvskifte, tar inget ansvar för de kostnadsfria juridiska mallar och avtal som publiceras. Använd dokumenten på eget ansvar.
+            </p>
+          </div>
+          
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div>© 2024 Digital Arvsskifte. Alla rättigheter förbehållna.</div>
             <div className="flex gap-4">
