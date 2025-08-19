@@ -12,6 +12,7 @@ import { AssetPreferences } from "@/components/AssetPreferences";
 import { SpecificAssetAllocation } from "@/components/SpecificAssetAllocation";
 import { PDFService } from "@/services/pdfService";
 import { useToast } from "@/hooks/use-toast";
+import LegalGuidance from "@/components/LegalGuidance";
 
 interface Beneficiary {
   id: string;
@@ -280,6 +281,8 @@ export const Step3Distribution = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <LegalGuidance context="distribution" />
+          
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="font-medium">{t('step3.total_amount')}:</span>

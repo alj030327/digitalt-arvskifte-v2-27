@@ -44,7 +44,7 @@ const Terms = () => {
                 <h3 className="text-xl font-semibold text-foreground mb-3">Tjänstens natur</h3>
                 <div className="space-y-2 text-muted-foreground">
                   <p>Digitalt Arvskifte tillhandahåller digitala mallar och verktyg för att underlätta framtagandet av arvskifteshandlingar.</p>
-                  <p>Tjänsten ersätter inte juridisk rådgivning. Vi lämnar inga garantier för att dokumenten uppfyller individuella behov eller juridiska krav i varje enskilt fall.</p>
+                  <p>Tjänsten hjälper till att skapa arvsskiftesdokument enligt svensk lagstiftning (Ärvdabalken SFS 1958:637, Äktenskapsbalken, Föräldrabalken). Systemet hanterar lagstadgad arvordning, laglott och särkullbarn enligt gällande lagar. Tjänsten ersätter inte juridisk rådgivning vid komplexa ärenden eller tvister.</p>
                 </div>
               </section>
 
@@ -59,7 +59,7 @@ const Terms = () => {
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3">Ansvarsbegränsning</h3>
                 <div className="space-y-2 text-muted-foreground">
-                  <p>Digitalt Arvskifte ansvarar inte för eventuella ekonomiska, juridiska eller praktiska konsekvenser av användning av våra mallar eller verktyg.</p>
+                  <p>Digitalt Arvskifte ansvarar för att systemet följer svensk lagstiftning och korrekt hantering av arvsregler. Vi ansvarar inte för användarens felaktiga uppgifter, komplexa juridiska situationer som kräver professionell rådgivning, eller juridiska konsekvenser av felaktigt ifyllda uppgifter.</p>
                   <p>Vårt ansvar begränsas till att tjänsten fungerar tekniskt, dvs. att ifyllning och nedladdning sker på avsett sätt.</p>
                 </div>
               </section>

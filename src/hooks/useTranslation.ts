@@ -104,7 +104,7 @@ const translations: Translations = {
     
     // Step 3 - Distribution
     'step3.title': 'Fördelning av tillgångar',
-    'step3.subtitle': 'Bestäm hur tillgångarna ska fördelas mellan arvingarna',
+    'step3.subtitle': 'Bestäm hur tillgångarna ska fördelas enligt Ärvdabalken - lagstadgad arvordning eller testamente med hänsyn till laglott',
     'step3.testament_question': 'Finns det ett testamente?',
     'step3.yes': 'Ja',
     'step3.no': 'Nej',
@@ -161,7 +161,7 @@ const translations: Translations = {
     'step5.sign_with_bankid': 'Signera med BankID',
     'step5.complete_signing': 'Slutför signering',
     'step5.signed_count': 'arvingar har signerat av',
-    'step5.all_signed': 'Alla dödsbodelägare har signerat med BankID! Arvsskiftet kan nu skickas till banker för genomförande via PSD2 och Open Banking.',
+    'step5.all_signed': 'Alla dödsbodelägare har signerat med BankID! Arvsskiftet följer svensk lagstiftning (Ärvdabalken) och kan nu skickas till banker för genomförande via PSD2 och Open Banking.',
     'step5.send_to_banks': 'Skicka till banker',
     'step5.sending_to_banks': 'Skickar till banker...',
     'step5.simulate_signing': 'Simulera signering',

@@ -27,7 +27,7 @@ const LandingPage = () => {
     {
       icon: Scale,
       title: "Fördela arvet",
-      description: "Specificera hur tillgångarna ska fördelas mellan arvtagarna enligt lag eller testamente."
+      description: "Specificera hur tillgångarna ska fördelas enligt Ärvdabalken - lagstadgad arvordning eller testamente med hänsyn till laglott."
     },
     {
       icon: CheckCircle,
@@ -44,8 +44,8 @@ const LandingPage = () => {
     },
     {
       icon: Shield,
-      title: "Juridiskt säkert",
-      description: "Det fullständiga arvsskiftet som skapas är juridiskt bindande om det fylls i korrekt och skrivs under"
+      title: "Följer svensk lag",
+      description: "Systemet följer Ärvdabalken (SFS 1958:637) och säkerställer korrekt hantering av laglott, särkullbarn och lagstadgad arvordning"
     },
     {
       icon: FileText,
@@ -200,7 +200,7 @@ const LandingPage = () => {
           {/* Legal Disclaimer */}
           <div className="mb-4 p-4 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground text-center">
-              <strong>Ansvarsfriskrivning:</strong> Vi på Digitalt Arvskifte, tar inget ansvar för de kostnadsfria juridiska mallar och avtal som publiceras. Använd dokumenten på eget ansvar.
+              <strong>Juridisk information:</strong> Detta system hjälper till att skapa arvsskiftesdokument enligt svensk lag (Ärvdabalken SFS 1958:637 med ändringar). Dokumenten följer lagstadgad arvordning eller testamentets bestämmelser med hänsyn till laglott enligt 7 kap. Ärvdabalken. <strong>Ansvarsfriskrivning:</strong> Vi tar inget ansvar för juridiska konsekvenser - sök juridisk rådgivning vid komplexa ärenden.
             </p>
           </div>
           

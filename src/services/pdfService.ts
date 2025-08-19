@@ -260,7 +260,7 @@ export class PDFService {
       
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      const legalText = `Detta dokument utgör en sammanfattning av den föreslagna fördelningen av dödsboet. Fördelningen baseras på ${data.testament ? 'testamentets bestämmelser' : 'lagstadgad arvordning'}. Alla arvingar har signerat digitalt med BankID och godkänt fördelningen.`;
+      const legalText = `Detta dokument utgör en sammanställning av den föreslagna fördelningen av dödsboet enligt svensk lagstiftning. Fördelningen baseras på ${data.testament ? 'testamentets bestämmelser med hänsyn till laglott (7 kap. Ärvdabalken)' : 'lagstadgad arvordning enligt Ärvdabalken (SFS 1958:637)'}. Alla dödsbodelägare har signerat digitalt med BankID och godkänt fördelningen. Dokumentet följer bestämmelserna i Ärvdabalken, Äktenskapsbalken och Föräldrabalken där tillämpligt.`;
       
       const splitText = doc.splitTextToSize(legalText, pageWidth - 40);
       doc.text(splitText, 20, yPosition);
@@ -357,7 +357,7 @@ ${index + 1}. ${beneficiary.name}
 JURIDISK INFORMATION
 -------------------
 Detta dokument utgör en sammanfattning av den föreslagna fördelningen
-av dödsboet. Fördelningen baseras på ${data.testament ? 'testamentets bestämmelser' : 'lagstadgad arvordning'}.
+av dödsboet. Fördelningen baseras på ${data.testament ? 'testamentets bestämmelser med hänsyn till laglott (7 kap. Ärvdabalken)' : 'lagstadgad arvordning enligt Ärvdabalken (SFS 1958:637)'}.
 
 Alla arvingar har signerat digitalt med BankID och godkänt fördelningen.
 

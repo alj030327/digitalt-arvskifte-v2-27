@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Upload, AlertTriangle, CheckCircle2, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import LegalGuidance from "@/components/LegalGuidance";
 
 interface Testament {
   id: string;
@@ -59,6 +60,8 @@ export const TestamentUpload = ({ testament, setTestament, hasTestament, setHasT
 
   return (
     <div className="space-y-6">
+      <LegalGuidance context="testament" />
+      
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Testamente</h3>
         <div className="flex gap-2">
@@ -86,7 +89,7 @@ export const TestamentUpload = ({ testament, setTestament, hasTestament, setHasT
         <Alert>
           <FileText className="h-4 w-4" />
           <AlertDescription>
-            Om inget testamente finns kommer lagstadgad arvordning att tillämpas. 
+            Om inget testamente finns kommer lagstadgad arvordning enligt Ärvdabalken att tillämpas. Barn och efterlevande make har rätt till laglott (hälften av den lagstadgade arvslotten) som inte kan frångås i testamente. Särkullbarn (barn från tidigare förhållanden) har samma arvsrätt som gemensamma barn. 
             Tillgångarna kommer att fördelas enligt svenska arvsregler.
           </AlertDescription>
         </Alert>
@@ -97,7 +100,7 @@ export const TestamentUpload = ({ testament, setTestament, hasTestament, setHasT
           <CardHeader>
             <CardTitle className="text-lg">Ladda upp testamente</CardTitle>
             <CardDescription>
-              Ladda upp en kopia av det giltiga testamentet. Accepterade format: PDF, JPG, PNG
+              Ladda upp en kopia av det giltiga testamentet. Observera att laglott (hälften av lagstadgad arvslott) för barn och make inte kan frångås. Accepterade format: PDF, JPG, PNG
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -158,8 +161,8 @@ export const TestamentUpload = ({ testament, setTestament, hasTestament, setHasT
                     <Alert className="mt-3">
                       <CheckCircle2 className="h-4 w-4" />
                       <AlertDescription>
-                        Testamentet har scannats in och kommer att påverka arvsfördelningen. 
-                        Kontrollera att fördelningen överensstämmer med testamentets innehåll.
+                        Testamentet har scannats in och kommer att påverka arvsfördelningen med hänsyn till laglott enligt 7 kap. Ärvdabalken. 
+                        Kontrollera att fördelningen överensstämmer med testamentets innehåll och svenska arvslagar.
                       </AlertDescription>
                     </Alert>
                   )}

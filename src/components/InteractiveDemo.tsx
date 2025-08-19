@@ -31,7 +31,7 @@ const InteractiveDemo = () => {
       icon: Scale,
       title: "Fördela arvet",
       description: "Ange hur tillgångarna ska fördelas mellan arvtagarna",
-      details: "Följer automatiskt laglott eller specifikt testamente",
+      details: "Följer automatiskt laglott enligt Ärvdabalken eller specifikt testamente med lagstadgad hänsyn till skyddad arvslott",
       mockContent: {
         distribution: ["Anna Andersson: 50%", "Erik Andersson: 50%"],
         amounts: ["Anna: 987 500 kr", "Erik: 987 500 kr"]

@@ -52,7 +52,7 @@ const Support = () => {
   const faqs = [
     {
       question: "Vad är Digitalt Arvskifte?",
-      answer: "Digitalt Arvskifte är ett verktyg som hjälper dig att fylla i en arvskifteshandling digitalt. Du fyller i uppgifterna steg för steg, och systemet genererar en färdig PDF som du kan skriva ut och signera. Tjänsten ersätter inte juridisk rådgivning."
+      answer: "Digitalt Arvskifte följer svensk lagstiftning enligt Ärvdabalken (SFS 1958:637). Systemet hjälper dig skapa juridiskt korrekt arvsskiftesdokument som följer lagstadgad arvordning eller testamentets bestämmelser med hänsyn till laglott. Dokumenten är designade för att uppfylla myndighetskrav men ersätter inte juridisk rådgivning vid komplexa ärenden."
     },
     {
       question: "Hur fungerar tjänsten?",
@@ -68,7 +68,7 @@ const Support = () => {
     },
     {
       question: "Vad händer om banken inte godkänner dokumentet?",
-      answer: "Vi tar inget ansvar för juridiskt godkännande, men vi kan granska dokumentet om det tydligt visar att du följt alla steg korrekt. Om handlingen är korrekt ifylld och det finns ett tekniskt fel i tjänsten kan vi överväga återbetalning."
+      answer: "Vi garanterar att systemet följer svensk lagstiftning (Ärvdabalken, Äktenskapsbalken, Föräldrabalken) och korrekt hantering av laglott och särkullbarn. Vi tar ansvar för tekniska fel i systemet men inte för felaktiga uppgifter eller komplexa juridiska situationer som kräver professionell rådgivning."
     },
     {
       question: "Kan jag göra ändringar efter att jag laddat ner PDF:en?",
