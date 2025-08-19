@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PenTool, FileText, Download, Users, Building2, Package } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PenTool, FileText, Download, Users, Building2, Package, CreditCard, Lock, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EstateOwner } from "./Step1EstateOwners";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Asset {
   id: string;
@@ -62,13 +65,84 @@ export const Step4FinalSignature = ({
 }: Step4Props) => {
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState<'review' | 'payment' | 'complete'>('review');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const totalFinancialAssets = assets
     .filter(a => !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
     .reduce((sum, a) => sum + (a.toRemain ? 0 : a.amount), 0);
-    
+     
   const totalPhysicalAssets = physicalAssets.reduce((sum, a) => sum + a.estimatedValue, 0);
   const totalNetAssets = totalFinancialAssets + totalPhysicalAssets;
+
+  const handleProceedToPayment = () => {
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "Ogiltig e-post",
+        description: "Ange en giltig e-postadress.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setCurrentPhase('payment');
+  };
+
+  const handlePayment = async () => {
+    setIsProcessingPayment(true);
+    
+    try {
+      // Create inheritance data object
+      const inheritanceData = {
+        deceased: {
+          name: `${deceasedFirstName} ${deceasedLastName}`,
+          personalNumber: deceasedPersonalNumber,
+        },
+        estateOwners,
+        assets: assets.filter(a => !a.toRemain && !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType)),
+        physicalAssets,
+        beneficiaries,
+        totals: {
+          financialAssets: totalFinancialAssets,
+          physicalAssets: totalPhysicalAssets,
+          netAssets: totalNetAssets,
+        }
+      };
+
+      // Create payment session
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          email,
+          phone,
+          inheritanceData
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Open Stripe checkout in new tab
+      window.open(data.url, '_blank');
+      
+      toast({
+        title: "Omdirigerar till betalning",
+        description: "Betalningssidan öppnades i en ny flik. Slutför betalningen där.",
+      });
+      
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Betalningsfel",
+        description: error.message || "Kunde inte starta betalningen. Försök igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true);
@@ -164,263 +238,206 @@ export const Step4FinalSignature = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Card>
-        <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <PenTool className="w-6 h-6 text-primary" />
-          </div>
-          <CardTitle className="text-2xl">Arvsskifte - Sammanfattning och signering</CardTitle>
-          <CardDescription>
-            Granska sammanfattningen och generera dokument för fysisk signering
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Summary */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Sammanfattning</h3>
-            
-            {/* Deceased Person Information */}
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-semibold mb-2">Den avlidne</h4>
-              <p><strong>Namn:</strong> {deceasedFirstName} {deceasedLastName}</p>
-              <p><strong>Personnummer:</strong> {deceasedPersonalNumber}</p>
+      {currentPhase === 'review' && (
+        <Card>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <PenTool className="w-6 h-6 text-primary" />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-muted rounded-lg text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {estateOwners.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Dödsbodelägare</div>
+            <CardTitle className="text-2xl">Arvsskifte - Granska sammanfattning</CardTitle>
+            <CardDescription>
+              Granska all information innan du går vidare till betalning
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Summary */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Sammanfattning</h3>
+              
+              {/* Deceased Person Information */}
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-semibold mb-2">Den avlidne</h4>
+                <p><strong>Namn:</strong> {deceasedFirstName} {deceasedLastName}</p>
+                <p><strong>Personnummer:</strong> {deceasedPersonalNumber}</p>
               </div>
               
-              <div className="p-4 bg-muted rounded-lg text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {beneficiaries.length}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-muted rounded-lg text-center">
+                  <div className="text-2xl font-bold text-primary">
+                    {estateOwners.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Dödsbodelägare</div>
                 </div>
-                <div className="text-sm text-muted-foreground">Arvingar</div>
-              </div>
-              
-              <div className="p-4 bg-muted rounded-lg text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {totalNetAssets.toLocaleString('sv-SE')} SEK
+                
+                <div className="p-4 bg-muted rounded-lg text-center">
+                  <div className="text-2xl font-bold text-primary">
+                    {beneficiaries.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Arvingar</div>
                 </div>
-                <div className="text-sm text-muted-foreground">Totala nettotillgångar</div>
+                
+                <div className="p-4 bg-muted rounded-lg text-center">
+                  <div className="text-2xl font-bold text-primary">
+                    {totalNetAssets.toLocaleString('sv-SE')} SEK
+                  </div>
+                  <div className="text-sm text-muted-foreground">Totala nettotillgångar</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Estate Owners Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Dödsbodelägare
-            </h3>
-            <div className="space-y-3">
-              {estateOwners.map((owner) => (
-                <div key={owner.id} className="p-4 border border-border rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium">{owner.firstName} {owner.lastName}</span>
-                        <Badge variant="secondary">{owner.relationshipToDeceased}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Personnummer: {owner.personalNumber}
-                      </p>
-                      {owner.address && (
-                        <p className="text-sm text-muted-foreground">
-                          Adress: {owner.address}
-                        </p>
-                      )}
-                      {owner.phone && (
-                        <p className="text-sm text-muted-foreground">
-                          Telefon: {owner.phone}
-                        </p>
-                      )}
-                      {owner.email && (
-                        <p className="text-sm text-muted-foreground">
-                          E-post: {owner.email}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+            {/* Contact Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Kontaktinformation</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="email">E-postadress *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="din.email@exempel.se"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Kvitto och projektåtkomst skickas till denna e-post
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Assets Summary */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
-              Tillgångar
-            </h3>
-            
-            {assets.filter(a => !a.toRemain && !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType)).length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium">Finansiella tillgångar</h4>
-                {assets
-                  .filter(a => !a.toRemain && !['Bolån', 'Privatlån', 'Kreditkort', 'Blancolån', 'Billån', 'Företagslån'].includes(a.assetType))
-                  .map((asset) => (
-                    <div key={asset.id} className="p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-medium">{asset.bank} - {asset.accountType}</span>
-                          <p className="text-sm text-muted-foreground">
-                            {asset.accountNumber} • {asset.assetType}
-                          </p>
-                        </div>
-                        <span className="font-semibold text-primary">
-                          {asset.amount.toLocaleString('sv-SE')} SEK
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-
-            {physicalAssets.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium flex items-center gap-2">
-                  <Package className="w-4 h-4" />
-                  Fysiska tillgångar
-                </h4>
-                {physicalAssets.map((asset) => (
-                  <div key={asset.id} className="p-3 bg-muted/30 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-medium">{asset.name}</span>
-                        <p className="text-sm text-muted-foreground">
-                          {asset.category}
-                          {asset.description && ` • ${asset.description}`}
-                        </p>
-                      </div>
-                      <span className="font-semibold text-primary">
-                        {asset.estimatedValue.toLocaleString('sv-SE')} SEK
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Beneficiaries Summary */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Arvingar och fördelning</h3>
-            <div className="space-y-3">
-              {beneficiaries.map((beneficiary) => (
-                <div key={beneficiary.id} className="p-4 border border-border rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium">{beneficiary.name}</span>
-                        <Badge variant="secondary">{beneficiary.relationship}</Badge>
-                        <Badge variant="outline">{beneficiary.percentage}%</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Personnummer: {beneficiary.personalNumber}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Bankkonto: {beneficiary.accountNumber}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-primary">
-                        {((beneficiary.percentage / 100) * totalNetAssets).toLocaleString('sv-SE')} SEK
-                      </div>
-                    </div>
-                  </div>
+                <div>
+                  <Label htmlFor="phone">Telefonnummer (valfritt)</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+46 70 123 45 67"
+                  />
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
 
-          {/* Signature Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Signaturer</h3>
-            
+            {/* Next Step Info */}
             <Alert>
-              <PenTool className="h-4 w-4" />
+              <CreditCard className="h-4 w-4" />
               <AlertDescription>
-                Detta dokument innehåller signeringsrutor för alla dödsbodelägare. Skriv ut PDF:en och låt alla parter signera fysiskt.
+                <div className="font-medium">Nästa steg: Betalning (200 SEK)</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Efter betalningen får du tillgång till ditt digitala arvsskifte och kan generera signeringsdokument.
+                </div>
               </AlertDescription>
             </Alert>
-            
-            <div className="space-y-3">
-              {estateOwners.map((owner) => (
-                <div key={owner.id} className="p-6 border-2 border-dashed border-border rounded-lg bg-muted/20">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="font-semibold text-lg">{owner.firstName} {owner.lastName}</span>
-                        <Badge variant="secondary">{owner.relationshipToDeceased}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Personnummer: {owner.personalNumber}
-                      </p>
-                      {owner.address && (
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Adress: {owner.address}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-center">
-                      <div className="w-48 h-16 border-2 border-gray-400 border-dashed rounded bg-white/50 flex items-center justify-center">
-                        <span className="text-xs text-muted-foreground">Signatur</span>
-                      </div>
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        ________________________
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Datum
-                      </div>
-                    </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-between">
+              <Button variant="outline" onClick={onBack} className="sm:w-auto">
+                Tillbaka
+              </Button>
+              <Button onClick={handleProceedToPayment} size="lg" className="sm:w-auto">
+                <CreditCard className="w-4 h-4 mr-2" />
+                Fortsätt till betalning
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {currentPhase === 'payment' && (
+        <Card>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <CreditCard className="w-6 h-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Betalning - Digitalt Arvsskifte</CardTitle>
+            <CardDescription>
+              Säker betalning för aktivering av ditt arvsskifte
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg border">
+              <h3 className="text-lg font-semibold mb-4">Vad ingår:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">Digitalt arvsskifte</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">Säker dokumenthantering</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">BankID-signering</span>
                   </div>
                 </div>
-              ))}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">E-postkvitto</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">Permanent projektåtkomst</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">Support och hjälp</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Generate PDF */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Generera arvsskiftesdokument</h3>
-            
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-semibold">Digitalt Arvsskifte</div>
+                  <div className="text-sm text-muted-foreground">
+                    För: {deceasedFirstName} {deceasedLastName}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold">200 SEK</div>
+                  <div className="text-sm text-muted-foreground">Engångsbetalning</div>
+                </div>
+              </div>
+            </div>
+
             <Alert>
-              <FileText className="h-4 w-4" />
+              <Lock className="h-4 w-4" />
               <AlertDescription>
-                Generera ett komplett arvsskiftesdokument som kan skrivas ut och signeras fysiskt av alla dödsbodelägare.
+                <div className="font-medium">Säker betalning via Stripe</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Din betalning är skyddad med branschledande säkerhetsstandard.
+                </div>
               </AlertDescription>
             </Alert>
-            
+
             <Button 
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF}
+              onClick={handlePayment}
+              disabled={isProcessingPayment}
               size="lg"
               className="w-full"
             >
-              {isGeneratingPDF ? (
+              {isProcessingPayment ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Genererar PDF...
+                  Förbereder betalning...
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Generera och ladda ner PDF
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Betala 200 SEK - Säkert med Stripe
                 </>
               )}
             </Button>
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <Button variant="outline" onClick={onBack} className="sm:w-auto">
-              Tillbaka
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setCurrentPhase('review')}>
+                Tillbaka
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

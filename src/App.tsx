@@ -10,6 +10,8 @@ import { SignDocument } from "./pages/SignDocument";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Support from "./pages/Support";
+import { PaymentSuccess } from "./pages/PaymentSuccess";
+import { CaseAccess } from "./pages/CaseAccess";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/" element={<LandingPage />} />
           <Route path="/arvsskifte" element={<EstateProcess />} />
           <Route path="/sign/:token" element={<SignDocument />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/case/:access_token" element={<CaseAccess />} />
           <Route path="/villkor" element={<Terms />} />
           <Route path="/integritet" element={<Privacy />} />
           <Route path="/support" element={<Support />} />
