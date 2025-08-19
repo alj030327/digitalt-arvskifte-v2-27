@@ -57,7 +57,7 @@ interface Testament {
   verified: boolean;
 }
 
-const Index = () => {
+const EstateProcess = () => {
   const { t, language, changeLanguage } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [deceasedFirstName, setDeceasedFirstName] = useState("");
@@ -223,4 +223,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default EstateProcess;
