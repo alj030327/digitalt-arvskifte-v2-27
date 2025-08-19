@@ -1,12 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Scale, CheckCircle, Play, Pause, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, FileText, Scale, CheckCircle } from 'lucide-react';
 
 const InteractiveDemo = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   const demoSteps = [
     {
@@ -51,38 +48,8 @@ const InteractiveDemo = () => {
     }
   ];
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          const newProgress = prev + 1;
-          if (newProgress >= 100) {
-            const nextStep = (currentStep + 1) % demoSteps.length;
-            setCurrentStep(nextStep);
-            return 0;
-          }
-          return newProgress;
-        });
-      }, 50); // 5 seconds per step (100 * 50ms)
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, currentStep, demoSteps.length]);
-
-  const handlePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleReset = () => {
-    setIsPlaying(false);
-    setCurrentStep(0);
-    setProgress(0);
-  };
-
   const handleStepClick = (stepIndex: number) => {
     setCurrentStep(stepIndex);
-    setProgress(0);
-    setIsPlaying(false);
   };
 
   const currentStepData = demoSteps[currentStep];
@@ -92,24 +59,9 @@ const InteractiveDemo = () => {
     <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
       {/* Demo Header */}
       <div className="p-6 border-b">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-foreground">Interaktiv genomgång</h3>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handlePlay}>
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Progress bar */}
-        <div className="w-full bg-muted rounded-full h-2 mb-4">
-          <div 
-            className="bg-primary h-2 rounded-full transition-all duration-100 ease-linear"
-            style={{ width: `${(currentStep * 25) + (progress * 0.25)}%` }}
-          />
+        <div className="mb-4">
+          <h3 className="text-xl font-semibold text-foreground mb-4">Interaktiv genomgång</h3>
+          <p className="text-muted-foreground text-sm">Klicka på stegen nedan för att se hur varje del fungerar</p>
         </div>
 
         {/* Step indicators */}
@@ -118,11 +70,9 @@ const InteractiveDemo = () => {
             <button
               key={index}
               onClick={() => handleStepClick(index)}
-              className={`flex-1 p-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 p-3 rounded-lg text-sm font-medium transition-colors ${
                 index === currentStep
                   ? 'bg-primary text-primary-foreground'
-                  : index < currentStep
-                  ? 'bg-primary/20 text-primary'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
