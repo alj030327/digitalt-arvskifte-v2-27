@@ -10,152 +10,41 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
-      cases: {
+      case_activities: {
         Row: {
-          access_token: string
-          case_number: string
+          activity_type: string
+          case_id: string
           created_at: string
-          currency: string
-          email: string
-          expires_at: string | null
+          description: string
           id: string
-          inheritance_data: Json
-          payment_status: string
-          phone: string | null
-          status: string
-          stripe_session_id: string | null
-          total_amount: number
-          updated_at: string
+          metadata: Json | null
+          user_id: string
         }
         Insert: {
-          access_token?: string
-          case_number?: string
+          activity_type: string
+          case_id: string
           created_at?: string
-          currency?: string
-          email: string
-          expires_at?: string | null
+          description: string
           id?: string
-          inheritance_data: Json
-          payment_status?: string
-          phone?: string | null
-          status?: string
-          stripe_session_id?: string | null
-          total_amount?: number
-          updated_at?: string
+          metadata?: Json | null
+          user_id: string
         }
         Update: {
-          access_token?: string
-          case_number?: string
+          activity_type?: string
+          case_id?: string
           created_at?: string
-          currency?: string
-          email?: string
-          expires_at?: string | null
+          description?: string
           id?: string
-          inheritance_data?: Json
-          payment_status?: string
-          phone?: string | null
-          status?: string
-          stripe_session_id?: string | null
-          total_amount?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      estate_processes: {
-        Row: {
-          assets: Json | null
-          beneficiaries: Json | null
-          created_at: string
-          current_step: number | null
-          deceased_first_name: string | null
-          deceased_last_name: string | null
-          deceased_personal_number: string | null
-          estate_owners: Json | null
-          has_testament: boolean | null
-          id: string
-          physical_assets: Json | null
-          testament: Json | null
-          updated_at: string
-          user_email: string
-        }
-        Insert: {
-          assets?: Json | null
-          beneficiaries?: Json | null
-          created_at?: string
-          current_step?: number | null
-          deceased_first_name?: string | null
-          deceased_last_name?: string | null
-          deceased_personal_number?: string | null
-          estate_owners?: Json | null
-          has_testament?: boolean | null
-          id?: string
-          physical_assets?: Json | null
-          testament?: Json | null
-          updated_at?: string
-          user_email: string
-        }
-        Update: {
-          assets?: Json | null
-          beneficiaries?: Json | null
-          created_at?: string
-          current_step?: number | null
-          deceased_first_name?: string | null
-          deceased_last_name?: string | null
-          deceased_personal_number?: string | null
-          estate_owners?: Json | null
-          has_testament?: boolean | null
-          id?: string
-          physical_assets?: Json | null
-          testament?: Json | null
-          updated_at?: string
-          user_email?: string
-        }
-        Relationships: []
-      }
-      signing_requests: {
-        Row: {
-          case_id: string | null
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          inheritance_data: Json
-          signature_data: Json | null
-          signed_at: string | null
-          status: string
-          token: string
-        }
-        Insert: {
-          case_id?: string | null
-          created_at?: string
-          email: string
-          expires_at?: string
-          id?: string
-          inheritance_data: Json
-          signature_data?: Json | null
-          signed_at?: string | null
-          status?: string
-          token?: string
-        }
-        Update: {
-          case_id?: string | null
-          created_at?: string
-          email?: string
-          expires_at?: string
-          id?: string
-          inheritance_data?: Json
-          signature_data?: Json | null
-          signed_at?: string | null
-          status?: string
-          token?: string
+          metadata?: Json | null
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "signing_requests_case_id_fkey"
+            foreignKeyName: "case_activities_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
@@ -163,15 +52,370 @@ export type Database = {
           },
         ]
       }
+      cases: {
+        Row: {
+          archived: boolean | null
+          assigned_at: string | null
+          assigned_handler_id: string | null
+          assigned_lawyer_id: string | null
+          case_number: string
+          completed_at: string | null
+          created_at: string
+          current_step: number | null
+          customer_id: string
+          deceased_name: string
+          deceased_personal_number: string
+          description: string | null
+          due_date: string | null
+          estate_value: number | null
+          heir_count: number | null
+          id: string
+          status: Database["public"]["Enums"]["case_status"]
+          submitted_at: string | null
+          tags: string[] | null
+          title: string
+          total_steps: number | null
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          assigned_at?: string | null
+          assigned_handler_id?: string | null
+          assigned_lawyer_id?: string | null
+          case_number: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          customer_id: string
+          deceased_name: string
+          deceased_personal_number: string
+          description?: string | null
+          due_date?: string | null
+          estate_value?: number | null
+          heir_count?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["case_status"]
+          submitted_at?: string | null
+          tags?: string[] | null
+          title: string
+          total_steps?: number | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          assigned_at?: string | null
+          assigned_handler_id?: string | null
+          assigned_lawyer_id?: string | null
+          case_number?: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          customer_id?: string
+          deceased_name?: string
+          deceased_personal_number?: string
+          description?: string | null
+          due_date?: string | null
+          estate_value?: number | null
+          heir_count?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["case_status"]
+          submitted_at?: string | null
+          tags?: string[] | null
+          title?: string
+          total_steps?: number | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          archived: boolean | null
+          case_id: string
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          uploaded_by: string
+          verified: boolean | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number | null
+        }
+        Insert: {
+          archived?: boolean | null
+          case_id: string
+          created_at?: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by: string
+          verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number | null
+        }
+        Update: {
+          archived?: boolean | null
+          case_id?: string
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by?: string
+          verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      login_events: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          logged_in_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          logged_in_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          logged_in_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          personal_number: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          personal_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          personal_number?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      signing_requests: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          inheritance_data: Json
+          signature_data: Json | null
+          signed_at: string | null
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          inheritance_data: Json
+          signature_data?: Json | null
+          signed_at?: string | null
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          inheritance_data?: Json
+          signature_data?: Json | null
+          signed_at?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          payload: Json | null
+          processed_at: string | null
+          retries: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          retries?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          retries?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_case_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "customer" | "case_handler" | "lawyer" | "admin"
+      case_status:
+        | "pending"
+        | "in_progress"
+        | "review"
+        | "completed"
+        | "archived"
+      document_type:
+        | "testament"
+        | "death_certificate"
+        | "identity"
+        | "bank_statement"
+        | "valuation"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -298,6 +542,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["customer", "case_handler", "lawyer", "admin"],
+      case_status: [
+        "pending",
+        "in_progress",
+        "review",
+        "completed",
+        "archived",
+      ],
+      document_type: [
+        "testament",
+        "death_certificate",
+        "identity",
+        "bank_statement",
+        "valuation",
+        "other",
+      ],
+    },
   },
 } as const
